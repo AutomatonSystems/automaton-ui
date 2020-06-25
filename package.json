@@ -1,0 +1,17 @@
+{
+  "name": "automaton-ui",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "components.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+
+  },
+  "devDependencies": {
+  }
+}

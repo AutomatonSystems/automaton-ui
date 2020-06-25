@@ -1,0 +1,366 @@
+:root{
+	/* variables for colour */
+
+
+	--text-light: white;
+	--text-dark: #333;
+
+	/** Main brand colour - typically the one used for the brands logo (yellow for McDonalds)**/
+	/* This will be used as the call to action throughout the site (think submit buttons etc) */
+	--brand-primary: dodgerblue;
+	--brand-primary-text: var(--text-light);
+	/** Background brand colour - typically the one used for the brands logo background (red for McDonalds)**/
+	/* This will be used as header backgrounds throughout the site (Main title bar - section headers) */
+	--brand-secondary: #333;
+	--brand-secondary-text: var(--text-light);
+
+	--color-error: firebrick;
+	--color-warn: darkorange;
+	--color-info: forestgreen;
+	--color-debug: dodgerblue;
+
+	--corner-smoothing: 3px;
+	--shadow: 0 1px 2px #0006;
+
+	--font-header: 'Nunito Sans',sans-serif;
+	--font-body: 'Nunito Sans',sans-serif;
+}
+
+html, body{
+	font-family: var(--font-body);
+	font-weight: 200;
+	position: absolute;
+	top:0;
+	left:0;
+	margin:0;
+	padding: 0;
+	width: 100vw;
+	height: 100vh;
+
+	background-color: #f5f5f6;
+}
+
+header, h1,h2,h3,h4,h5,h6{
+	font-family: var(--font-header);
+}
+
+body{
+	display: flex;
+	flex-direction: column;
+}
+
+body > header{
+	background-color: black;
+	padding: 5px;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+body > main{
+	width: 100vw;
+	margin: 0;
+	padding: 0;
+	height: 100vh;
+	
+	display: flex;
+
+	flex: 1 1 auto;
+	overflow: hidden;
+	
+	overflow-y: scroll;
+	justify-content: center;
+}
+
+body > footer{
+	background-color: black;
+	padding: 5px;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+
+[hidden]{
+	display: none !important;
+}
+
+input, select{
+	box-sizing: border-box;
+	padding-left: 10px;
+	width: 100%;
+	border: none;
+	background-color: transparent;
+}
+
+
+ui-splash, ui-modal{
+	position: fixed;
+	top:0;
+	left:0;
+	width: 100vw;
+	height: 100vh;
+	background-color: #0003;
+
+	z-index: 1000;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+ui-modal > ui-panel > content{
+	max-height: 80vh;
+	overflow-y: auto;
+}
+
+ui-panel{
+	display: block;
+
+	box-shadow: var(--shadow);
+	margin: 10px;
+	padding: 10px;
+	
+	background-color: white;
+
+	border-radius: var(--corner-smoothing);
+}
+
+ui-panel header{
+
+	font-weight: 400;
+	font-size: 1.2em;
+	
+	border-bottom: #0003 1px solid;
+
+	border-radius: var(--corner-smoothing) var(--corner-smoothing) 0 0;
+
+	padding: 5px;
+	margin-bottom: 10px;
+
+	text-transform: capitalize;
+}
+
+ui-panel content{
+	display: block;
+}
+
+ui-panel footer{
+	padding-top: 5px;
+	
+	margin-top: 10px;
+
+	border-top: #0003 1px solid;
+
+	display: flex;
+	align-items: center;
+}
+
+ui-spacer{
+	flex: 1 1 auto;
+}
+
+ui-cancel{
+	cursor: pointer;
+	color: var(--color-error);
+}
+
+ui-button{
+	display: inline-block;
+	margin: 2px;
+	padding: 4px 12px;
+
+	cursor: pointer;
+
+	border-radius: var(--corner-smoothing);
+	background-color: var(--brand-primary);
+	color: var(--brand-primary-text);
+	/*box-shadow: var(--shadow);	*/
+}
+
+ui-button a{
+	text-decoration: none;
+	color: var(--brand-primary-text);
+}
+
+ui-button > i{
+	margin-right: 4px;
+}
+
+ui-button:hover{
+	filter: brightness(1.1);
+}
+
+ui-code,ui-json{
+	font-family: monospace;
+	white-space: pre;
+	tab-size: 4;
+}
+
+ui-spinner{
+
+	--size: 1em;
+
+	display: block;
+	height: var(--size);
+	width: var(--size);
+	border-radius: var(--size);
+	animation: spin 1.2s linear 0s infinite reverse;
+	border: solid calc(var(--size) * 0.05 + 2px) #0002;
+
+	border-top-color: white;
+}
+
+@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(-360deg); }
+}
+
+ui-toaster{
+	pointer-events: none;
+	position: fixed;
+	top: 0;
+	left:0;
+	width:100vw;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	z-index: 100;
+}
+
+ui-toast{
+	border-radius: var(--corner-smoothing);
+	background-color: grey;
+	margin: 5px;
+	padding: 8px 12px;
+	color:white;	
+	margin-top: -40px;
+	min-width: 40vw;
+	/*height: 40px;*/
+	opacity: 1;
+	transition: 0.2s margin-top ease, 0.2s opacity ease;
+}
+
+ui-toast > i{
+	margin-right: 8px;
+}
+
+.debug{
+	background-color: var(--color-debug);
+}
+
+.info{
+	background-color: var(--color-info);
+}
+
+.warn{
+	background-color: var(--color-warn);
+}
+
+.error{
+	background-color: var(--color-error);
+}
+
+table.ui-table{
+	border-collapse: collapse;
+	width:100%
+}
+
+table.ui-table > * > tr > *{
+	padding:  5px;
+}
+
+table.ui-table > thead > tr > th{
+	cursor: pointer;
+	position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+table.ui-table > thead > tr > th.desc:after{
+	content: ' \25BC' /* unicode up arrow */
+}
+
+table.ui-table > thead > tr > th.asc:after{
+	content: ' \25B2' /* unicode down arrow */
+}
+
+table.ui-table > tbody > tr:nth-child(2n + 0){
+	background-color: #eee;
+}
+
+table.ui-table > tbody > tr:nth-child(2n + 1){
+	background-color: #f6f6f6;
+}
+
+.ui-table .paging td{
+	text-align: right;
+}
+
+.ui-table .paging ui-button{
+	width: 30px;
+	text-align: center;
+	background-color: var(--brand-secondary);
+	display: none;
+}
+
+.ui-table .paging ui-button.near{
+	display: inline-block;
+}
+
+.ui-table .paging ui-button.active{
+	background-color: var(--brand-primary);
+	display: inline-block;
+}
+
+
+
+ui-form table{
+	border-collapse: separate;
+	border-spacing: 0 10px;
+	margin: 10px;
+}
+
+ui-form table tr{
+	/*box-shadow: var(--shadow);*/
+}
+
+ui-form table tr > th{
+	height: 30px;
+	padding: 4px 8px;
+	/*color: white;
+	background-color: #0009;*/
+	font-weight: unset;
+	border-radius: var(--corner-smoothing) 0 0 var(--corner-smoothing);
+	text-transform: capitalize;
+}
+
+ui-form table tr > td{
+	padding: 0 10px;
+	background-color: #0001;
+	border-radius: 0 var(--corner-smoothing) var(--corner-smoothing) 0;
+}
+
+ui-form table tr > td > *{
+	border: none;
+	margin: 0;	
+}
+
+ui-form textarea{
+	background-color: transparent;
+	width: 300px;
+	height: 100px;
+}
+
+
+ui-badge{
+	font-size: 0.8em;
+	padding: 3px 8px;
+	border-radius: calc(var(--corner-smoothing) * 2);
+	box-shadow: var(--shadow);
+	color: white;
+}
+
+ui-badge > i{
+	margin-right: 8px;
+}
