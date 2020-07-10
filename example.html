@@ -3,150 +3,189 @@
 	<head>
 		<title>Example UI usage</title>
 		
-		<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,200;0,300;0,400;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-		<link rel="stylesheet" type="text/css" href="dist/automaton.ui.css"/>
-		<link rel="stylesheet" type="text/css" href ="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"/>
-		
-		<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.0/highlight.min.js"></script>
-		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.0/styles/monokai-sublime.min.css">
-		<!--<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.0/styles/default.min.css">-->
-		<script src=""></script>
-		<script src="dist/automaton.ui.js" type="module"></script>
+		<script src="dist/ui.js" type="module"></script>
 
 	</head>
 	<body>
 
-
-		<h1>Examples and Such</h1>
-
-		<ui-panel>
-			<header>Panel Header</header>
+		<main>
 			<content>
-				Hello
-				<progress value=32 max=100></progress>
-			</content>
-			<footer>
-				<ui-spacer></ui-spacer>
-				<ui-button icon="fa-hourglass" onclick="showSplash()">Splash</ui-button>
-			</footer>
-		</ui-panel>
+				<h1>Examples and Such</h1>
 
-		<ui-splash hidden>
-			<ui-spinner size="10vh"></ui-spinner>
-		</ui-splash>
+				<ui-panel>
+					<header>Panel Header</header>
+					<content>
+						Hello
+						<progress value=32 max=100></progress>
+					</content>
+					<footer>
+						<ui-spacer></ui-spacer>
+						<ui-button icon="fa-hourglass" onclick="showSplash()">Splash</ui-button>
+					</footer>
+				</ui-panel>
 
-		<script>
-			async function showSplash(){
-				document.querySelector('ui-splash').show();
-				await sleep(3000);
-				document.querySelector('ui-splash').hide();
-			}
-		</script>
+				<ui-splash hidden>
+					<ui-spinner size="10vh"></ui-spinner>
+				</ui-splash>
 
-		<ui-json>
-		{
-		"content": "A JSON Object",
-		"nesting": {
-				"supported":true
-			}
-		}
-		</ui-json>
+				<ui-toggle></ui-toggle>
 
-		<table>
-			<thead>
-				<tr>
-					<th>id</th>
-					<th>name</th>
-					<th>price</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>1</td>
-					<td>A Nice Hat</td>
-					<td>£50</td>
-				</tr>
-				<tr>
-					<td>300</td>
-					<td>Playstation 5</td>
-					<td>£500</td>
-				</tr>
-				<tr>
-					<td>50</td>
-					<td>Chewing Gum</td>
-					<td>£0.50</td>
-				</tr>
-			</tbody>
-		</table>
-		<script type="module">
-			import * as UI from "./components.js";
-			
-			new UI.SortableTable(document.querySelector('table'));			
-		</script>
+				<script>
+					async function showSplash(){
+						document.querySelector('ui-splash').show();
+						await sleep(3000);
+						document.querySelector('ui-splash').hide();
+					}
+				</script>
 
-		<ui-button id="toast-button" icon="fa-window-maximize">Toast</ui-button>
-
-		<script type="module">
-			import * as UI from "./components.js";
-
-			document.querySelector('#toast-button').addEventListener('click',()=>{
-					new UI.Toast("Toast is yummy!", {level: (["debug", "info", "warn", "error"])[Math.floor(Math.random()*4)]});
-			});
-		</script>
-
-		<ui-button id="pet-button" icon="fa-vcard ">Build-A-Pet</ui-button>
-
-		<script type="module">
-			import * as UI from "./components.js";
-
-			let template = [
+				<ui-json>
 				{
-					"key": "name",
-					"name": `<i class="fa fa-user"></i>`,
-					"placeholder": "What would you like your pet to be called?",
-					"type": "string"
-				},
-				{
-					"key": "type",
-					"type": "list",
-					"options": async ()=>{return ["cat", "dog", {"value":"ele","name":"elephant"}]}
-				},
-				{
-					"key": "breed",
-					"type": "list",
-					"hidden": json=>json.type != 'dog',
-					"options": ["whippet", "pug", {"value":"cat", "name": "Cat in a dog costume"}]
-				},
-				{
-					"key": "weight",
-					"type": [
-						"reallyLongName:number",
-						"max:number"
-					]
+				"content": "A JSON Object",
+				"nesting": {
+						"supported":true
+					}
 				}
-			];
+				</ui-json>
 
-			document.querySelector('#pet-button').addEventListener('click',()=>{
-				//build the form
-				let form = new UI.Form(template);
-				// init with data
-				form.build({
-						name: "Bork",
-						type: "dog",
-						weight: {
-							min: 0,
-							max: 100
+				<div style="padding: 20px;">
+					<script>
+						let counter = 1;
+						async function doFlip(card){
+							await card.flip();
+							card.setContent(`<h1>${counter++}</h1>`);
+							card.flip();
 						}
-					});
-				// push it into a modal
-				new UI.Modal(form, {
-					title: "Build-a-Pet",
-					buttons: "<ui-cancel></ui-cancel><ui-spacer></ui-spacer><ui-button icon='fa-check'>Select</ui-button>"
-				}).attach();
-			});
+					</script>
+					<ui-card onclick="doFlip(this)">
+						<h1>Hello</h1>
+					</ui-card>
+					<ui-card onclick="this.flip()" flipped>
+						<h1>Goodbye</h1>
+					</ui-card>
+				</div>
 
-			document.querySelector('#pet-button').click();
-			
-		</script>
+				<ui-button id="toast-button" icon="fa-window-maximize">Toast</ui-button>
+
+				<script type="module">
+					import * as UI from "./dist/ui.js";
+
+					document.querySelector('#toast-button').addEventListener('click',()=>{
+							new UI.Toast("Toast is yummy!", {level: (["debug", "info", "warn", "error", "success"])[Math.floor(Math.random()*5)]});
+					});
+				</script>
+
+				<ui-button id="pet-button" icon="fa-vcard ">Build-A-Pet</ui-button>
+
+				<script type="module">
+					import * as UI from "./dist/ui.js";
+
+					console.log(UI);
+
+					let template = [
+						{
+							"key": "name",
+							"name": `<i class="fa fa-user"></i>`,
+							"placeholder": "What would you like your pet to be called?",
+							"type": "string"
+						},
+						{
+							"key": "type",
+							"type": "list",
+							"options": async ()=>{return ["cat", "dog", {"value":"ele","name":"elephant"}]}
+						},
+						{
+							"key": "bio",
+							"type": "text"
+						},
+						{
+							"key": "breed",
+							"type": "list",
+							"hidden": json=>json.type != 'dog',
+							"options": ["whippet", "pug", {"value":"cat", "name": "Cat in a dog costume"}]
+						},
+						"hr"
+						,{
+							"key": "weight",
+							"type": "compound",
+							"children":[
+								"reallyLongName:number",
+								"max:number"
+							]
+						},
+						{
+							"key": "good",
+							"name": "Good Boy",
+							"type": "toggle",
+							"hidden": json=>json.type != 'dog'
+						},
+						{
+							"key": "home",
+							"name": "House Trained",
+							"type": "checkbox"
+						},
+
+						"A fine Title:header",
+						{
+							"key": "lemon",
+							"name": "Lemon",
+							"type": UI.Toggle
+						},
+						{
+							"key": "tricks",
+							"type": "array",
+							"children": "string"
+						},
+						{
+							"key": "awards",
+							"type": "array",
+							"style": "ROW",
+							"children": [
+								"award:string",
+								{
+									"key": "place",
+									"type": "list",
+									"options": ["first", "second", "third"]
+								}
+							]
+						}
+					];
+
+					document.querySelector('#pet-button').addEventListener('click',()=>{
+						//build the form
+						let form = new UI.Form(template);
+						// init with data
+						form.build({
+								name: "Bork",
+								type: "dog",
+								weight: {
+									min: 0,
+									max: 100
+								},
+								good: true,
+								lemon: true,
+								tricks: ["backflip", "borking"],
+								"awards": [{
+									award: "Good Doggo",
+									place: "first"
+								}]
+							});
+						// push it into a modal
+						let modal = new UI.Modal(form, {
+							title: "Build-a-Pet",
+							buttons: "<ui-cancel></ui-cancel><ui-spacer></ui-spacer><ui-button icon='fa-check'>Select</ui-button>",
+							dismissable: false
+						}).attach();
+						
+						modal.querySelector('ui-button[icon="fa-check"]').onclick =()=>{
+							new UI.Modal(new UI.Json(form.json())).show();
+							modal.remove();
+						};
+					});
+
+
+					//document.querySelector('#pet-button').click();
+				</script>
+			</content>
+		</main>
 	</body>
 </html>
