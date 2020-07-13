@@ -1,6 +1,6 @@
-import "Button.css";
+import "./Button.css";
 
-import { BasicElement } from "./BasicElement.js";
+import { BasicElement } from "../BasicElement.js";
 
 export class Button extends BasicElement {
 
@@ -25,6 +25,7 @@ export class Button extends BasicElement {
 			i.classList.add("fa", icon.trim());
 			this.prepend(i);
 		}
+		
 	}
 
 }

@@ -1,5 +1,7 @@
+import "./Form.css";
+
 import { BasicElement } from "../BasicElement.js";
-import { Button } from "../Button.js";
+import { Button } from "./Button.js";
 import { Toggle } from "./Toggle.js";
 /****** FORM COMPONENTS ******/
 

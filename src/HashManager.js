@@ -73,6 +73,8 @@ export class HashHandler{
 
 export class HashManager extends BasicElement {
 
+
+	key = null;
 	hash = "";
 	depth = 0;
 
@@ -94,20 +96,50 @@ export class HashManager extends BasicElement {
 
 	static Handler = HashHandler;
 
-	constructor() {
+	constructor(key=null) {
 		super();
-
+		this.key = key;
 		window.addEventListener('hashchange', () => this.hashChange());
+	}
+
+	get value(){
+		return this.hash;
+	}
+
+	handler(path, func){
+		this.handlers.push(new HashHandler(path, func));
+		return this;
 	}
 
 	addHandler(h) {
 		this.handlers.push(h);
 	}
 
+	set(value){
+		let hash = window.location.hash.substring(1);
+		let pairs = hash.split('|').filter(i=>i!='').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
+		let pair = pairs.find(i=>i[0]==this.key);
+		if(pair == null){
+			pair = [this.key,null];
+			pairs.push(pair);
+		}
+		pair[1] = value;
+
+		window.location.hash = pairs.map(p=>p[0]?p.join('='):p[1]).join('|');
+	}
 
 	async hashChange() {
-		let newHash = window.location.hash;
+		let hash = window.location.hash.substring(1);
+		let pairs = hash.split('|').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
+
+		
+		let pair = pairs.find(i=>i[0]==this.key);
+		if(pair == null)
+			pair = [this.key,""];
+		let newHash = pair[1];
 		let oldHash = this.hash;
+		
+		this.hash = newHash;
 
 		// work out the new content
 		for (let handler of this.handlers) {
@@ -118,7 +150,6 @@ export class HashManager extends BasicElement {
 			}
 		}
 
-		this.hash = newHash;
 	}
 
 

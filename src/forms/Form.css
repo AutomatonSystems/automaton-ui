@@ -1,0 +1,76 @@
+ui-form .key{
+	
+}
+
+ui-form .value{
+
+}
+
+ui-form .array{
+	display: flex;
+	padding: 10px;
+
+	background-color: #0001;
+	box-shadow: inset var(--shadow);
+	margin-bottom: 10px;
+}
+
+ui-form .array:empty{
+	display:none;
+}
+
+ui-form .array.INLINE{
+	flex-wrap: wrap;
+}
+
+ui-form .array.ROW{
+	flex-direction: column;
+}
+
+ui-form .item{
+	background-color: white;
+	box-shadow: var(--shadow);
+	border-radius: var(--corner-smoothing);
+	position: relative;
+	padding: 5px;
+	padding-right: 30px;
+	margin: 5px;
+}
+
+ui-form .item ui-button{
+	position: absolute;
+    right: 5px;
+    top: 5px;
+}
+
+ui-form span.value{
+	display: inline-flex;
+}
+
+ui-form table tr > th{
+	height: 30px;
+	padding: 4px 8px;
+	font-weight: unset;
+	border-radius: var(--corner-smoothing) 0 0 var(--corner-smoothing);
+	text-transform: capitalize;
+}
+
+ui-form .value > input:not([type='checkbox']), ui-form .value > select, ui-form .value > textarea{
+	width: 100%;
+	padding: 10px;
+	border: none;
+	min-height: 30px;
+	margin: 0;	
+	background-color: #0001;
+	border-radius: var(--corner-smoothing);
+}
+
+ui-form textarea{
+	height: 100px;
+}
+
+ui-form table{
+	margin: 0;
+	box-sizing: border-box;
+	width: 100%;
+}

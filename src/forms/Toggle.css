@@ -1,0 +1,48 @@
+ui-toggle{
+	width: 50px;
+	--size: 20px;
+
+	position: relative;
+	display:inline-block;
+	margin: 5px;
+	
+	height: var(--size);
+}
+
+ui-toggle input{
+	display:inline-block;
+	position: absolute;
+	opacity: 0;
+	width:100%;
+	height:100%;
+	cursor: pointer;
+}
+
+ui-toggle div{
+	display:inline-block;
+	height: 100%;
+	background-color: var(--color-error);
+	padding: 3px;
+	width: 100%;
+	border-radius: var(--size);
+	box-shadow: inset var(--shadow);
+}
+
+ui-toggle span{
+	display:inline-block;
+	height: 100%;
+	width: var(--size);
+	background-color: white;
+	border-radius: var(--size);
+	margin-left: 0px;
+	transition: margin-left 0.2s ease;
+	box-shadow: var(--shadow);
+}
+
+ui-toggle input:checked + div{
+	background-color: var(--color-success);
+}
+
+ui-toggle input:checked + div span{
+	margin-left: calc(100% - var(--size));
+}

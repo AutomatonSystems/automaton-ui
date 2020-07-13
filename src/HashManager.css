@@ -2,6 +2,7 @@
 
 ui-hash{
 	--timing: 400ms;
+	display: block;
 	position: relative;
 	overflow: hidden;
 }

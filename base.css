@@ -135,7 +135,7 @@ ui-panel{
 	border-radius: var(--corner-smoothing);
 }
 
-ui-panel header{
+ui-panel > header{
 
 	font-weight: 400;
 	font-size: 1.2em;
@@ -150,11 +150,11 @@ ui-panel header{
 	text-transform: capitalize;
 }
 
-ui-panel content{
+ui-panel > content{
 	display: block;
 }
 
-ui-panel footer{
+ui-panel > footer{
 	padding-top: 5px;
 	
 	margin-top: 10px;
@@ -174,12 +174,7 @@ ui-cancel{
 	color: var(--color-error);
 }
 
-
-
-
-
 ui-spinner{
-
 	--size: 1em;
 
 	display: block;
@@ -195,35 +190,6 @@ ui-spinner{
 @keyframes spin {
 	0% { transform: rotate(0deg); }
 	100% { transform: rotate(-360deg); }
-}
-
-ui-toaster{
-	pointer-events: none;
-	position: fixed;
-	top: 0;
-	left:0;
-	width:100vw;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	z-index: 100;
-}
-
-ui-toast{
-	border-radius: var(--corner-smoothing);
-	background-color: grey;
-	margin: 5px;
-	padding: 8px 12px;
-	color:white;	
-	margin-top: -40px;
-	min-width: 40vw;
-	/*height: 40px;*/
-	opacity: 1;
-	transition: 0.2s margin-top ease, 0.2s opacity ease;
-}
-
-ui-toast > i{
-	margin-right: 8px;
 }
 
 .success{
@@ -319,92 +285,13 @@ table.ui-table > tbody > tr:nth-child(2n + 1){
 	display: inline-block;
 }
 
-
-
-
-
 ui-form table{
 	border-collapse: separate;
 	border-spacing: 0 10px;
 	margin: 10px;
 }
 
-ui-form .key{
-	
-}
 
-ui-form .value{
-
-}
-
-ui-form .array{
-	display: flex;
-	padding: 10px;
-
-	background-color: #0001;
-	box-shadow: inset var(--shadow);
-	margin-bottom: 10px;
-}
-
-ui-form .array:empty{
-	display:none;
-}
-
-ui-form .array.INLINE{
-	flex-wrap: wrap;
-}
-
-ui-form .array.ROW{
-	flex-direction: column;
-}
-
-ui-form .item{
-	background-color: white;
-	box-shadow: var(--shadow);
-	border-radius: var(--corner-smoothing);
-	position: relative;
-	padding: 5px;
-	padding-right: 30px;
-	margin: 5px;
-}
-
-ui-form .item ui-button{
-	position: absolute;
-    right: 5px;
-    top: 5px;
-}
-
-ui-form span.value{
-	display: inline-flex;
-}
-
-ui-form table tr > th{
-	height: 30px;
-	padding: 4px 8px;
-	font-weight: unset;
-	border-radius: var(--corner-smoothing) 0 0 var(--corner-smoothing);
-	text-transform: capitalize;
-}
-
-ui-form .value > input:not([type='checkbox']), ui-form .value > select, ui-form .value > textarea{
-	width: 100%;
-	padding: 10px;
-	border: none;
-	min-height: 30px;
-	margin: 0;	
-	background-color: #0001;
-	border-radius: var(--corner-smoothing);
-}
-
-ui-form textarea{
-	height: 100px;
-}
-
-ui-form table{
-	margin: 0;
-	box-sizing: border-box;
-	width: 100%;
-}
 
 /****************/
 
@@ -420,58 +307,6 @@ ui-badge{
 ui-badge > i{
 	margin-right: 8px;
 }
-
-/**************/
-
-ui-toggle{
-	width: 50px;
-	--size: 20px;
-
-	position: relative;
-	display:inline-block;
-	margin: 5px;
-	
-	height: var(--size);
-}
-
-ui-toggle input{
-	display:inline-block;
-	position: absolute;
-	opacity: 0;
-	width:100%;
-	height:100%;
-	cursor: pointer;
-}
-
-ui-toggle div{
-	display:inline-block;
-	height: 100%;
-	background-color: var(--color-error);
-	padding: 3px;
-	width: 100%;
-	border-radius: var(--size);
-	box-shadow: inset var(--shadow);
-}
-
-ui-toggle span{
-	display:inline-block;
-	height: 100%;
-	width: var(--size);
-	background-color: white;
-	border-radius: var(--size);
-	margin-left: 0px;
-	transition: margin-left 0.2s ease;
-	box-shadow: var(--shadow);
-}
-
-ui-toggle input:checked + div{
-	background-color: var(--color-success);
-}
-
-ui-toggle input:checked + div span{
-	margin-left: calc(100% - var(--size));
-}
-
 
 /*************/
 

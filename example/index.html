@@ -3,8 +3,18 @@
 	<head>
 		<title>Example UI usage</title>
 		
-		<script src="dist/ui.js" type="module"></script>
+		<script src="/dist/ui.js" type="module"></script>
 
+		<style>
+			.pokemon img{
+				height: 120px;
+				min-width: 120px;
+			}
+
+			h1{
+				text-align: center;
+			}
+		</style>
 	</head>
 	<body>
 
@@ -56,7 +66,7 @@
 							card.flip();
 						}
 					</script>
-					<ui-card onclick="doFlip(this)">
+					<ui-card onclick="doFlip(this)" style="width:100px">
 						<h1>Hello</h1>
 					</ui-card>
 					<ui-card onclick="this.flip()" flipped>
@@ -67,17 +77,21 @@
 				<ui-button id="toast-button" icon="fa-window-maximize">Toast</ui-button>
 
 				<script type="module">
-					import * as UI from "./dist/ui.js";
+					import * as UI from "/dist/ui.js";
+
+
 
 					document.querySelector('#toast-button').addEventListener('click',()=>{
 							new UI.Toast("Toast is yummy!", {level: (["debug", "info", "warn", "error", "success"])[Math.floor(Math.random()*5)]});
 					});
 				</script>
 
+				
+
 				<ui-button id="pet-button" icon="fa-vcard ">Build-A-Pet</ui-button>
 
 				<script type="module">
-					import * as UI from "./dist/ui.js";
+					import * as UI from "/dist/ui.js";
 
 					console.log(UI);
 
@@ -187,5 +201,29 @@
 				</script>
 			</content>
 		</main>
+
+		<script type="module">
+			import {HashManager, Toggle, Panel} from "/dist/ui.js";
+			import {list, table} from "./ExampleList.js";
+
+			
+			let hash = new HashManager();
+			hash.handler('{type}', ({type})=>{
+				switch(type){
+					case 'table':
+						return [table, HashManager.DIRECTION.RIGHT];
+					case 'list':
+					default:
+						return [list, HashManager.DIRECTION.LEFT];
+				}
+			});
+			hash.hashChange();
+			hash.style="width: 600px; height: 700px";
+
+			document.querySelector('content').append(new Panel([new Toggle(hash.value=='table', (value)=>{hash.set(value?'table':'list')}),
+			hash
+			], {clazz: 'pokemon'}));
+			
+		</script>
 	</body>
 </html>

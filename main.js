@@ -4,20 +4,20 @@ import { BasicElement } from "./src/BasicElement.js";
 import * as utils from "./src/utils.js";
 
 import { Badge } from "./src/Badge.js";
-import { Button } from "./src/Button.js";
-import { Cancel } from "./src/Cancel.js";
+import { Button } from "./src/forms/Button.js";
+import { Cancel } from "./src/forms/Cancel.js";
 import { Card } from "./src/Card.js";
-import { Code } from "./src/code/Code.js";
+import { Code } from "./src/text/Code.js";
 import { Form } from "./src/forms/Form.js";
 import { HashManager } from "./src/HashManager.js";
-import { Json } from "./src/code/Json.js";
-import { ManagedTable } from "./src/ManagedTable.js";
+import { Json } from "./src/text/Json.js";
+import { List, Table} from "./src/List.js";
 import { Modal } from "./src/Modal.js";
 import { Panel } from "./src/Panel.js";
 import { Spacer } from "./src/Spacer.js";
 import { Spinner } from "./src/Spinner.js";
 import { Splash } from "./src/Splash.js";
-import { Toast } from "./src/Toast.js";
+import { Toast } from "./src/feedback/Toast.js";
 import { Toggle } from "./src/forms/Toggle.js";
 
 // @ts-ignore
@@ -43,7 +43,7 @@ const UI = {
 	Form,
 	HashManager,
 	Json,
-	ManagedTable,
+	List, Table,
 	Modal,
 	Panel,
 	Spacer,
@@ -66,7 +66,7 @@ export {Code};
 export {Form};
 export {HashManager};
 export {Json};
-export {ManagedTable};
+export {List, Table};
 export {Modal};
 export {Panel};
 export {Spacer};

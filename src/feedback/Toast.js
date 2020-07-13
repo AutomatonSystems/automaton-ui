@@ -1,4 +1,6 @@
-import { BasicElement } from "./BasicElement";
+import "./Toast.css";
+
+import { BasicElement } from "../BasicElement";
 
 export class Toaster extends BasicElement{
 	constructor(){

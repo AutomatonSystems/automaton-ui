@@ -1,0 +1,28 @@
+ui-toaster{
+	pointer-events: none;
+	position: fixed;
+	top: 0;
+	left:0;
+	width:100vw;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	z-index: 100;
+}
+
+ui-toast{
+	border-radius: var(--corner-smoothing);
+	background-color: grey;
+	margin: 5px;
+	padding: 8px 12px;
+	color:white;	
+	margin-top: -40px;
+	min-width: 40vw;
+	/*height: 40px;*/
+	opacity: 1;
+	transition: 0.2s margin-top ease, 0.2s opacity ease;
+}
+
+ui-toast > i{
+	margin-right: 8px;
+}

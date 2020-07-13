@@ -20,13 +20,8 @@ export class BasicElement extends HTMLElement {
      */
 	css(variable) {
 		let value = getComputedStyle(this).getPropertyValue(variable);
-		// timings
-		if (value.endsWith('ms')) {
-			return parseFloat(value);
-		}
-		else if (value.endsWith('s')) {
-			return parseFloat(value) * 1000;
-		}
+		if(!value)
+			value = this.style.getPropertyValue(variable);
 		// everything else
 		return value;
 	}
@@ -38,7 +33,7 @@ export class BasicElement extends HTMLElement {
      * @returns {Number}
      */
 	cssNumber(variable) {
-		let value = getComputedStyle(this).getPropertyValue(variable);
+		let value = this.css(variable);
 
 		let number = parseFloat(value);
 		// timings
@@ -50,6 +45,10 @@ export class BasicElement extends HTMLElement {
 		}
 		// everything else
 		return number;
+	}
+
+	setCss(name,value){
+		this.style.setProperty(name, value);
 	}
 
 	get visible() {
@@ -115,7 +114,6 @@ export class BasicElement extends HTMLElement {
      *
      * @returns {HTMLElement[]}
      */
-
 	static castHtmlElements(...elements) {
 		return /** @type {HTMLElement[]} */ ([...elements]);
 	}

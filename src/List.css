@@ -1,0 +1,73 @@
+
+
+[ui-list]{
+	--item-columns: 3;
+	--items-per-page: 24;
+}
+
+[ui-list] .desc:after{
+	content: ' \25BC' /* unicode up arrow */
+}
+
+[ui-list] .asc:after{
+	content: ' \25B2' /* unicode down arrow */
+}
+
+[ui-list] > content.list{
+	display: grid;
+	grid-template-columns: repeat(var(--item-columns), calc(100% / var(--item-columns)));
+	justify-items: center;
+	align-items: center;
+}
+
+[ui-list] .sort select{
+	padding: 6px;
+	background-color: var(--brand-secondary);
+	color:  var(--brand-primary-text);
+	border-radius: var(--corner-smoothing);
+}
+
+[ui-list] .paging ui-button{
+	width: 30px;
+	text-align: center;
+	background-color: var(--brand-secondary);
+	display: inline-block;
+}
+
+[ui-list] .paging ui-button.active{
+	background-color: var(--brand-primary);
+}
+
+[ui-list] .paging ui-button.disabled{
+	opacity: 0.5;
+}
+
+[ui-list] .paging span{
+	display: inline-block;
+	font-size: 2em;
+	line-height: 16px;
+}
+
+[ui-table] > table{
+	border-collapse: collapse;
+	width:100%
+}
+
+[ui-table] > table > * > tr > *{
+	padding:  5px;
+}
+
+[ui-table] > table > thead > tr > th{
+	cursor: pointer;
+	position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+[ui-table] > table > tbody > tr:nth-child(2n + 0){
+	background-color: #eee;
+}
+
+[ui-table] > table > tbody > tr:nth-child(2n + 1){
+	background-color: #f6f6f6;
+}

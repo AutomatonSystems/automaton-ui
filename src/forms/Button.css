@@ -11,6 +11,10 @@ ui-button{
 	/*box-shadow: var(--shadow);	*/
 }
 
+ui-button::selection{
+	user-select: all;
+}
+
 ui-button.text{
 	background-color: transparent;
 	padding: 0;
