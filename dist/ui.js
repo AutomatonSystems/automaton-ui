@@ -712,6 +712,9 @@ class HashManager extends BasicElement {
 		
 		this.hash = newHash;
 
+		if(this.hash == oldHash)
+			return;
+
 		// work out the new content
 		for (let handler of this.handlers) {
 			let result = await handler.handle(newHash, oldHash);
@@ -842,7 +845,7 @@ class List extends BasicElement{
 	/**
 	 * 
 	 * @param {itemElement} itemDisplay 
-	 * @param {{itemColumns?:number, itemsPerPage: number}} options 
+	 * @param {{itemColumns?:number, itemsPerPage?: number}} options 
 	 */
 	constructor(itemDisplay, options = {}) {
 		super();
@@ -889,7 +892,8 @@ class List extends BasicElement{
 		return `
 	<!-- pagination -->
 	<header>
-		<span class="sort"></span>
+		<span>Sort By <span class="sort"></span></span>
+		<ui-spacer></ui-spacer>
 		<span class="paging top"></span>
 	</header>
 
@@ -898,6 +902,7 @@ class List extends BasicElement{
 
 	<!-- pagination -->
 	<footer>
+		<ui-spacer></ui-spacer>
 		<div class="paging bottom"></div>
 	</footer>`
 	}
@@ -980,15 +985,15 @@ class List extends BasicElement{
 		//this.listBody.style.removeProperty('display');
 	}
 
-	getItemElement(item){
+	async getItemElement(item){
 		if(!this.elementMap.has(item)){
-			this.elementMap.set(item, this.renderItem(item));
+			this.elementMap.set(item, await this.renderItem(item));
 		}
 		return this.elementMap.get(item);
 	}
 
-	renderItem(item){
-		return this._itemDisplayFunc(item);
+	async renderItem(item){
+		return await this._itemDisplayFunc(item);
 	}
 
 	/**
@@ -1021,7 +1026,7 @@ class List extends BasicElement{
 	 * 
 	 * @param {Number} page ZERO-INDEXED page number
 	 */
-	page(page = this.pageNumber) {
+	async page(page = this.pageNumber) {
 
 		// rebuild the display list if dirty
 		if(this.dirty){
@@ -1073,7 +1078,7 @@ class List extends BasicElement{
 		this.listBody.innerHTML = "";
 		for(let index = this.pageNumber*this.itemsPerPage; index < (this.pageNumber+1)*this.itemsPerPage && index < visibleCount; index++){
 			let item = this.display[index];
-			this.listBody.append(this.getItemElement(item));
+			this.listBody.append(await this.getItemElement(item));
 		}
 	}
 
@@ -1114,15 +1119,16 @@ class Table extends List{
 	 * @param {{itemsPerPage?: number}} options 
 	 */
 	constructor(options) {
-		super((item)=>{			
+		super(async (item)=>{
 			let tr = document.createElement('tr');
 			tr.dataset['tableId'] = item.__id;
 			// render item (possible hidden)
-			let html = '';
 			for (let header of Object.values(this.attrs)) {
-				html += `<td>${header.displayFunc(item)}</td>`;
+				let cell = document.createElement('td');
+				let content = await header.displayFunc(item);
+				append(cell, content);
+				tr.append(cell);
 			}
-			tr.innerHTML = html;
 			return tr;
 		}, options);
 

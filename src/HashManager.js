@@ -141,6 +141,9 @@ export class HashManager extends BasicElement {
 		
 		this.hash = newHash;
 
+		if(this.hash == oldHash)
+			return;
+
 		// work out the new content
 		for (let handler of this.handlers) {
 			let result = await handler.handle(newHash, oldHash);

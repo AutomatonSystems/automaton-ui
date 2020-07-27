@@ -13,7 +13,13 @@
 	content: ' \25B2' /* unicode down arrow */
 }
 
+[ui-list] header, [ui-list] footer{
+	display: flex;
+	align-items: center;
+}
+
 [ui-list] > content.list{
+	width: 100%;
 	display: grid;
 	grid-template-columns: repeat(var(--item-columns), calc(100% / var(--item-columns)));
 	justify-items: center;
