@@ -305,6 +305,7 @@ export class List extends BasicElement{
 		if(end > pages-1){
 			start -= (end - pages)+1;
 			end = pages -1;
+			start = Math.max(1, start);
 		}
 		if(start > 1){
 			html += `<span>...</span>`;

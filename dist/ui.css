@@ -400,118 +400,13 @@ ui-button > i{
 
 ui-button:hover{
 	filter: brightness(1.1);
-}
-
-[ui-list]{
-	--item-columns: 3;
-	--items-per-page: 24;
-}
-
-[ui-list] .desc:after{
-	content: ' \25BC' /* unicode up arrow */
-}
-
-[ui-list] .asc:after{
-	content: ' \25B2' /* unicode down arrow */
-}
-
-[ui-list] header, [ui-list] footer{
-	display: flex;
-	align-items: center;
-}
-
-[ui-list] > content.list{
-	width: 100%;
-	display: grid;
-	grid-template-columns: repeat(var(--item-columns), calc(100% / var(--item-columns)));
-	justify-items: center;
-	align-items: center;
-}
-
-[ui-list] .sort select{
-	padding: 6px;
-	background-color: var(--brand-secondary);
-	color:  var(--brand-primary-text);
-	border-radius: var(--corner-smoothing);
-}
-
-[ui-list] .paging ui-button{
-	width: 30px;
-	text-align: center;
-	background-color: var(--brand-secondary);
-	display: inline-block;
-}
-
-[ui-list] .paging ui-button.active{
-	background-color: var(--brand-primary);
-}
-
-[ui-list] .paging ui-button.disabled{
-	opacity: 0.5;
-}
-
-[ui-list] .paging span{
-	display: inline-block;
-	font-size: 2em;
-	line-height: 16px;
-}
-
-[ui-table] > table{
-	border-collapse: collapse;
-	width:100%
-}
-
-[ui-table] > table > * > tr > *{
-	padding:  5px;
-}
-
-[ui-table] > table > thead > tr > th{
-	cursor: pointer;
-	position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-[ui-table] > table > tbody > tr:nth-child(2n + 0){
-	background-color: #eee;
-}
-
-[ui-table] > table > tbody > tr:nth-child(2n + 1){
-	background-color: #f6f6f6;
 }ui-code,ui-json{
 	font-family: monospace;
 	white-space: pre;
 	tab-size: 4;
 }
 
-.hljs{display:block;overflow-x:auto;padding:.5em;background:#23241f}.hljs,.hljs-subst,.hljs-tag{color:#f8f8f2}.hljs-emphasis,.hljs-strong{color:#a8a8a2}.hljs-bullet,.hljs-link,.hljs-literal,.hljs-number,.hljs-quote,.hljs-regexp{color:#ae81ff}.hljs-code,.hljs-section,.hljs-selector-class,.hljs-title{color:#a6e22e}.hljs-strong{font-weight:700}.hljs-emphasis{font-style:italic}.hljs-attr,.hljs-keyword,.hljs-name,.hljs-selector-tag{color:#f92672}.hljs-attribute,.hljs-symbol{color:#66d9ef}.hljs-class .hljs-title,.hljs-params{color:#f8f8f2}.hljs-addition,.hljs-built_in,.hljs-builtin-name,.hljs-selector-attr,.hljs-selector-id,.hljs-selector-pseudo,.hljs-string,.hljs-template-variable,.hljs-type,.hljs-variable{color:#e6db74}.hljs-comment,.hljs-deletion,.hljs-meta{color:#75715e}ui-toaster{
-	pointer-events: none;
-	position: fixed;
-	top: 0;
-	left:0;
-	width:100vw;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	z-index: 100;
-}
-
-ui-toast{
-	border-radius: var(--corner-smoothing);
-	background-color: grey;
-	margin: 5px;
-	padding: 8px 12px;
-	color:white;	
-	margin-top: -40px;
-	min-width: 40vw;
-	/*height: 40px;*/
-	opacity: 1;
-	transition: 0.2s margin-top ease, 0.2s opacity ease;
-}
-
-ui-toast > i{
-	margin-right: 8px;
-}ui-form .key{
+.hljs{display:block;overflow-x:auto;padding:.5em;background:#23241f}.hljs,.hljs-subst,.hljs-tag{color:#f8f8f2}.hljs-emphasis,.hljs-strong{color:#a8a8a2}.hljs-bullet,.hljs-link,.hljs-literal,.hljs-number,.hljs-quote,.hljs-regexp{color:#ae81ff}.hljs-code,.hljs-section,.hljs-selector-class,.hljs-title{color:#a6e22e}.hljs-strong{font-weight:700}.hljs-emphasis{font-style:italic}.hljs-attr,.hljs-keyword,.hljs-name,.hljs-selector-tag{color:#f92672}.hljs-attribute,.hljs-symbol{color:#66d9ef}.hljs-class .hljs-title,.hljs-params{color:#f8f8f2}.hljs-addition,.hljs-built_in,.hljs-builtin-name,.hljs-selector-attr,.hljs-selector-id,.hljs-selector-pseudo,.hljs-string,.hljs-template-variable,.hljs-type,.hljs-variable{color:#e6db74}.hljs-comment,.hljs-deletion,.hljs-meta{color:#75715e}ui-form .key{
 	
 }
 
@@ -625,6 +520,112 @@ ui-hash > *.top{
 }
 ui-hash > *.bottom{
 	top: 100%;
+}ui-toaster{
+	pointer-events: none;
+	position: fixed;
+	top: 0;
+	left:0;
+	width:100vw;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	z-index: 100;
+}
+
+ui-toast{
+	border-radius: var(--corner-smoothing);
+	background-color: grey;
+	margin: 5px;
+	padding: 8px 12px;
+	color:white;	
+	margin-top: -40px;
+	min-width: 40vw;
+	/*height: 40px;*/
+	opacity: 1;
+	transition: 0.2s margin-top ease, 0.2s opacity ease;
+}
+
+ui-toast > i{
+	margin-right: 8px;
+}
+
+[ui-list]{
+	--item-columns: 3;
+	--items-per-page: 24;
+	display: block;
+}
+
+[ui-list] .desc:after{
+	content: ' \25BC' /* unicode up arrow */
+}
+
+[ui-list] .asc:after{
+	content: ' \25B2' /* unicode down arrow */
+}
+
+[ui-list] header, [ui-list] footer{
+	display: flex;
+	align-items: center;
+}
+
+[ui-list] > content.list{
+	width: 100%;
+	display: grid;
+	grid-template-columns: repeat(var(--item-columns), calc(100% / var(--item-columns)));
+	justify-items: center;
+	align-items: center;
+}
+
+[ui-list] .sort select{
+	padding: 6px;
+	background-color: var(--brand-secondary);
+	color:  var(--brand-primary-text);
+	border-radius: var(--corner-smoothing);
+}
+
+[ui-list] .paging ui-button{
+	width: 30px;
+	text-align: center;
+	background-color: var(--brand-secondary);
+	display: inline-block;
+}
+
+[ui-list] .paging ui-button.active{
+	background-color: var(--brand-primary);
+}
+
+[ui-list] .paging ui-button.disabled{
+	opacity: 0.5;
+}
+
+[ui-list] .paging span{
+	display: inline-block;
+	font-size: 2em;
+	line-height: 16px;
+}
+
+[ui-table] > table{
+	border-collapse: collapse;
+	width:100%
+}
+
+[ui-table] > table > * > tr > *{
+	padding:  5px;
+}
+
+[ui-table] > table > thead > tr > th{
+	cursor: pointer;
+	position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+[ui-table] > table > tbody > tr:nth-child(2n + 0){
+	background-color: #eee;
+}
+
+[ui-table] > table > tbody > tr:nth-child(2n + 1){
+	background-color: #f6f6f6;
 }ui-toggle{
 	width: 50px;
 	--size: 20px;

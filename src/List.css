@@ -3,6 +3,7 @@
 [ui-list]{
 	--item-columns: 3;
 	--items-per-page: 24;
+	display: block;
 }
 
 [ui-list] .desc:after{
