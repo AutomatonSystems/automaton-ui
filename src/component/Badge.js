@@ -1,4 +1,4 @@
-import { BasicElement } from "./BasicElement.js";
+import { BasicElement } from "../BasicElement.js";
 
 export class Badge extends BasicElement {
 	constructor(content, { icon = '' } = {}) {

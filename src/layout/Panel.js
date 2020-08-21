@@ -1,11 +1,11 @@
-import { BasicElement } from "./BasicElement";
-import { append } from "./utils.js";
+import { BasicElement } from "../BasicElement";
+import { append } from "../utils.js";
 
 export class Panel extends BasicElement {
 
     /**
      *
-     * @param {String} content
+     * @param {String|Element|Element[]} content
      * @param {{title?: String, clazz?: String, buttons?: String}} param1
      */
 	constructor(content = '', { title = '', clazz = '', buttons = '' } = {}) {
@@ -25,6 +25,10 @@ export class Panel extends BasicElement {
 		}
 	}
 
+	/**
+	 * 
+	 * @param  {...String|HTMLElement} elements 
+	 */
 	append(...elements) {
 		append(this.querySelector('content'), elements);
 	}

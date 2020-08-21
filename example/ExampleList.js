@@ -1,6 +1,6 @@
 import {List, Table, Panel} from '../dist/ui.js';
 
-import DATA from './ListData.js';
+import POKEMON from './data/Pokemon.js';
 
 let list = new List(item=>{
 	return new Panel(`<img src="${item.img}"/><div>${item.name}</div>`);
@@ -13,7 +13,7 @@ list
 	.addAttribute("id")
 	.addAttribute("name")
 	.addAttribute("img", null, i=>`<img src="${i.img}"/>`);
-list.data = DATA;
+list.data = POKEMON;
 list.sort("id", List.ASC);
 
 let table = new Table({itemsPerPage: 4});
@@ -21,7 +21,7 @@ table
 	.addAttribute("id")
 	.addAttribute("name")
 	.addAttribute("img", null, i=>`<img src="${i.img}"/>`);
-table.data = DATA;
+table.data = POKEMON;
 table.sort("id", List.ASC);
 
 export {list,table};

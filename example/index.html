@@ -17,7 +17,6 @@
 		</style>
 	</head>
 	<body>
-
 		<main>
 			<content>
 				<h1>Examples and Such</h1>
@@ -33,6 +32,20 @@
 						<ui-button icon="fa-hourglass" onclick="showSplash()">Splash</ui-button>
 					</footer>
 				</ui-panel>
+
+				<script type="module">
+					import * as UI from "/dist/ui.js";
+
+					let menu = new UI.ContextMenu();
+					menu.addItem("Hello", ()=>{
+						new UI.Toast("Hello");
+					});
+					menu.addBreak();
+					menu.addItem("Goodbye", ()=>{
+						new UI.Toast("Goodbye");
+					});
+					menu.for(document.querySelector('ui-panel'));
+				</script>
 
 				<ui-splash hidden>
 					<ui-spinner size="10vh"></ui-spinner>
@@ -203,6 +216,8 @@
 		</main>
 
 		<script type="module">
+			import "./Explore.js";
+
 			import {HashManager, Toggle, Panel} from "/dist/ui.js";
 			import {list, table} from "./ExampleList.js";
 

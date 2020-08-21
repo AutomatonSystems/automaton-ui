@@ -1,4 +1,4 @@
-import { BasicElement } from "./BasicElement";
+import { BasicElement } from "../BasicElement";
 
 export class Spinner extends BasicElement {
 	constructor() {

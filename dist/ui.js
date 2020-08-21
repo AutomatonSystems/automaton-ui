@@ -121,19 +121,52 @@ customElements.define('ui-basic', BasicElement);
 
 const sleep = (time, value)=>new Promise(r=>setTimeout(()=>r(value),time));
 window['sleep'] = sleep;
+
+/**
+ * Add items onto a element
+ * 
+ * @param {Element} element 
+ * @param {Element|String|Element[]} content 
+ */
 function append(element, content){
-	if(typeof content == 'string')
+	if(typeof content == 'string' || typeof content == 'number'){
 		element.innerHTML = content;
-	else if(Array.isArray(content))
+	}else if(Array.isArray(content)){
 		element.append(...content);
-	else
+	}else {
 		element.appendChild(content);
+	}
+}
+
+/**
+ * Convert html text to a HTMLElement
+ * 
+ * @param {String} html 
+ * 
+ * @returns {HTMLElement}
+ */
+function htmlToElement(html){
+	let d = document.createElement('div');
+	d.innerHTML = html;
+	return d.firstElementChild;
+}
+
+/**
+ *
+ * @param  {...Element} elements
+ *
+ * @returns {HTMLElement[]}
+ */
+function castHtmlElements(...elements) {
+	return /** @type {HTMLElement[]} */ ([...elements]);
 }
 
 var utils = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	sleep: sleep,
-	append: append
+	append: append,
+	htmlToElement: htmlToElement,
+	castHtmlElements: castHtmlElements
 });
 
 class Badge extends BasicElement {
@@ -283,6 +316,83 @@ class Code extends BasicElement {
 	}
 }
 customElements.define('ui-code', Code);
+
+/**
+ * Context menu replacement
+ * @example
+ * 
+ * ```
+ * new ContextMenu()
+ *      .addItem("Hello", ()=>{alert("hello")})
+ *      .for(document.body);
+ * ```
+ */
+class ContextMenu extends BasicElement {
+
+	#attachments = new WeakMap();
+
+	constructor(){
+		super('<section></section>');
+
+		this.hide = this.hide.bind(this);
+
+		this.hide();
+
+		for(let event of ["click", "oncontextmenu"]){
+			this.addEventListener(event, this.hide);
+			this.firstElementChild.addEventListener(event, (event)=>{event.stopPropagation();});
+		}
+	}
+
+	/**
+	 * Add the context menu to show on the provided element context events
+	 * 
+	 * @param {HTMLElement} element 
+	 */
+	for(element){
+		let listener = (event)=>{
+			// prevent the default contextmenu
+			event.preventDefault();
+			// show the menu
+			this.style.left = event.pageX + "px";
+			this.style.top = event.pageY + "px";
+			this.show();
+			// setup the hide behaviour
+		};
+		element.addEventListener("contextmenu", listener);
+		this.#attachments.set(element, listener);
+		return this;
+	}
+
+	detach(element){
+		let listener = this.#attachments.get(element);
+		if(listener){
+			element.removeEventListener("contextmenu", listener);
+		}
+	}
+
+	/**
+	 * Add a new item to the context menu
+	 * 
+	 * @param {String} text 
+	 * @param {Function} action 
+	 */
+	addItem(text, action){
+		let item = htmlToElement(`<div>${text}</div>`);
+		item.addEventListener('click', ()=>{action(); this.hide();});
+		this.firstElementChild.appendChild(item);
+		return this;
+	}
+
+	/**
+	 * Add a line break to the context menu
+	 */
+	addBreak(){
+		this.firstElementChild.appendChild(htmlToElement(`<hr/>`));
+		return this;
+	}
+}
+customElements.define('ui-context', ContextMenu);
 
 class Toggle extends BasicElement {
 	constructor(v, changeCallback) {
@@ -579,6 +689,7 @@ class HashHandler{
 	/** @type {RegExp}*/
 	path;
 
+	/** @type {} */
 	pathVariables = [];
 
 	func;
@@ -596,6 +707,12 @@ class HashHandler{
 		this.func = func;
 	}
 
+	/**
+	 * 
+	 * @param {Number|Boolean|Object} input 
+	 * 
+	 * @returns {{name: String, set: Function}}
+	 */
 	static v(input){
 		let [name,type] = input.split(':');
 		return {
@@ -642,6 +759,16 @@ class HashHandler{
 	}
 }
 
+/**
+ * @example
+ * 
+ * ```
+ * let hash = new HashManager();
+ * handler('home', ()=>new Panel("home"));
+ * handler('settings', ()=>new Panel("settings"));
+ * hash.attach(document.body);
+ * ```
+ */
 class HashManager extends BasicElement {
 
 
@@ -652,6 +779,7 @@ class HashManager extends BasicElement {
 	/** @type {HashHandler[]} */
 	handlers = [];
 
+	position = [0,0];
 
 	static DIRECTION = {
 		NONE: 0,
@@ -726,7 +854,11 @@ class HashManager extends BasicElement {
 
 	}
 
-
+	/**
+	 * 
+	 * @param {*} body 
+	 * @param {Number|[Number,Number]} direction 
+	 */
 	async swapContent(body, direction = HashManager.DIRECTION.RIGHT) {
 		let content = document.createElement('content');
 
@@ -735,11 +867,32 @@ class HashManager extends BasicElement {
 		if (this.firstElementChild == null)
 			return this.appendChild(content);
 
-
 		let enter, exit;
 		if (direction == HashManager.DIRECTION.RANDOM) {
 			let dirs = [HashManager.DIRECTION.RIGHT, HashManager.DIRECTION.LEFT, HashManager.DIRECTION.TOP, HashManager.DIRECTION.BOTTOM];
 			direction = dirs[Math.floor(Math.random() * dirs.length)];
+		}
+		if(Array.isArray(direction)){
+			console.log(this.position, direction);
+			let newPosition = direction;
+			// positional slide mode
+			if(this.position[0] != direction[0]){
+				if(this.position[0] > direction[0]){
+					direction = HashManager.DIRECTION.LEFT;
+				}else {
+					direction = HashManager.DIRECTION.RIGHT;
+				}
+			}else if(this.position[1] != direction[1]){
+				if(this.position[1] < direction[1]){
+					direction = HashManager.DIRECTION.BOTTOM;
+				}else {
+					direction = HashManager.DIRECTION.TOP;
+				}
+			}else {
+				// both the same... thanks
+				direction = HashManager.DIRECTION.RIGHT;
+			}
+			this.position = newPosition;
 		}
 		switch (direction) {
 			case HashManager.DIRECTION.RIGHT:
@@ -1182,7 +1335,7 @@ class Panel extends BasicElement {
 
     /**
      *
-     * @param {String} content
+     * @param {String|Element|Element[]} content
      * @param {{title?: String, clazz?: String, buttons?: String}} param1
      */
 	constructor(content = '', { title = '', clazz = '', buttons = '' } = {}) {
@@ -1202,6 +1355,10 @@ class Panel extends BasicElement {
 		}
 	}
 
+	/**
+	 * 
+	 * @param  {...String|HTMLElement} elements 
+	 */
 	append(...elements) {
 		append(this.querySelector('content'), elements);
 	}
@@ -1307,6 +1464,7 @@ const UI = {
 	Cancel,
 	Card,
 	Code,
+	ContextMenu,
 	Form,
 	HashManager,
 	Json,
@@ -1322,6 +1480,8 @@ const UI = {
 	utils
 };
 
+
+
 window["UI"] = UI;
 
-export { Badge, BasicElement, Button, Cancel, Card, Code, Form, HashManager, Json, List, Modal, Panel, Spacer, Spinner, Splash, Table, Toast, Toggle, utils };
+export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, HashManager, Json, List, Modal, Panel, Spacer, Spinner, Splash, Table, Toast, Toggle, utils };

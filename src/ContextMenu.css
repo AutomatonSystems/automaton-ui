@@ -1,0 +1,49 @@
+/*** CONTEXT MENU **/
+
+ui-context{
+	position: absolute;
+	
+}
+
+ui-context section{
+	position: relative;
+	background-color: white;
+	
+	border: 1px solid #ccc;
+	box-shadow: 3px 3px 2px #0006;
+
+	padding: 5px 0;
+
+	width: 250px;
+	z-index: 1;
+}
+
+ui-context:before{
+	content:'';
+	position: fixed;
+	opacity: 0;
+	top: 0;
+	left:0;
+	display:block;
+	width: 100vw;
+	height: 100vh;
+	background-color: black;
+}
+
+ui-context section div{
+	cursor: pointer;
+	font-weight: normal;
+	padding: 3px 20px;
+	font-size: 0.9em;
+	color: black;
+}
+
+ui-context section div:hover{
+	background-color: #ccc;
+}
+
+ui-context section hr{
+	border: none;
+	border-top: 1px solid #ccc;
+	margin: 5px 2px;
+}

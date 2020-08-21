@@ -1,6 +1,6 @@
 import "./List.css";
-import {append} from "./utils.js";
-import { BasicElement } from "./BasicElement";
+import {append} from "../utils.js";
+import { BasicElement } from "../BasicElement";
 
 let uuid = 0;
 

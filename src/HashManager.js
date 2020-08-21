@@ -8,6 +8,7 @@ export class HashHandler{
 	/** @type {RegExp}*/
 	path;
 
+	/** @type {} */
 	pathVariables = [];
 
 	func;
@@ -25,6 +26,12 @@ export class HashHandler{
 		this.func = func;
 	}
 
+	/**
+	 * 
+	 * @param {Number|Boolean|Object} input 
+	 * 
+	 * @returns {{name: String, set: Function}}
+	 */
 	static v(input){
 		let [name,type] = input.split(':');
 		return {
@@ -71,6 +78,16 @@ export class HashHandler{
 	}
 }
 
+/**
+ * @example
+ * 
+ * ```
+ * let hash = new HashManager();
+ * handler('home', ()=>new Panel("home"));
+ * handler('settings', ()=>new Panel("settings"));
+ * hash.attach(document.body);
+ * ```
+ */
 export class HashManager extends BasicElement {
 
 
@@ -81,6 +98,7 @@ export class HashManager extends BasicElement {
 	/** @type {HashHandler[]} */
 	handlers = [];
 
+	position = [0,0];
 
 	static DIRECTION = {
 		NONE: 0,
@@ -155,7 +173,11 @@ export class HashManager extends BasicElement {
 
 	}
 
-
+	/**
+	 * 
+	 * @param {*} body 
+	 * @param {Number|[Number,Number]} direction 
+	 */
 	async swapContent(body, direction = HashManager.DIRECTION.RIGHT) {
 		let content = document.createElement('content');
 
@@ -164,11 +186,32 @@ export class HashManager extends BasicElement {
 		if (this.firstElementChild == null)
 			return this.appendChild(content);
 
-
 		let enter, exit;
 		if (direction == HashManager.DIRECTION.RANDOM) {
 			let dirs = [HashManager.DIRECTION.RIGHT, HashManager.DIRECTION.LEFT, HashManager.DIRECTION.TOP, HashManager.DIRECTION.BOTTOM];
 			direction = dirs[Math.floor(Math.random() * dirs.length)];
+		}
+		if(Array.isArray(direction)){
+			console.log(this.position, direction);
+			let newPosition = direction;
+			// positional slide mode
+			if(this.position[0] != direction[0]){
+				if(this.position[0] > direction[0]){
+					direction = HashManager.DIRECTION.LEFT;
+				}else{
+					direction = HashManager.DIRECTION.RIGHT;
+				}
+			}else if(this.position[1] != direction[1]){
+				if(this.position[1] < direction[1]){
+					direction = HashManager.DIRECTION.BOTTOM;
+				}else{
+					direction = HashManager.DIRECTION.TOP;
+				}
+			}else{
+				// both the same... thanks
+				direction = HashManager.DIRECTION.RIGHT;
+			}
+			this.position = newPosition;
 		}
 		switch (direction) {
 			case HashManager.DIRECTION.RIGHT:

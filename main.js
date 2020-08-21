@@ -3,19 +3,20 @@ import "./base.css";
 import { BasicElement } from "./src/BasicElement.js";
 import * as utils from "./src/utils.js";
 
-import { Badge } from "./src/Badge.js";
+import { Badge } from "./src/component/Badge.js";
 import { Button } from "./src/forms/Button.js";
 import { Cancel } from "./src/forms/Cancel.js";
-import { Card } from "./src/Card.js";
+import { Card } from "./src/component/Card.js";
 import { Code } from "./src/text/Code.js";
+import { ContextMenu } from "./src/ContextMenu.js";
 import { Form } from "./src/forms/Form.js";
 import { HashManager } from "./src/HashManager.js";
 import { Json } from "./src/text/Json.js";
-import { List, Table} from "./src/List.js";
+import { List, Table} from "./src/data/List.js";
 import { Modal } from "./src/Modal.js";
-import { Panel } from "./src/Panel.js";
-import { Spacer } from "./src/Spacer.js";
-import { Spinner } from "./src/Spinner.js";
+import { Panel } from "./src/layout/Panel.js";
+import { Spacer } from "./src/layout/Spacer.js";
+import { Spinner } from "./src/component/Spinner.js";
 import { Splash } from "./src/Splash.js";
 import { Toast } from "./src/feedback/Toast.js";
 import { Toggle } from "./src/forms/Toggle.js";
@@ -40,6 +41,7 @@ const UI = {
 	Cancel,
 	Card,
 	Code,
+	ContextMenu,
 	Form,
 	HashManager,
 	Json,
@@ -55,6 +57,8 @@ const UI = {
 	utils
 };
 
+
+
 window["UI"] = UI;
 
 export {BasicElement};
@@ -63,6 +67,7 @@ export {Button};
 export {Cancel};
 export {Card};
 export {Code};
+export {ContextMenu};
 export {Form};
 export {HashManager};
 export {Json};
