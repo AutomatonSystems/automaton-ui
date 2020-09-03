@@ -1,7 +1,7 @@
 {
   "name": "automaton-ui",
   "type": "module",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A set of HTML elements to speed up UI prototyping",
   "main": "components.js",
   "scripts": {

@@ -15,7 +15,7 @@ class BasicElement extends HTMLElement {
      *
      * @param {String} variable
      *
-     * @returns {String|Number}
+     * @returns {String}
      */
 	css(variable) {
 		let value = getComputedStyle(this).getPropertyValue(variable);
@@ -46,7 +46,7 @@ class BasicElement extends HTMLElement {
 		return number;
 	}
 
-	setCss(name,value){
+	setCss(name, value){
 		this.style.setProperty(name, value);
 	}
 
@@ -161,12 +161,70 @@ function castHtmlElements(...elements) {
 	return /** @type {HTMLElement[]} */ ([...elements]);
 }
 
+/**
+ * shuffle the contents of an array
+ * 
+ * @param {*[]} array 
+ */
+function shuffle(array) {
+	var currentIndex = array.length, temporaryValue, randomIndex;
+
+	// While there remain elements to shuffle...
+	while (0 !== currentIndex) {
+
+		// Pick a remaining element...
+		randomIndex = Math.floor(Math.random() * currentIndex);
+		currentIndex -= 1;
+
+		// And swap it with the current element.
+		temporaryValue = array[currentIndex];
+		array[currentIndex] = array[randomIndex];
+		array[randomIndex] = temporaryValue;
+	}
+
+	return array;
+}
+
+/**
+ * Downloads a file to the users machine - must be called from within a click event (or similar)
+ * 
+ * @param {String} filename 
+ * @param {Object} json 
+ */
+function downloadJson(filename, json){
+	const a = document.createElement('a');
+	a.href = URL.createObjectURL( new Blob([JSON.stringify(json, null, '\t')], { type:`text/json` }) );
+	a.download = filename;
+	a.click();
+}
+
+/**
+ * 
+ * Load a script
+ * 
+ * @param {String} url 
+ * 
+ * @returns {Promise}
+ */
+async function dynamicallyLoadScript(url) {
+	return new Promise(res=>{
+		var script = document.createElement('script');  // create a script DOM node
+		script.src = url;  // set its src to the provided URL
+		script.onreadystatechange = res;
+		script.onload = res;
+		document.head.appendChild(script);  
+	});
+}
+
 var utils = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	sleep: sleep,
 	append: append,
 	htmlToElement: htmlToElement,
-	castHtmlElements: castHtmlElements
+	castHtmlElements: castHtmlElements,
+	shuffle: shuffle,
+	downloadJson: downloadJson,
+	dynamicallyLoadScript: dynamicallyLoadScript
 });
 
 class Badge extends BasicElement {
@@ -198,7 +256,7 @@ class Button extends BasicElement {
 
 		this.classList.add(style);
 		if (color)
-			this.classList.add(color + "-color");
+			this.classList.add(color);
 
 		icon = icon || this.attributes.getNamedItem("icon")?.value;
 		if (icon) {
@@ -338,6 +396,8 @@ class ContextMenu extends BasicElement {
 
 		this.hide();
 
+		this.target = null;
+
 		for(let event of ["click", "oncontextmenu"]){
 			this.addEventListener(event, this.hide);
 			this.firstElementChild.addEventListener(event, (event)=>{event.stopPropagation();});
@@ -351,6 +411,7 @@ class ContextMenu extends BasicElement {
 	 */
 	for(element){
 		let listener = (event)=>{
+			this.target = element;
 			// prevent the default contextmenu
 			event.preventDefault();
 			// show the menu
@@ -379,7 +440,7 @@ class ContextMenu extends BasicElement {
 	 */
 	addItem(text, action){
 		let item = htmlToElement(`<div>${text}</div>`);
-		item.addEventListener('click', ()=>{action(); this.hide();});
+		item.addEventListener('click', ()=>{action(this.target); this.hide();});
 		this.firstElementChild.appendChild(item);
 		return this;
 	}
@@ -557,129 +618,154 @@ class Form extends BasicElement {
 
 		if (template.hidden) {
 			this.changeListeners.push((json) => {
-				element.hidden = template.hidden(json);
+				element.hidden = template.hidden(json, element);
 			});
 		}
 
-		let label;
-		if (template.key) {
-			label = document.createElement(style.label);
-			label.innerHTML = template.name ?? template.key;
-			if (template.hint) {
-				let hint = document.createElement('div');
-				hint.innerHTML = template.hint;
-				label.append(hint);
+		let render = async ()=>{
+			let label;
+			if (template.key) {
+				label = document.createElement(style.label);
+				label.innerHTML = template.name ?? template.key;
+				if (template.hint) {
+					let hint = document.createElement('div');
+					hint.innerHTML = template.hint;
+					label.append(hint);
+				}
+				element.append(label);
 			}
-			element.append(label);
-		}
 
-		let wrapper = document.createElement(style.value);
-		wrapper.classList.add('value');
-		element.append(wrapper);
+			let wrapper = document.createElement(style.value);
+			wrapper.classList.add('value');
+			element.append(wrapper);
 
-		if (typeof template.type == "string") {
-			let html = '';
-			switch (template.type) {
-				//
-				case 'header':
-					label.setAttribute("colspan", "2");
-					label.classList.add("header");
-					wrapper.remove();
-					break;
-				case 'hr':
-					wrapper.setAttribute("colspan", "2");
-					wrapper.innerHTML = "<hr/>";
-					break;
-				//
-				case 'checkbox':
-					html += `<input data-key="${jsonKey}" type="checkbox" ${json ? 'checked' : ''}/>`;
-					wrapper.innerHTML = html;
-					break;
-				case 'toggle':
-					html += `<ui-toggle data-key="${jsonKey}" value="${json ?? false}"></ui-toggle>`;
-					wrapper.innerHTML = html;
-					break;
-				case 'list':
-					html += `<select data-key="${jsonKey}">`;
-					let options = template.options;
-					if (!Array.isArray(options))
-						options = await options();
-					html += options.map(v => `<option 
-							${(json == (v.value ? v.value : v)) ? 'selected' : ''}
-							value=${v.value ? v.value : v}>${v.name ? v.name : v}</option>`).join('');
-					html += `</select>`;
-					wrapper.innerHTML = html;
-					break;
-				case 'text':
-					html += `<textarea data-key="${jsonKey}">${json ?? ''}</textarea>`;
-					wrapper.innerHTML = html;
-					break;
-				case 'string':
-					html += `<input data-key="${jsonKey}" type="text" value="${json ?? ''}" placeholder="${template.placeholder ?? ''}"/>`;
-					wrapper.innerHTML = html;
-					break;
-				case 'number':
-					html += `<input data-key="${jsonKey}" type="number" value="${json ?? ''}"/>`;
-					wrapper.innerHTML = html;
-					break;
-				// complex types
-				// nested types (compound object)
-				case 'compound':
+			if (typeof template.type == "string") {
+				let html = '';
+				switch (template.type) {
 					//
-					wrapper.append(...await this.jsonToHtml(template.children, json ?? {}, jsonKey));
-					break;
-				// repeating object
-				case 'array':
-					// the element repeats multiple times
-					jsonKey = jsonKey + "[]";
+					case 'header':
+						label.setAttribute("colspan", "2");
+						label.classList.add("header");
+						wrapper.remove();
+						break;
+					case 'hr':
+						wrapper.setAttribute("colspan", "2");
+						wrapper.innerHTML = "<hr/>";
+						break;
+					//
+					case 'checkbox':
+						html += `<input data-key="${jsonKey}" type="checkbox" ${json ? 'checked' : ''}/>`;
+						wrapper.innerHTML = html;
+						break;
+					case 'toggle':
+						html += `<ui-toggle data-key="${jsonKey}" value="${json ?? false}"></ui-toggle>`;
+						wrapper.innerHTML = html;
+						break;
+					case 'list':
+						html += `<select data-key="${jsonKey}">`;
+						let options = template.options;
+						if (!Array.isArray(options))
+							options = await options();
+						html += options.map(v => `<option 
+								${(json == (v.value ? v.value : v)) ? 'selected' : ''}
+								value=${v.value ? v.value : v}>${v.name ? v.name : v}</option>`).join('');
+						html += `</select>`;
+						wrapper.innerHTML = html;
+						break;
+					case 'text':
+						html += `<textarea data-key="${jsonKey}">${json ?? ''}</textarea>`;
+						wrapper.innerHTML = html;
+						break;
+					case 'string':
+						html += `<input data-key="${jsonKey}" type="text" value="${json ?? ''}" placeholder="${template.placeholder ?? ''}"/>`;
+						wrapper.innerHTML = html;
+						break;
+					case 'number':
+						html += `<input data-key="${jsonKey}" type="number" value="${json ?? ''}"/>`;
+						wrapper.innerHTML = html;
+						break;
+					// complex types
+					// nested types (compound object)
+					case 'compound':
+						//
+						wrapper.append(...await this.jsonToHtml(template.children, json ?? {}, jsonKey));
+						break;
+					// repeating object
+					case 'array':
+						// the element repeats multiple times
+						jsonKey = jsonKey + "[]";
 
-					let tStyle = template.style ?? 'INLINE';
+						let tStyle = template.style ?? 'INLINE';
 
-					let substyle = Form.STYLE[tStyle];
+						let substyle = Form.STYLE[tStyle];
 
-					let contain = document.createElement('div');
-					contain.classList.add('array');
-					contain.classList.add(tStyle);
-					// add button
-					let button = new Button("Add", null, { icon: 'fa-plus' });
+						let contain = document.createElement('div');
+						contain.classList.add('array');
+						contain.classList.add(tStyle);
+						// add button
+						let button = new Button("Add", null, { icon: 'fa-plus' });
 
 
-					let createItem = async (json) => {
+						let createItem = async (json) => {
 
-						let item = document.createElement('span');
-						item.classList.add('item');
+							let item = document.createElement('span');
+							item.classList.add('item');
 
-						item.append(...await this.jsonToHtml(template.children, json, jsonKey, { style: substyle }));
+							item.append(...await this.jsonToHtml(template.children, json, jsonKey, { style: substyle }));
 
-						item.append(new Button("", () => {
-							item.remove();
-						}, { icon: 'fa-remove', style: "text", color: "error" }));
-						item.append();
-						contain.append(item);
-					};
-					button.addEventListener('click', () => createItem(null));
+							item.append(new Button("", () => {
+								item.remove();
+							}, { icon: 'fa-remove', style: "text", color: "error" }));
+							
+							let inputs = item.querySelectorAll('[data-key]');
+							for (let input of inputs) {
+								input.addEventListener('change', this.onChange);
+							}
 
-					if (Array.isArray(json)) {
-						json.forEach(createItem);
-					}
+							contain.append(item);
+						};
+						button.addEventListener('click', () => createItem(Array.isArray(template.children)?{}:null));
 
-					wrapper.append(contain);
+						if (Array.isArray(json)) {
+							for(let j of json){
+								await createItem(j);
+							}
 
-					wrapper.append(button);
+						}
 
-					break;
+						wrapper.append(contain);
+
+						wrapper.append(button);
+
+						break;
+				}
 			}
-		}
-		else if (typeof template.type == 'function') {
-			let input = new template.type(json);
-			input.dataset['key'] = jsonKey;
-			wrapper.append(input);
+			else if (typeof template.type == 'function') {
+				let input = new template.type(json);
+				input.dataset['key'] = jsonKey;
+				wrapper.append(input);
+			}
+
+			if (element.children.length == 1)
+				return element.firstElementChild;
+
+			return element;
+		};
+
+		if(template.redraw){
+			let lastValue = this.value[template.redraw];
+
+			this.changeListeners.push(async (fullJson) => {
+				let newValue = fullJson[template.redraw];
+				if(lastValue!=newValue){
+					element.innerHTML = "";
+					await render();
+					lastValue = newValue;
+				}
+			});
 		}
 
-		if (element.children.length == 1)
-			return element.firstElementChild;
-
-		return element;
+		return await render();
 	}
 }
 customElements.define('ui-form', Form);
@@ -1315,12 +1401,17 @@ class Table extends List{
 		let headers =  Object.values(this.attrs);
 		let html = '';
 		for (let header of headers) {
-			html += `<th data-table-id="${header.id}" data-sort="${header.name}" style="${header.width ? `width:${header.width}` : ''}">${header.name}</th>`;
+			html += `<th data-table-id="${header.id}" ${this.attrs[header.name].value?`data-sort="${header.name}"`:''} style="${header.width ? `width:${header.width}` : ''}">${header.name}</th>`;
 		}
 		header.innerHTML = html;
 		header.querySelectorAll('th').forEach(
-			ele=>ele.onclick = event=>{
-				this.sort(ele.dataset.sort);
+			ele=>{
+				// if it's a sortable column add the click behaviour
+				if(ele.dataset.sort){
+					ele.onclick = (event)=>{
+						this.sort(ele.dataset.sort);
+					};
+				}
 			}
 		);
 
@@ -1336,15 +1427,18 @@ class Panel extends BasicElement {
     /**
      *
      * @param {String|Element|Element[]} content
-     * @param {{title?: String, clazz?: String, buttons?: String}} param1
+     * @param {{title?: String, clazz?: String, buttons?: String, header?: boolean, footer?: boolean}} param1
      */
-	constructor(content = '', { title = '', clazz = '', buttons = '' } = {}) {
+	constructor(content = '', { title = '', clazz = '', buttons = '', header = false, footer = false} = {}) {
 		super();
+
+		this.setAttribute("ui-panel", '');
+
 		if (!this.innerHTML.trim()) {
 			this.innerHTML = `
-				${title ? `<header>${title}</header>` : ''}
+				${(header || title)? `<header>${title}</header>` : ''}
 				<content></content>
-				${buttons ? `<footer>${buttons}</footer>` : ''}
+				${(footer || buttons)? `<footer>${buttons}</footer>` : ''}
 			`;
 
 			append(this.querySelector('content'), content);
@@ -1362,6 +1456,14 @@ class Panel extends BasicElement {
 	append(...elements) {
 		append(this.querySelector('content'), elements);
 	}
+
+	header(...elements){
+		append(this.querySelector('header'), elements);
+	}
+
+	footer(...elements){
+		append(this.querySelector('footer'), elements);
+	}
 }
 customElements.define('ui-panel', Panel);
 
@@ -1378,14 +1480,21 @@ class Splash extends BasicElement {
 customElements.define('ui-splash', Splash);
 
 class Modal extends Splash {
-	constructor(content, { title = '', clazz = '', buttons = '', dismissable = true } = {}) {
+	constructor(content, { title = '', clazz = '', buttons = '', dismissable = true, header = false, footer = false } = {}) {
 		super('', { dismissable: dismissable });
 
-		let panel = new Panel(content, { title, clazz, buttons });
+		let panel = new Panel(content, { title, clazz, buttons, header, footer});
 		panel.addEventListener("mousedown", () => event.stopPropagation());
 		// rebind panel to parent splash so hide/show etc call parent
 		panel.self = this;
 		this.appendChild(panel);
+	}
+
+	/**
+	 * @type {Panel}
+	 */
+	get panel(){
+		return this.querySelector("ui-panel");
 	}
 
 	close() {

@@ -1,5 +1,5 @@
+import "./Card.css";
 import { BasicElement } from "../BasicElement.js";
-
 
 export class Card extends BasicElement {
 	constructor(content) {

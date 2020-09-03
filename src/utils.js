@@ -39,3 +39,58 @@ export function htmlToElement(html){
 export function castHtmlElements(...elements) {
 	return /** @type {HTMLElement[]} */ ([...elements]);
 }
+
+/**
+ * shuffle the contents of an array
+ * 
+ * @param {*[]} array 
+ */
+export function shuffle(array) {
+	var currentIndex = array.length, temporaryValue, randomIndex;
+
+	// While there remain elements to shuffle...
+	while (0 !== currentIndex) {
+
+		// Pick a remaining element...
+		randomIndex = Math.floor(Math.random() * currentIndex);
+		currentIndex -= 1;
+
+		// And swap it with the current element.
+		temporaryValue = array[currentIndex];
+		array[currentIndex] = array[randomIndex];
+		array[randomIndex] = temporaryValue;
+	}
+
+	return array;
+}
+
+/**
+ * Downloads a file to the users machine - must be called from within a click event (or similar)
+ * 
+ * @param {String} filename 
+ * @param {Object} json 
+ */
+export function downloadJson(filename, json){
+	const a = document.createElement('a');
+	a.href = URL.createObjectURL( new Blob([JSON.stringify(json, null, '\t')], { type:`text/json` }) );
+	a.download = filename;
+	a.click();
+}
+
+/**
+ * 
+ * Load a script
+ * 
+ * @param {String} url 
+ * 
+ * @returns {Promise}
+ */
+export async function dynamicallyLoadScript(url) {
+	return new Promise(res=>{
+		var script = document.createElement('script');  // create a script DOM node
+		script.src = url;  // set its src to the provided URL
+		script.onreadystatechange = res;
+		script.onload = res;
+		document.head.appendChild(script);  
+	});
+}

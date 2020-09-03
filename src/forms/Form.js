@@ -144,129 +144,154 @@ export class Form extends BasicElement {
 
 		if (template.hidden) {
 			this.changeListeners.push((json) => {
-				element.hidden = template.hidden(json);
+				element.hidden = template.hidden(json, element);
 			});
 		}
 
-		let label;
-		if (template.key) {
-			label = document.createElement(style.label);
-			label.innerHTML = template.name ?? template.key;
-			if (template.hint) {
-				let hint = document.createElement('div');
-				hint.innerHTML = template.hint;
-				label.append(hint);
+		let render = async ()=>{
+			let label;
+			if (template.key) {
+				label = document.createElement(style.label);
+				label.innerHTML = template.name ?? template.key;
+				if (template.hint) {
+					let hint = document.createElement('div');
+					hint.innerHTML = template.hint;
+					label.append(hint);
+				}
+				element.append(label);
 			}
-			element.append(label);
-		}
 
-		let wrapper = document.createElement(style.value);
-		wrapper.classList.add('value');
-		element.append(wrapper);
+			let wrapper = document.createElement(style.value);
+			wrapper.classList.add('value');
+			element.append(wrapper);
 
-		if (typeof template.type == "string") {
-			let html = '';
-			switch (template.type) {
-				//
-				case 'header':
-					label.setAttribute("colspan", "2");
-					label.classList.add("header");
-					wrapper.remove();
-					break;
-				case 'hr':
-					wrapper.setAttribute("colspan", "2");
-					wrapper.innerHTML = "<hr/>";
-					break;
-				//
-				case 'checkbox':
-					html += `<input data-key="${jsonKey}" type="checkbox" ${json ? 'checked' : ''}/>`;
-					wrapper.innerHTML = html;
-					break;
-				case 'toggle':
-					html += `<ui-toggle data-key="${jsonKey}" value="${json ?? false}"></ui-toggle>`;
-					wrapper.innerHTML = html;
-					break;
-				case 'list':
-					html += `<select data-key="${jsonKey}">`;
-					let options = template.options;
-					if (!Array.isArray(options))
-						options = await options();
-					html += options.map(v => `<option 
-							${(json == (v.value ? v.value : v)) ? 'selected' : ''}
-							value=${v.value ? v.value : v}>${v.name ? v.name : v}</option>`).join('');
-					html += `</select>`;
-					wrapper.innerHTML = html;
-					break;
-				case 'text':
-					html += `<textarea data-key="${jsonKey}">${json ?? ''}</textarea>`;
-					wrapper.innerHTML = html;
-					break;
-				case 'string':
-					html += `<input data-key="${jsonKey}" type="text" value="${json ?? ''}" placeholder="${template.placeholder ?? ''}"/>`;
-					wrapper.innerHTML = html;
-					break;
-				case 'number':
-					html += `<input data-key="${jsonKey}" type="number" value="${json ?? ''}"/>`;
-					wrapper.innerHTML = html;
-					break;
-				// complex types
-				// nested types (compound object)
-				case 'compound':
+			if (typeof template.type == "string") {
+				let html = '';
+				switch (template.type) {
 					//
-					wrapper.append(...await this.jsonToHtml(template.children, json ?? {}, jsonKey));
-					break;
-				// repeating object
-				case 'array':
-					// the element repeats multiple times
-					jsonKey = jsonKey + "[]";
+					case 'header':
+						label.setAttribute("colspan", "2");
+						label.classList.add("header");
+						wrapper.remove();
+						break;
+					case 'hr':
+						wrapper.setAttribute("colspan", "2");
+						wrapper.innerHTML = "<hr/>";
+						break;
+					//
+					case 'checkbox':
+						html += `<input data-key="${jsonKey}" type="checkbox" ${json ? 'checked' : ''}/>`;
+						wrapper.innerHTML = html;
+						break;
+					case 'toggle':
+						html += `<ui-toggle data-key="${jsonKey}" value="${json ?? false}"></ui-toggle>`;
+						wrapper.innerHTML = html;
+						break;
+					case 'list':
+						html += `<select data-key="${jsonKey}">`;
+						let options = template.options;
+						if (!Array.isArray(options))
+							options = await options();
+						html += options.map(v => `<option 
+								${(json == (v.value ? v.value : v)) ? 'selected' : ''}
+								value=${v.value ? v.value : v}>${v.name ? v.name : v}</option>`).join('');
+						html += `</select>`;
+						wrapper.innerHTML = html;
+						break;
+					case 'text':
+						html += `<textarea data-key="${jsonKey}">${json ?? ''}</textarea>`;
+						wrapper.innerHTML = html;
+						break;
+					case 'string':
+						html += `<input data-key="${jsonKey}" type="text" value="${json ?? ''}" placeholder="${template.placeholder ?? ''}"/>`;
+						wrapper.innerHTML = html;
+						break;
+					case 'number':
+						html += `<input data-key="${jsonKey}" type="number" value="${json ?? ''}"/>`;
+						wrapper.innerHTML = html;
+						break;
+					// complex types
+					// nested types (compound object)
+					case 'compound':
+						//
+						wrapper.append(...await this.jsonToHtml(template.children, json ?? {}, jsonKey));
+						break;
+					// repeating object
+					case 'array':
+						// the element repeats multiple times
+						jsonKey = jsonKey + "[]";
 
-					let tStyle = template.style ?? 'INLINE';
+						let tStyle = template.style ?? 'INLINE';
 
-					let substyle = Form.STYLE[tStyle];
+						let substyle = Form.STYLE[tStyle];
 
-					let contain = document.createElement('div');
-					contain.classList.add('array');
-					contain.classList.add(tStyle);
-					// add button
-					let button = new Button("Add", null, { icon: 'fa-plus' });
+						let contain = document.createElement('div');
+						contain.classList.add('array');
+						contain.classList.add(tStyle);
+						// add button
+						let button = new Button("Add", null, { icon: 'fa-plus' });
 
 
-					let createItem = async (json) => {
+						let createItem = async (json) => {
 
-						let item = document.createElement('span');
-						item.classList.add('item');
+							let item = document.createElement('span');
+							item.classList.add('item');
 
-						item.append(...await this.jsonToHtml(template.children, json, jsonKey, { style: substyle }));
+							item.append(...await this.jsonToHtml(template.children, json, jsonKey, { style: substyle }));
 
-						item.append(new Button("", () => {
-							item.remove();
-						}, { icon: 'fa-remove', style: "text", color: "error" }));
-						item.append();
-						contain.append(item);
-					};
-					button.addEventListener('click', () => createItem(null));
+							item.append(new Button("", () => {
+								item.remove();
+							}, { icon: 'fa-remove', style: "text", color: "error" }));
+							
+							let inputs = item.querySelectorAll('[data-key]');
+							for (let input of inputs) {
+								input.addEventListener('change', this.onChange);
+							}
 
-					if (Array.isArray(json)) {
-						json.forEach(createItem);
-					}
+							contain.append(item);
+						};
+						button.addEventListener('click', () => createItem(Array.isArray(template.children)?{}:null));
 
-					wrapper.append(contain);
+						if (Array.isArray(json)) {
+							for(let j of json){
+								await createItem(j);
+							}
 
-					wrapper.append(button);
+						}
 
-					break;
+						wrapper.append(contain);
+
+						wrapper.append(button);
+
+						break;
+				}
 			}
-		}
-		else if (typeof template.type == 'function') {
-			let input = new template.type(json);
-			input.dataset['key'] = jsonKey;
-			wrapper.append(input);
+			else if (typeof template.type == 'function') {
+				let input = new template.type(json);
+				input.dataset['key'] = jsonKey;
+				wrapper.append(input);
+			}
+
+			if (element.children.length == 1)
+				return element.firstElementChild;
+
+			return element;
+		};
+
+		if(template.redraw){
+			let lastValue = this.value[template.redraw];
+
+			this.changeListeners.push(async (fullJson) => {
+				let newValue = fullJson[template.redraw];
+				if(lastValue!=newValue){
+					element.innerHTML = "";
+					await render();
+					lastValue = newValue;
+				}
+			});
 		}
 
-		if (element.children.length == 1)
-			return element.firstElementChild;
-
-		return element;
+		return await render();
 	}
 }
 customElements.define('ui-form', Form);

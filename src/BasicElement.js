@@ -16,7 +16,7 @@ export class BasicElement extends HTMLElement {
      *
      * @param {String} variable
      *
-     * @returns {String|Number}
+     * @returns {String}
      */
 	css(variable) {
 		let value = getComputedStyle(this).getPropertyValue(variable);
@@ -47,7 +47,7 @@ export class BasicElement extends HTMLElement {
 		return number;
 	}
 
-	setCss(name,value){
+	setCss(name, value){
 		this.style.setProperty(name, value);
 	}
 

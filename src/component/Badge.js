@@ -1,3 +1,5 @@
+import "./Badge.css";
+
 import { BasicElement } from "../BasicElement.js";
 
 export class Badge extends BasicElement {

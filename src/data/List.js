@@ -371,12 +371,17 @@ export class Table extends List{
 		let headers =  Object.values(this.attrs);
 		let html = '';
 		for (let header of headers) {
-			html += `<th data-table-id="${header.id}" data-sort="${header.name}" style="${header.width ? `width:${header.width}` : ''}">${header.name}</th>`;
+			html += `<th data-table-id="${header.id}" ${this.attrs[header.name].value?`data-sort="${header.name}"`:''} style="${header.width ? `width:${header.width}` : ''}">${header.name}</th>`;
 		}
 		header.innerHTML = html;
 		header.querySelectorAll('th').forEach(
-			ele=>ele.onclick = event=>{
-				this.sort(ele.dataset.sort)
+			ele=>{
+				// if it's a sortable column add the click behaviour
+				if(ele.dataset.sort){
+					ele.onclick = (event)=>{
+						this.sort(ele.dataset.sort);
+					}
+				}
 			}
 		);
 

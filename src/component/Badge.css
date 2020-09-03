@@ -1,0 +1,14 @@
+
+
+ui-badge{
+	font-size: 0.8em;
+	padding: 3px 8px;
+	border-radius: calc(var(--corner-smoothing) * 2);
+	box-shadow: var(--shadow);
+	background-color: white;
+	color: black;
+}
+
+ui-badge > i{
+	margin-right: 8px;
+}

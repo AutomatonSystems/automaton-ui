@@ -17,7 +17,7 @@ export class Button extends BasicElement {
 
 		this.classList.add(style);
 		if (color)
-			this.classList.add(color + "-color");
+			this.classList.add(color);
 
 		icon = icon || this.attributes.getNamedItem("icon")?.value;
 		if (icon) {

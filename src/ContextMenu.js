@@ -24,6 +24,8 @@ export class ContextMenu extends BasicElement {
 
 		this.hide();
 
+		this.target = null;
+
 		for(let event of ["click", "oncontextmenu"]){
 			this.addEventListener(event, this.hide);
 			this.firstElementChild.addEventListener(event, (event)=>{event.stopPropagation()});
@@ -37,6 +39,7 @@ export class ContextMenu extends BasicElement {
 	 */
 	for(element){
 		let listener = (event)=>{
+			this.target = element;
 			// prevent the default contextmenu
 			event.preventDefault();
 			// show the menu
@@ -65,7 +68,7 @@ export class ContextMenu extends BasicElement {
 	 */
 	addItem(text, action){
 		let item = htmlToElement(`<div>${text}</div>`);
-		item.addEventListener('click', ()=>{action(); this.hide()});
+		item.addEventListener('click', ()=>{action(this.target); this.hide()});
 		this.firstElementChild.appendChild(item);
 		return this;
 	}
