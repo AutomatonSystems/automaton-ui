@@ -1483,6 +1483,8 @@ class Modal extends Splash {
 	constructor(content, { title = '', clazz = '', buttons = '', dismissable = true, header = false, footer = false } = {}) {
 		super('', { dismissable: dismissable });
 
+		this.setAttribute("ui-modal", '');
+
 		let panel = new Panel(content, { title, clazz, buttons, header, footer});
 		panel.addEventListener("mousedown", () => event.stopPropagation());
 		// rebind panel to parent splash so hide/show etc call parent
