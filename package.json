@@ -1,13 +1,13 @@
 {
   "name": "automaton-ui",
   "type": "module",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A set of HTML elements to speed up UI prototyping",
   "main": "components.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup --config",
-    "dev":  "rollup --config --watch"
+    "dev": "rollup --config --watch"
   },
   "author": "",
   "license": "UNLICENSED",
