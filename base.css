@@ -103,7 +103,7 @@ input, select, textarea{
 	background-color: transparent;
 }
 
-ui-splash, ui-modal{
+ui-splash, [ui-modal]{
 	position: fixed;
 	top:0;
 	left:0;
@@ -118,7 +118,7 @@ ui-splash, ui-modal{
 	align-items: center;
 }
 
-ui-modal > ui-panel > content{
+[ui-modal] > ui-panel > content{
 	max-height: 80vh;
 	overflow-y: auto;
 }
