@@ -32,3 +32,8 @@ ui-button > i{
 ui-button:hover{
 	filter: brightness(1.1);
 }
+
+ui-button[disabled]{
+	filter: grayscale(1);
+	pointer-events: none;
+}

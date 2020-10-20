@@ -7,6 +7,7 @@ ui-badge{
 	box-shadow: var(--shadow);
 	background-color: white;
 	color: black;
+	display: inline-block;
 }
 
 ui-badge > i{

@@ -8,6 +8,8 @@ window['sleep'] = sleep;
  * @param {Element|String|Element[]} content 
  */
 export function append(element, content){
+	if(!element || content === undefined || content === null)
+		return;
 	if(typeof content == 'string' || typeof content == 'number'){
 		element.innerHTML = content;
 	}else if(Array.isArray(content)){

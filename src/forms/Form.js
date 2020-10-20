@@ -3,15 +3,25 @@ import "./Form.css";
 import { BasicElement } from "../BasicElement.js";
 import { Button } from "./Button.js";
 import { Toggle } from "./Toggle.js";
+import { utils } from "../../main.js";
 /****** FORM COMPONENTS ******/
 
 export class Form extends BasicElement {
+
+	static STYLE = {
+		ROW: { parent: 'table', wrap: 'tr', label: 'th', value: 'td' },
+		INLINE: { parent: null, wrap: 'span', label: 'label', value: 'span' }
+	};
+
+
 	constructor(template) {
 		super();
 
 		this.template = template;
 		this.changeListeners = [];
 		this.onChange = this.onChange.bind(this);
+
+		this.formStyle = Form.STYLE.ROW;
 
 		this.value = {};
 	}
@@ -38,11 +48,14 @@ export class Form extends BasicElement {
 		this.value = json;
 	}
 
-	json() {
+	json(includeHidden = true) {
 		let json = {};
 
 		let inputs = this.querySelectorAll('[data-key]');
 		for (let input of inputs) {
+			// skip hidden inputs is required
+			if(!includeHidden && input.closest('[hidden]'))
+				continue;
 			let parent = json;
 			// grab the correct place to store this value
 			let keys = input['dataset']['key'].split('.');
@@ -97,7 +110,7 @@ export class Form extends BasicElement {
 	}
 
 
-	async jsonToHtml(template, json, jsonKey = '', options = { style: Form.STYLE.ROW }) {
+	async jsonToHtml(template, json, jsonKey = '', options = { style: this.formStyle }) {
 		let elements = [];
 		if (!Array.isArray(template))
 			template = [template];
@@ -130,13 +143,6 @@ export class Form extends BasicElement {
 			return elements;
 		}
 	}
-
-
-	static STYLE = {
-		ROW: { parent: 'table', wrap: 'tr', label: 'th', value: 'td' },
-		INLINE: { parent: null, wrap: 'span', label: 'label', value: 'span' }
-	};
-
 
 	async oneItem(template, json, jsonKey, { style = Form.STYLE.ROW } = {}) {
 
@@ -174,6 +180,12 @@ export class Form extends BasicElement {
 						label.classList.add("header");
 						wrapper.remove();
 						break;
+					case 'description':
+						wrapper.setAttribute("colspan", "2");
+						wrapper.classList.add("description");
+						wrapper.innerHTML = template.key;
+						label.remove();
+						break;
 					case 'hr':
 						wrapper.setAttribute("colspan", "2");
 						wrapper.innerHTML = "<hr/>";
@@ -203,8 +215,9 @@ export class Form extends BasicElement {
 						wrapper.innerHTML = html;
 						break;
 					case 'string':
-						html += `<input data-key="${jsonKey}" type="text" value="${json ?? ''}" placeholder="${template.placeholder ?? ''}"/>`;
-						wrapper.innerHTML = html;
+						let input = utils.htmlToElement(`<input data-key="${jsonKey}" type="text" placeholder="${template.placeholder ?? ''}"/>`);
+						input.value = json ?? null;
+						wrapper.append(input);
 						break;
 					case 'number':
 						html += `<input data-key="${jsonKey}" type="number" value="${json ?? ''}"/>`;
@@ -272,8 +285,8 @@ export class Form extends BasicElement {
 				wrapper.append(input);
 			}
 
-			if (element.children.length == 1)
-				return element.firstElementChild;
+			/*if (element.children.length == 1)
+				return element.firstElementChild;*/
 
 			return element;
 		};
