@@ -49,6 +49,7 @@ export class ContextMenu extends BasicElement {
 			// setup the hide behaviour
 		};
 		element.addEventListener("contextmenu", listener);
+		element.setAttribute("context-menu", '');
 		this.#attachments.set(element, listener);
 		return this;
 	}
@@ -56,6 +57,7 @@ export class ContextMenu extends BasicElement {
 	detach(element){
 		let listener = this.#attachments.get(element);
 		if(listener){
+			element.removeAttribute("context-menu", '');
 			element.removeEventListener("contextmenu", listener);
 		}
 	}

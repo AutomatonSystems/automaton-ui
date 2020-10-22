@@ -274,7 +274,9 @@ customElements.define('ui-button', Button);
 
 class Cancel extends BasicElement {
 	constructor() {
-		super("Cancel");
+		super();
+
+		this.innerHTML = this.innerHTML || "Cancel";
 
 		this.addEventListener('click', this.close.bind(this));
 	}
@@ -423,6 +425,7 @@ class ContextMenu extends BasicElement {
 			// setup the hide behaviour
 		};
 		element.addEventListener("contextmenu", listener);
+		element.setAttribute("context-menu", '');
 		this.#attachments.set(element, listener);
 		return this;
 	}
@@ -430,6 +433,7 @@ class ContextMenu extends BasicElement {
 	detach(element){
 		let listener = this.#attachments.get(element);
 		if(listener){
+			element.removeAttribute("context-menu", '');
 			element.removeEventListener("contextmenu", listener);
 		}
 	}
