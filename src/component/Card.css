@@ -30,7 +30,7 @@
 }
 
 [ui-card][flipped] .card{
-	transform: rotateY(180deg);
+	transform: rotateY(179.9deg);
 	user-select: none;  
 }
 

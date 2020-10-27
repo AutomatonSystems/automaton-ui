@@ -253,116 +253,7 @@ ui-code,ui-json{
 	tab-size: 4;
 }
 
-.hljs{display:block;overflow-x:auto;padding:.5em;background:#23241f}.hljs,.hljs-subst,.hljs-tag{color:#f8f8f2}.hljs-emphasis,.hljs-strong{color:#a8a8a2}.hljs-bullet,.hljs-link,.hljs-literal,.hljs-number,.hljs-quote,.hljs-regexp{color:#ae81ff}.hljs-code,.hljs-section,.hljs-selector-class,.hljs-title{color:#a6e22e}.hljs-strong{font-weight:700}.hljs-emphasis{font-style:italic}.hljs-attr,.hljs-keyword,.hljs-name,.hljs-selector-tag{color:#f92672}.hljs-attribute,.hljs-symbol{color:#66d9ef}.hljs-class .hljs-title,.hljs-params{color:#f8f8f2}.hljs-addition,.hljs-built_in,.hljs-builtin-name,.hljs-selector-attr,.hljs-selector-id,.hljs-selector-pseudo,.hljs-string,.hljs-template-variable,.hljs-type,.hljs-variable{color:#e6db74}.hljs-comment,.hljs-deletion,.hljs-meta{color:#75715e}
-
-ui-badge{
-	font-size: 0.8em;
-	padding: 3px 8px;
-	border-radius: calc(var(--corner-smoothing) * 2);
-	box-shadow: var(--shadow);
-	background-color: white;
-	color: black;
-	display: inline-block;
-}
-
-ui-badge > i{
-	margin-right: 8px;
-}
-[ui-card]{
-	display: inline-block;
-	perspective-origin: center;
-	perspective: 500px;
-
-	--border: 10px;
-	--duration: 0.4s;
-
-	user-select: all;  
-}
-
-[ui-card] *::selection{
-	user-select: all;
-}
-
-[ui-card] .card{
-	perspective-origin: center;
-	position: relative;
-	background-color: white;
-	
-	cursor: pointer;
-	transition: transform var(--duration);
-	
-	transform-style: preserve-3d;
-
-	border-radius: var(--corner-smoothing);
-	padding: var(--border);
-
-	box-shadow: 0 2px 3px #0002;
-}
-
-[ui-card][flipped] .card{
-	transform: rotateY(180deg);
-	user-select: none;  
-}
-
-[ui-card] .card:after{
-	content: '';
-	/* backface is flipped by default :) */
-	transform: rotateY(180deg);
-	backface-visibility: hidden;
-	
-	border-radius: var(--corner-smoothing);
-
-	/* deliberately slightly bigger to avoid 'bleed' from front face in 3d mode */
-	position: absolute;
-    top: -1px;
-	left: -1px;
-	width: calc(100% - var(--border) - var(--border) + 2px);
-    height: calc(100% - var(--border) - var(--border) + 2px);
-	border: var(--border) solid white;
-	
-	/* pattern */
-    background-color: dodgerblue;
-	background-image: repeating-linear-gradient(45deg, #0003, #0003 4%, transparent 4%, transparent 8%);
-	
-}ui-button{
-	display: inline-block;
-	margin: 2px;
-	padding: 4px 12px;
-
-	cursor: pointer;
-
-	border-radius: var(--corner-smoothing);
-	background-color: var(--brand-primary);
-	color: var(--brand-primary-text);
-	/*box-shadow: var(--shadow);	*/
-}
-
-ui-button::selection{
-	user-select: all;
-}
-
-ui-button.text{
-	background-color: transparent;
-	padding: 0;
-}
-
-ui-button a{
-	text-decoration: none;
-	color: var(--brand-primary-text);
-}
-
-ui-button > i{
-	margin-right: 4px;
-}
-
-ui-button:hover{
-	filter: brightness(1.1);
-}
-
-ui-button[disabled]{
-	filter: grayscale(1);
-	pointer-events: none;
-}/*** CONTEXT MENU **/
+.hljs{display:block;overflow-x:auto;padding:.5em;background:#23241f}.hljs,.hljs-subst,.hljs-tag{color:#f8f8f2}.hljs-emphasis,.hljs-strong{color:#a8a8a2}.hljs-bullet,.hljs-link,.hljs-literal,.hljs-number,.hljs-quote,.hljs-regexp{color:#ae81ff}.hljs-code,.hljs-section,.hljs-selector-class,.hljs-title{color:#a6e22e}.hljs-strong{font-weight:700}.hljs-emphasis{font-style:italic}.hljs-attr,.hljs-keyword,.hljs-name,.hljs-selector-tag{color:#f92672}.hljs-attribute,.hljs-symbol{color:#66d9ef}.hljs-class .hljs-title,.hljs-params{color:#f8f8f2}.hljs-addition,.hljs-built_in,.hljs-builtin-name,.hljs-selector-attr,.hljs-selector-id,.hljs-selector-pseudo,.hljs-string,.hljs-template-variable,.hljs-type,.hljs-variable{color:#e6db74}.hljs-comment,.hljs-deletion,.hljs-meta{color:#75715e}/*** CONTEXT MENU **/
 
 ui-context{
 	position: absolute;
@@ -410,6 +301,44 @@ ui-context section hr{
 	border: none;
 	border-top: 1px solid #ccc;
 	margin: 5px 2px;
+}ui-button{
+	display: inline-block;
+	margin: 2px;
+	padding: 4px 12px;
+
+	cursor: pointer;
+
+	border-radius: var(--corner-smoothing);
+	background-color: var(--brand-primary);
+	color: var(--brand-primary-text);
+	/*box-shadow: var(--shadow);	*/
+}
+
+ui-button::selection{
+	user-select: all;
+}
+
+ui-button.text{
+	background-color: transparent;
+	padding: 0;
+}
+
+ui-button a{
+	text-decoration: none;
+	color: var(--brand-primary-text);
+}
+
+ui-button > i{
+	margin-right: 4px;
+}
+
+ui-button:hover{
+	filter: brightness(1.1);
+}
+
+ui-button[disabled]{
+	filter: grayscale(1);
+	pointer-events: none;
 }/*** HASH MANAGER **/
 
 ui-hash{
@@ -449,6 +378,155 @@ ui-hash > *.top{
 }
 ui-hash > *.bottom{
 	top: 100%;
+}
+
+ui-badge{
+	font-size: 0.8em;
+	padding: 3px 8px;
+	border-radius: calc(var(--corner-smoothing) * 2);
+	box-shadow: var(--shadow);
+	background-color: white;
+	color: black;
+	display: inline-block;
+}
+
+ui-badge > i{
+	margin-right: 8px;
+}
+[ui-card]{
+	display: inline-block;
+	perspective-origin: center;
+	perspective: 500px;
+
+	--border: 10px;
+	--duration: 0.4s;
+
+	user-select: all;  
+}
+
+[ui-card] *::selection{
+	user-select: all;
+}
+
+[ui-card] .card{
+	perspective-origin: center;
+	position: relative;
+	background-color: white;
+	
+	cursor: pointer;
+	transition: transform var(--duration);
+	
+	transform-style: preserve-3d;
+
+	border-radius: var(--corner-smoothing);
+	padding: var(--border);
+
+	box-shadow: 0 2px 3px #0002;
+}
+
+[ui-card][flipped] .card{
+	transform: rotateY(179.9deg);
+	user-select: none;  
+}
+
+[ui-card] .card:after{
+	content: '';
+	/* backface is flipped by default :) */
+	transform: rotateY(180deg);
+	backface-visibility: hidden;
+	
+	border-radius: var(--corner-smoothing);
+
+	/* deliberately slightly bigger to avoid 'bleed' from front face in 3d mode */
+	position: absolute;
+    top: -1px;
+	left: -1px;
+	width: calc(100% - var(--border) - var(--border) + 2px);
+    height: calc(100% - var(--border) - var(--border) + 2px);
+	border: var(--border) solid white;
+	
+	/* pattern */
+    background-color: dodgerblue;
+	background-image: repeating-linear-gradient(45deg, #0003, #0003 4%, transparent 4%, transparent 8%);
+	
+}ui-form .key{
+	
+}
+
+ui-form .value{
+
+}
+
+ui-form .array{
+	display: flex;
+	padding: 10px;
+
+	background-color: #0001;
+	box-shadow: inset var(--shadow);
+	margin-bottom: 10px;
+}
+
+ui-form .array:empty{
+	display:none;
+}
+
+ui-form .array.INLINE{
+	flex-wrap: wrap;
+}
+
+ui-form .array.ROW{
+	flex-direction: column;
+}
+
+ui-form .item{
+	background-color: white;
+	box-shadow: var(--shadow);
+	border-radius: var(--corner-smoothing);
+	position: relative;
+	padding: 5px;
+	padding-right: 30px;
+	margin: 5px;
+}
+
+ui-form .item ui-button{
+	position: absolute;
+    right: 5px;
+    top: 5px;
+}
+
+ui-form span.value{
+	display: inline-flex;
+}
+
+ui-form table tr > th{
+	height: 30px;
+	padding: 4px 8px;
+	font-weight: unset;
+	border-radius: var(--corner-smoothing) 0 0 var(--corner-smoothing);
+	text-transform: capitalize;
+}
+
+ui-form .value > input:not([type='checkbox']), ui-form .value > select, ui-form .value > textarea{
+	width: 100%;
+	padding: 10px;
+	border: none;
+	min-height: 30px;
+	margin: 0;	
+	background-color: #0001;
+	border-radius: var(--corner-smoothing);
+}
+
+ui-form textarea{
+	height: 100px;
+}
+
+ui-form table{
+	margin: 0;
+	box-sizing: border-box;
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0 10px;
+	padding: 10px;
 }
 
 [ui-list]{
@@ -531,7 +609,55 @@ ui-hash > *.bottom{
 
 [ui-table] > table > tbody > tr:nth-child(2n + 1){
 	background-color: #f6f6f6;
-}[ui-panel]{
+}ui-toggle{
+	width: 50px;
+	--size: 20px;
+
+	position: relative;
+	display:inline-block;
+	margin: 5px;
+	
+	height: var(--size);
+}
+
+ui-toggle input{
+	display:inline-block;
+	position: absolute;
+	opacity: 0;
+	width:100%;
+	height:100%;
+	cursor: pointer;
+}
+
+ui-toggle div{
+	display:inline-block;
+	height: 100%;
+	background-color: var(--color-error);
+	padding: 3px;
+	width: 100%;
+	border-radius: var(--size);
+	box-shadow: inset var(--shadow);
+}
+
+ui-toggle span{
+	display:inline-block;
+	height: 100%;
+	width: var(--size);
+	background-color: white;
+	border-radius: var(--size);
+	margin-left: 0px;
+	transition: margin-left 0.2s ease;
+	box-shadow: var(--shadow);
+}
+
+ui-toggle input:checked + div{
+	background-color: var(--color-success);
+}
+
+ui-toggle input:checked + div span{
+	margin-left: calc(100% - var(--size));
+}
+[ui-panel]{
 	display: block;
 
 	box-shadow: var(--shadow);
@@ -598,130 +724,4 @@ ui-toast{
 
 ui-toast > i{
 	margin-right: 8px;
-}ui-toggle{
-	width: 50px;
-	--size: 20px;
-
-	position: relative;
-	display:inline-block;
-	margin: 5px;
-	
-	height: var(--size);
-}
-
-ui-toggle input{
-	display:inline-block;
-	position: absolute;
-	opacity: 0;
-	width:100%;
-	height:100%;
-	cursor: pointer;
-}
-
-ui-toggle div{
-	display:inline-block;
-	height: 100%;
-	background-color: var(--color-error);
-	padding: 3px;
-	width: 100%;
-	border-radius: var(--size);
-	box-shadow: inset var(--shadow);
-}
-
-ui-toggle span{
-	display:inline-block;
-	height: 100%;
-	width: var(--size);
-	background-color: white;
-	border-radius: var(--size);
-	margin-left: 0px;
-	transition: margin-left 0.2s ease;
-	box-shadow: var(--shadow);
-}
-
-ui-toggle input:checked + div{
-	background-color: var(--color-success);
-}
-
-ui-toggle input:checked + div span{
-	margin-left: calc(100% - var(--size));
-}
-ui-form .key{
-	
-}
-
-ui-form .value{
-
-}
-
-ui-form .array{
-	display: flex;
-	padding: 10px;
-
-	background-color: #0001;
-	box-shadow: inset var(--shadow);
-	margin-bottom: 10px;
-}
-
-ui-form .array:empty{
-	display:none;
-}
-
-ui-form .array.INLINE{
-	flex-wrap: wrap;
-}
-
-ui-form .array.ROW{
-	flex-direction: column;
-}
-
-ui-form .item{
-	background-color: white;
-	box-shadow: var(--shadow);
-	border-radius: var(--corner-smoothing);
-	position: relative;
-	padding: 5px;
-	padding-right: 30px;
-	margin: 5px;
-}
-
-ui-form .item ui-button{
-	position: absolute;
-    right: 5px;
-    top: 5px;
-}
-
-ui-form span.value{
-	display: inline-flex;
-}
-
-ui-form table tr > th{
-	height: 30px;
-	padding: 4px 8px;
-	font-weight: unset;
-	border-radius: var(--corner-smoothing) 0 0 var(--corner-smoothing);
-	text-transform: capitalize;
-}
-
-ui-form .value > input:not([type='checkbox']), ui-form .value > select, ui-form .value > textarea{
-	width: 100%;
-	padding: 10px;
-	border: none;
-	min-height: 30px;
-	margin: 0;	
-	background-color: #0001;
-	border-radius: var(--corner-smoothing);
-}
-
-ui-form textarea{
-	height: 100px;
-}
-
-ui-form table{
-	margin: 0;
-	box-sizing: border-box;
-	width: 100%;
-	border-collapse: separate;
-	border-spacing: 0 10px;
-	padding: 10px;
 }
