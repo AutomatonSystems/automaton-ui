@@ -322,13 +322,16 @@ export class List extends BasicElement{
 }
 customElements.define('ui-list', List);
 
+/**
+ * Table is a special case of List with a more automatic layout
+ */
 export class Table extends List{
 
 	/**
 	 * 
 	 * @param {{itemsPerPage?: number}} options 
 	 */
-	constructor(options) {
+	constructor(options={}) {
 		super(async (item)=>{
 			let tr = document.createElement('tr');
 			tr.dataset['tableId'] = item.__id;

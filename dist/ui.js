@@ -557,6 +557,9 @@ class Form extends BasicElement {
 			}
 			// read the value
 			let value = input[input['type'] == 'checkbox' ? 'checked' : 'value'];
+			if(input['type'] == 'number'){
+				value = parseFloat(value);
+			}
 
 			// if the last step is an array - init it
 			if (key.includes('[]')) {
@@ -1370,13 +1373,16 @@ class List extends BasicElement{
 }
 customElements.define('ui-list', List);
 
+/**
+ * Table is a special case of List with a more automatic layout
+ */
 class Table extends List{
 
 	/**
 	 * 
 	 * @param {{itemsPerPage?: number}} options 
 	 */
-	constructor(options) {
+	constructor(options={}) {
 		super(async (item)=>{
 			let tr = document.createElement('tr');
 			tr.dataset['tableId'] = item.__id;

@@ -78,6 +78,9 @@ export class Form extends BasicElement {
 			}
 			// read the value
 			let value = input[input['type'] == 'checkbox' ? 'checked' : 'value'];
+			if(input['type'] == 'number'){
+				value = parseFloat(value);
+			}
 
 			// if the last step is an array - init it
 			if (key.includes('[]')) {
