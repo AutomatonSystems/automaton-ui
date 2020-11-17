@@ -78,7 +78,7 @@ export class Form extends BasicElement {
 			}
 			// read the value
 			let value = input[input['type'] == 'checkbox' ? 'checked' : 'value'];
-			if(input['type'] == 'number'){
+			if(input['type'] == 'number' || input.dataset.format == 'number'){
 				value = parseFloat(value);
 			}
 
@@ -203,7 +203,7 @@ export class Form extends BasicElement {
 						wrapper.innerHTML = html;
 						break;
 					case 'list':
-						html += `<select data-key="${jsonKey}">`;
+						html += `<select data-key="${jsonKey}" data-format="${template.format}">`;
 						let options = template.options;
 						if (!Array.isArray(options))
 							options = await options();
@@ -257,7 +257,7 @@ export class Form extends BasicElement {
 
 							item.append(new Button("", () => {
 								item.remove();
-							}, { icon: 'fa-remove', style: "text", color: "error" }));
+							}, { icon: 'fa-trash', style: "text", color: "error" }));
 							
 							let inputs = item.querySelectorAll('[data-key]');
 							for (let input of inputs) {

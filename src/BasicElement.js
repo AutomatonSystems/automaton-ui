@@ -10,6 +10,24 @@ export class BasicElement extends HTMLElement {
 		}
 
 		this.remove = this.remove.bind(this);
+
+		this.intervals = [];
+	}
+
+	/**
+	 * Starts a interval timer that will stop when this element is no longer on the DOM
+	 * 
+	 * @param {*} callback 
+	 * @param {Number} time in ms
+	 */
+	setInterval(callback, time){
+		this.intervals.push(setInterval(()=>{
+			if(!document.body.contains(this)){
+				this.intervals.forEach(i=>clearInterval(i));
+			}else{
+				callback();
+			}
+		}, time));
 	}
 
     /**

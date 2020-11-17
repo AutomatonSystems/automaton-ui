@@ -10,7 +10,15 @@ export class Code extends BasicElement {
 	constructor(content) {
 		super(content);
 
-		content = this.preprocess(content || this.innerHTML);
+		this.setContent(content || this.innerHTML);
+	}
+
+	preprocess(content) {
+		return content;
+	}
+
+	setContent(content){
+		content = this.preprocess(content);
 		// send the stuff off to a webworker to be prettified
 		let worker = new CodeWorker();
 		worker.onmessage = (event) => {
@@ -18,10 +26,6 @@ export class Code extends BasicElement {
 			this.innerHTML = event.data;
 		};
 		worker.postMessage(content);
-	}
-
-	preprocess(content) {
-		return content;
 	}
 }
 customElements.define('ui-code', Code);

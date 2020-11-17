@@ -9,6 +9,24 @@ class BasicElement extends HTMLElement {
 		}
 
 		this.remove = this.remove.bind(this);
+
+		this.intervals = [];
+	}
+
+	/**
+	 * Starts a interval timer that will stop when this element is no longer on the DOM
+	 * 
+	 * @param {*} callback 
+	 * @param {Number} time in ms
+	 */
+	setInterval(callback, time){
+		this.intervals.push(setInterval(()=>{
+			if(!document.body.contains(this)){
+				this.intervals.forEach(i=>clearInterval(i));
+			}else {
+				callback();
+			}
+		}, time));
 	}
 
     /**
@@ -363,7 +381,15 @@ class Code extends BasicElement {
 	constructor(content) {
 		super(content);
 
-		content = this.preprocess(content || this.innerHTML);
+		this.setContent(content || this.innerHTML);
+	}
+
+	preprocess(content) {
+		return content;
+	}
+
+	setContent(content){
+		content = this.preprocess(content);
 		// send the stuff off to a webworker to be prettified
 		let worker = new WorkerFactory();
 		worker.onmessage = (event) => {
@@ -371,10 +397,6 @@ class Code extends BasicElement {
 			this.innerHTML = event.data;
 		};
 		worker.postMessage(content);
-	}
-
-	preprocess(content) {
-		return content;
 	}
 }
 customElements.define('ui-code', Code);
@@ -557,7 +579,7 @@ class Form extends BasicElement {
 			}
 			// read the value
 			let value = input[input['type'] == 'checkbox' ? 'checked' : 'value'];
-			if(input['type'] == 'number'){
+			if(input['type'] == 'number' || input.dataset.format == 'number'){
 				value = parseFloat(value);
 			}
 
@@ -682,7 +704,7 @@ class Form extends BasicElement {
 						wrapper.innerHTML = html;
 						break;
 					case 'list':
-						html += `<select data-key="${jsonKey}">`;
+						html += `<select data-key="${jsonKey}" data-format="${template.format}">`;
 						let options = template.options;
 						if (!Array.isArray(options))
 							options = await options();
@@ -736,7 +758,7 @@ class Form extends BasicElement {
 
 							item.append(new Button("", () => {
 								item.remove();
-							}, { icon: 'fa-remove', style: "text", color: "error" }));
+							}, { icon: 'fa-trash', style: "text", color: "error" }));
 							
 							let inputs = item.querySelectorAll('[data-key]');
 							for (let input of inputs) {
