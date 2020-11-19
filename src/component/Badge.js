@@ -9,7 +9,11 @@ export class Badge extends BasicElement {
 		icon = icon || this.attributes.getNamedItem("icon")?.value;
 		if (icon) {
 			let i = document.createElement('i');
-			i.classList.add("fa", icon.trim());
+			let classes = icon.trim().split(" ");
+			// include the default font-awesome class if one wasn't provided
+			if(!classes.includes('fa') && !classes.includes('fab') && !classes.includes('fas'))
+				classes.add('fa');
+			i.classList.add(...classes);
 			this.prepend(i);
 		}
 	}
