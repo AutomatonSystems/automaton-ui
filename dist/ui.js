@@ -257,7 +257,7 @@ class Badge extends BasicElement {
 			let classes = icon.trim().split(" ");
 			// include the default font-awesome class if one wasn't provided
 			if(!classes.includes('fa') && !classes.includes('fab') && !classes.includes('fas'))
-				classes.add('fa');
+				i.classList.add('fa');
 			i.classList.add(...classes);
 			this.prepend(i);
 		}
@@ -288,7 +288,7 @@ class Button extends BasicElement {
 			let classes = icon.trim().split(" ");
 			// include the default font-awesome class if one wasn't provided
 			if(!classes.includes('fa') && !classes.includes('fab') && !classes.includes('fas'))
-				classes.add('fa');
+				i.classList.add('fa');
 			i.classList.add(...classes);
 			this.prepend(i);
 		}
