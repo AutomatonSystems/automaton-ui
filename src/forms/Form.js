@@ -38,7 +38,7 @@ export class Form extends BasicElement {
 			input.addEventListener('change', this.onChange);
 		}
 		// finally trigger them for the starting state
-		this.changeListeners.forEach(l => l(json));
+		this.onChange();
 
 		return this;
 	}
