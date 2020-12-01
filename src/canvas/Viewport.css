@@ -1,0 +1,13 @@
+
+ui-viewport{
+	position: relative;
+	overflow: hidden;
+}
+
+ui-viewport > *{
+	position: absolute;
+	top: 0;
+	left: 0;
+	transform-origin: 0 0;
+	image-rendering: pixelated;
+}

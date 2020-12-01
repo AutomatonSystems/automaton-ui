@@ -134,6 +134,61 @@ class BasicElement extends HTMLElement {
 	static castHtmlElements(...elements) {
 		return /** @type {HTMLElement[]} */ ([...elements]);
 	}
+
+
+	/****** DROP LOGIC - TODO move to a behaviour class ********/
+
+	#dropTypeSet = new Set();
+	droppable = false;
+
+	makeDraggable(type='element', data = null){
+		this.draggable = true;
+
+		this.addEventListener('dragstart', (event)=>{
+			if(data == null){
+				if(this.dataset['drag'] == null){
+					let id = "D_"+Math.floor(1_000_000*Math.random()).toString(16);
+					// TODO collision detection
+					this.dataset['drag'] = id;
+				}
+				let selector = `[data-drag="${this.dataset['drag']}"]`;
+				event.dataTransfer.setData(type, selector);
+			}else {
+				event.dataTransfer.setData(type, data);
+			}
+		});
+	}
+
+	makeDroppable(){
+		this.droppable = true;
+		let handler = (event)=>{
+			let types = event.dataTransfer.types;
+			for(let type of this.#dropTypeSet){
+				if(types.includes(type)){
+					event.preventDefault();
+					return;
+				}
+			}
+		};
+		this.addEventListener('dragenter', handler);
+		this.addEventListener('dragover', handler);
+	}
+
+	onDrop(type, behaviour){
+		type = type.toLowerCase();
+		if(!this.droppable)
+			this.makeDroppable();
+		this.#dropTypeSet.add(type);
+		this.addEventListener('drop', (event)=>{
+			let data = event.dataTransfer.getData(type);
+			if(data == "")
+				return;
+			if(data.startsWith('[data-drag')){
+				data = document.querySelector(data);
+			}
+			behaviour(data, event);
+		});
+	}
 }
 customElements.define('ui-basic', BasicElement);
 
@@ -411,30 +466,43 @@ customElements.define('ui-code', Code);
 
 /**
  * Context menu replacement
- * @example
  * 
  * ```
- * new ContextMenu()
+ * new ContextMenu(document.body)
  *      .addItem("Hello", ()=>{alert("hello")})
- *      .for(document.body);
+ *      .addBreak();
  * ```
+ * 
+ * The returned menu can be attached to multiple elements
+ * ```
+ *    menu.for(extraElement);
+ * ```
+ * 
  */
 class ContextMenu extends BasicElement {
 
+	// when active the element this is active for
+	target;
+
+	items = [];
+
+	//
 	#attachments = new WeakMap();
 
-	constructor(){
+	constructor(element = null){
 		super('<section></section>');
 
 		this.hide = this.hide.bind(this);
 
 		this.hide();
 
-		this.target = null;
-
-		for(let event of ["click", "oncontextmenu"]){
+		for(let event of ["click", "contextmenu"]){
 			this.addEventListener(event, this.hide);
 			this.firstElementChild.addEventListener(event, (event)=>{event.stopPropagation();});
+		}
+
+		if(element){
+			this.for(element);
 		}
 	}
 
@@ -448,9 +516,24 @@ class ContextMenu extends BasicElement {
 			this.target = element;
 			// prevent the default contextmenu
 			event.preventDefault();
+			
+			// work out where to place the menu
+			let w = window.innerWidth;
+			let h = window.innerHeight;
+
+			let right = event.pageX < w*0.75;
+			let down = event.pageY < h*0.5;
+
 			// show the menu
-			this.style.left = event.pageX + "px";
-			this.style.top = event.pageY + "px";
+			this.style.left = right?(event.pageX + "px"):null;
+			this.style.right = right?null:((w-event.pageX) + "px");
+			this.style.top = down?(event.pageY + "px"):null;
+			this.style.bottom = down?null:((h-event.pageY) + "px");
+
+			for(let item of this.items){
+				item.element.hidden = item.hide && item.hide(element);
+			}
+
 			this.show();
 			// setup the hide behaviour
 		};
@@ -473,9 +556,14 @@ class ContextMenu extends BasicElement {
 	 * 
 	 * @param {String} text 
 	 * @param {Function} action 
+	 * @param {Function} hide
 	 */
-	addItem(text, action){
+	addItem(text, action, hide = false){
 		let item = htmlToElement(`<div>${text}</div>`);
+		this.items.push({
+			element: item,
+			hide: hide
+		});
 		item.addEventListener('click', ()=>{action(this.target); this.hide();});
 		this.firstElementChild.appendChild(item);
 		return this;
@@ -514,7 +602,6 @@ class Toggle extends BasicElement {
 customElements.define('ui-toggle', Toggle);
 
 /****** FORM COMPONENTS ******/
-
 class Form extends BasicElement {
 
 	static STYLE = {
@@ -537,6 +624,8 @@ class Form extends BasicElement {
 
 
 	async build(json) {
+		this.value = json;
+
 		this.changeListeners = [];
 		let eles = await this.jsonToHtml(this.template, json);
 		this.append(...eles);
@@ -546,21 +635,25 @@ class Form extends BasicElement {
 			input.addEventListener('change', this.onChange);
 		}
 		// finally trigger them for the starting state
-		this.onChange();
+		this.changeListeners.forEach(l => l(json));
 
 		return this;
 	}
 
 	onChange() {
 		let json = this.json();
-		this.changeListeners.forEach(l => l(json));
 		this.value = json;
+		this.changeListeners.forEach(l => l(json));
 	}
 
-	json(includeHidden = true) {
+	json(includeHidden = false) {
+		return this._readValue(this, includeHidden);
+	}
+
+	_readValue(element, includeHidden = false){
 		let json = {};
 
-		let inputs = this.querySelectorAll('[data-key]');
+		let inputs = element.querySelectorAll('[data-key]');
 		for (let input of inputs) {
 			// skip hidden inputs is required
 			if(!includeHidden && input.closest('[hidden]'))
@@ -621,29 +714,32 @@ class Form extends BasicElement {
 		return json;
 	}
 
-
-	async jsonToHtml(template, json, jsonKey = '', options = { style: this.formStyle }) {
+	async jsonToHtml(templates, json, jsonKey = '', options = { style: this.formStyle }) {
 		let elements = [];
-		if (!Array.isArray(template))
-			template = [template];
-		for (let item of template) {
-			if (typeof item == "string") {
-				if (item.indexOf(":") == -1) {
-					item = {
+		if (!Array.isArray(templates))
+			templates = [templates];
+		for (let template of templates) {
+			if (typeof template == "string") {
+				if (template.indexOf(":") == -1) {
+					template = {
 						key: null,
-						type: item
+						type: template
 					};
 				}
 				else {
-					item = {
-						key: item.split(':')[0],
-						type: item.split(':')[1]
+					template = {
+						key: template.split(':')[0],
+						type: template.split(':')[1]
 					};
 					if (json == null)
 						json = {};
 				}
 			}
-			elements.push(await this.oneItem(item, item.key ? json[item.key] : json, item.key ? ((jsonKey ? jsonKey + "." : '') + item.key) : jsonKey, options));
+
+			// template value
+			let value = (template.key ? json[template.key] : json) ?? template.default;
+			
+			elements.push(await this.oneItem(template, value, template.key ? ((jsonKey ? jsonKey + "." : '') + template.key) : jsonKey, options));
 		}
 
 		if (options.style?.parent) {
@@ -656,7 +752,31 @@ class Form extends BasicElement {
 		}
 	}
 
-	async oneItem(template, json, jsonKey, { style = Form.STYLE.ROW } = {}) {
+	_readJsonWithKey(json, key){
+		try{
+			let keys = key.split('.');
+			for(let part of keys){
+				if(json == null)
+					return null;
+				if(part.endsWith('[]')){
+					part = part.substring(0, part.length-2);
+					json = json[part];
+					if(json?.length > 0)
+						json = json[0];
+					else
+						json = null;
+				}else {
+					json = json[part];
+				}
+				
+			}
+			return json;
+		}catch(e){
+			return null;
+		}
+	}
+
+	async oneItem(template, itemValue, jsonKey, { style = Form.STYLE.ROW } = {}) {
 
 		let element = document.createElement(style.wrap);
 
@@ -666,7 +786,7 @@ class Form extends BasicElement {
 			});
 		}
 
-		let render = async ()=>{
+		let render = async (elementValue)=>{
 			let label;
 			if (template.key) {
 				label = document.createElement(style.label);
@@ -704,42 +824,44 @@ class Form extends BasicElement {
 						break;
 					//
 					case 'checkbox':
-						html += `<input data-key="${jsonKey}" type="checkbox" ${json ? 'checked' : ''}/>`;
+						html += `<input data-key="${jsonKey}" type="checkbox" ${elementValue ? 'checked' : ''}/>`;
 						wrapper.innerHTML = html;
 						break;
 					case 'toggle':
-						html += `<ui-toggle data-key="${jsonKey}" value="${json ?? false}"></ui-toggle>`;
+						html += `<ui-toggle data-key="${jsonKey}" value="${elementValue ?? false}"></ui-toggle>`;
 						wrapper.innerHTML = html;
 						break;
+					case "dropdown":
+					case "select":
 					case 'list':
 						html += `<select data-key="${jsonKey}" data-format="${template.format}">`;
 						let options = template.options;
 						if (!Array.isArray(options))
-							options = await options();
+							options = await options(this.value);
 						html += options.map(v => `<option 
-								${(json == (v.value ? v.value : v)) ? 'selected' : ''}
+								${(elementValue == (v.value ? v.value : v)) ? 'selected' : ''}
 								value=${v.value ? v.value : v}>${v.name ? v.name : v}</option>`).join('');
 						html += `</select>`;
 						wrapper.innerHTML = html;
 						break;
 					case 'text':
-						html += `<textarea data-key="${jsonKey}">${json ?? ''}</textarea>`;
+						html += `<textarea data-key="${jsonKey}">${elementValue ?? ''}</textarea>`;
 						wrapper.innerHTML = html;
 						break;
 					case 'string':
 						let input = htmlToElement(`<input data-key="${jsonKey}" type="text" placeholder="${template.placeholder ?? ''}"/>`);
-						input.value = json ?? null;
+						input.value = elementValue ?? null;
 						wrapper.append(input);
 						break;
 					case 'number':
-						html += `<input data-key="${jsonKey}" type="number" value="${json ?? ''}"/>`;
+						html += `<input data-key="${jsonKey}" type="number" value="${elementValue ?? ''}"/>`;
 						wrapper.innerHTML = html;
 						break;
 					// complex types
 					// nested types (compound object)
 					case 'compound':
 						//
-						wrapper.append(...await this.jsonToHtml(template.children, json ?? {}, jsonKey));
+						wrapper.append(...await this.jsonToHtml(template.children, elementValue ?? {}, jsonKey));
 						break;
 					// repeating object
 					case 'array':
@@ -757,12 +879,12 @@ class Form extends BasicElement {
 						let button = new Button("Add", null, { icon: 'fa-plus' });
 
 
-						let createItem = async (json) => {
+						let createItem = async (itemValue) => {
 
 							let item = document.createElement('span');
 							item.classList.add('item');
 
-							item.append(...await this.jsonToHtml(template.children, json, jsonKey, { style: substyle }));
+							item.append(...await this.jsonToHtml(template.children, itemValue, jsonKey, { style: substyle }));
 
 							item.append(new Button("", () => {
 								item.remove();
@@ -774,11 +896,16 @@ class Form extends BasicElement {
 							}
 
 							contain.append(item);
-						};
-						button.addEventListener('click', () => createItem(Array.isArray(template.children)?{}:null));
 
-						if (Array.isArray(json)) {
-							for(let j of json){
+						};
+						button.addEventListener('click', async () => {
+							let item = await createItem(Array.isArray(template.children)?{}:null);
+							this.onChange();
+							return item;
+						});
+
+						if (Array.isArray(elementValue)) {
+							for(let j of elementValue){
 								await createItem(j);
 							}
 
@@ -790,33 +917,38 @@ class Form extends BasicElement {
 
 						break;
 				}
-			}
-			else if (typeof template.type == 'function') {
-				let input = new template.type(json);
+			}else if (typeof template.type == 'function') {
+				let input = new template.type(elementValue);
 				input.dataset['key'] = jsonKey;
 				wrapper.append(input);
 			}
-
-			/*if (element.children.length == 1)
-				return element.firstElementChild;*/
-
-			return element;
 		};
 
-		if(template.redraw){
-			let lastValue = this.value[template.redraw];
+		await render(itemValue);
 
-			this.changeListeners.push(async (fullJson) => {
-				let newValue = fullJson[template.redraw];
-				if(lastValue!=newValue){
+		if(template.redraw){
+			// cache of the previous value
+			let lastValue = {};
+			// handle change events can filter them
+			let changeListener = async (fullJson) => {
+				let newJsonValue = this._readJsonWithKey(fullJson, template.redraw);
+				let newValue = JSON.stringify(newJsonValue);
+				if(lastValue!==newValue){
+					// grab the current value directly from the element
+					let v = this._readValue(element);
+					let value = this._readJsonWithKey(v,jsonKey);
+					// rebuild the element
 					element.innerHTML = "";
-					await render();
+					await render(value);
+					// cache the value
 					lastValue = newValue;
 				}
-			});
+			};
+			// resgister the change listener
+			this.changeListeners.push(changeListener);
 		}
 
-		return await render();
+		return element;
 	}
 }
 customElements.define('ui-form', Form);
@@ -882,7 +1014,8 @@ class HashHandler{
 	async handle(path, oldPath){
 
 		let parts = path.match(this.path);
-		if(!parts)
+		// if no match or it didn't match the whole string
+		if(!parts || parts[0].length != path.length)
 			return false;
 
 		// compute vars
@@ -910,7 +1043,7 @@ class HashManager extends BasicElement {
 
 
 	key = null;
-	hash = "";
+	hash = null;
 	depth = 0;
 
 	/** @type {HashHandler[]} */
@@ -968,7 +1101,6 @@ class HashManager extends BasicElement {
 		let hash = window.location.hash.substring(1);
 		let pairs = hash.split('|').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
 
-		
 		let pair = pairs.find(i=>i[0]==this.key);
 		if(pair == null)
 			pair = [this.key,""];
@@ -984,7 +1116,11 @@ class HashManager extends BasicElement {
 		for (let handler of this.handlers) {
 			let result = await handler.handle(newHash, oldHash);
 			if (result) {
-				await this.swapContent(result[0], result[1]);
+				if(Array.isArray(result)){
+					await this.swapContent(result[0], result[1]);
+				}else {
+					await this.swapContent(result, null);
+				}
 				break;
 			}
 		}
@@ -1003,6 +1139,12 @@ class HashManager extends BasicElement {
 
 		if (this.firstElementChild == null)
 			return this.appendChild(content);
+
+		if(direction == null){
+			this.firstElementChild.remove();
+			this.appendChild(content);
+			return;
+		}
 
 		let enter, exit;
 		if (direction == HashManager.DIRECTION.RANDOM) {
@@ -1182,7 +1324,7 @@ class List extends BasicElement{
 		return `
 	<!-- pagination -->
 	<header>
-		<span>Sort By <span class="sort"></span></span>
+		<span><span class="sort"></span></span>
 		<ui-spacer></ui-spacer>
 		<span class="paging top"></span>
 	</header>
@@ -1259,9 +1401,12 @@ class List extends BasicElement{
 
 		wrapper.innerHTML = "";
 		wrapper.appendChild(select);
+
+		if(Object.values(this.attrs).length==0)
+			wrapper.style.display = "none";
 	}
 
-	render() {
+	async render() {
 
 		// TODO render busy spinner
 
@@ -1269,7 +1414,7 @@ class List extends BasicElement{
 		this.sortDisplay();
 		
 		// setup paging
-		this.page();
+		await this.page();
 
 		// show the body
 		//this.listBody.style.removeProperty('display');
@@ -1368,7 +1513,12 @@ class List extends BasicElement{
 		this.listBody.innerHTML = "";
 		for(let index = this.pageNumber*this.itemsPerPage; index < (this.pageNumber+1)*this.itemsPerPage && index < visibleCount; index++){
 			let item = this.display[index];
-			this.listBody.append(await this.getItemElement(item));
+			let ele = (await this.getItemElement(item));
+			if(ele instanceof BasicElement){
+				ele.attach(this.listBody);
+			}else {
+				this.listBody.appendChild(ele);
+			}
 		}
 	}
 
@@ -1585,9 +1735,17 @@ class Toaster extends BasicElement{
 }
 customElements.define('ui-toaster', Toaster);
 
+function parseMessage(msg){
+	if(typeof msg === 'object'){
+		return JSON.stringify(msg, null, '\t');
+	}else {
+		return ""+ msg;
+	}
+}
+
 class Toast extends BasicElement {
 	constructor(message, { level = 'info' } = {}) {
-		super(message);
+		super(parseMessage(message));
 
 		let i = document.createElement('i');
 		let icon = { 'debug': 'fa-bug', 'info': 'fa-info-circle', 'warn': 'fa-exclamation-circle', 'error': 'fa-exclamation-triangle', 'success': 'fa-check-circle' }[level];
@@ -1608,6 +1766,248 @@ class Toast extends BasicElement {
 	}
 }
 customElements.define('ui-toast', Toast);
+
+class Viewport extends BasicElement{
+
+	#view = {
+		parent: null,
+		// what position the top left corner maps to
+		x: 0, 
+		y: 0,
+		zoom: 1, // 1 pixel = 1 pixel
+
+		/** @type {Number} */
+		get width(){
+			return this.parent.element.width / this.zoom;
+		},
+
+		/** @type {Number} */
+		get height(){
+			return this.parent.element.height / this.zoom;
+		}
+	};
+
+	attachments = [];
+
+	constructor(){
+		super();
+		this.#view.parent = this;
+		this.canvas = document.createElement('canvas');
+		this.append(this.canvas);
+	}
+
+	addAttachment(element){
+		this.attachments.push(element);
+		this.append(element);
+	}
+
+	/**
+	 * Move the view so vx,vy is in the center of the viewport
+	 * 
+	 * @param {Number} vx 
+	 * @param {Number} vy 
+	 */
+	center(vx,vy){
+		this.#view.x = vx - (this.#view.width/2);
+		this.#view.y = vy - (this.#view.height/2);
+	}
+
+	/**
+	 * 
+	 * Zoom on a point in screen space, keeping that point in the same place
+	 * 
+	 * @param {Number} vz target zoom level
+	 * @param {Number} vx point to keep in the same position on screen
+	 * @param {Number} vy point to keep in the same position on screen
+	 */
+	zoom(vz, vx, vy){
+		let s1 = this.toScreen(vx, vy);
+		this.#view.zoom = vz;
+		let s2 = this.toScreen(vx, vy);
+		let px = s2.x-s1.x;
+		let py = s2.y-s1.y;
+		this.pan(px, py);
+	}
+
+	/**
+	 * 
+	 * @param {Number} rsx 
+	 * @param {Number} rsy 
+	 */
+	pan(rsx, rsy){
+		this.#view.x += rsx / this.#view.zoom;
+		this.#view.y += rsy / this.#view.zoom;
+	}
+
+	/**
+	 * convert the element-relative screen cordinates to the location
+	 * in the viewspace
+	 * 
+	 * @param {Number} sx 
+	 * @param {Number} sy 
+	 * 
+	 * @returns {{x:number,y:number, out: boolean}}
+	 */
+	toView(sx,sy){
+		let v = this.#view;
+		let e = this.element;
+		let xy = {
+			x: (sx-e.x)/v.zoom + v.x,
+			y: (sy-e.y)/v.zoom + v.y,
+		};
+		xy.out = xy.x < v.x || xy.x > v.x + v.width 
+			|| xy.y < v.y || xy.y > v.y + v.height;
+		return xy;
+	}
+
+	/**
+	 * convert the viewport cordinates to screen co-ordinates
+	 * 
+	 * @param {Number} sx 
+	 * @param {Number} sy 
+	 * 
+	 * @returns {{x:number,y:number}}
+	 */
+	toScreen(vx, vy){
+		let v = this.#view;
+		return {
+			x: (vx - v.x)*v.zoom,
+			y: (vy - v.y)*v.zoom
+		}
+	}
+
+	get element(){
+		return this.getBoundingClientRect();
+	}
+
+	#lastV;
+
+	render(){
+		let v = this.#view;
+		let lv = JSON.stringify({x:v.x,y:v.y,w:v.width,h:v.height,z:v.zoom});
+		if(!(this.#lastV == null || this.#lastV != lv)){
+			this.#lastV = lv;
+			this.updateAttachments();
+			return;
+		}
+		this.#lastV = lv;
+
+		let element = this.element;
+		if(this.canvas.width!=element.width || this.canvas.height!=element.height){
+			this.canvas.width=element.width;
+			this.canvas.height=element.height;
+		}		
+
+		// clear the canvas
+		let context = this.canvas.getContext("2d");
+		context.resetTransform();
+		context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+		// set correct position
+		
+		context.setTransform(v.zoom, 0, 0, v.zoom, -v.x * v.zoom, -v.y * v.zoom);
+
+		let onePixel = 1.01/v.zoom;
+		// draw grid
+
+		let xmin = v.x;
+		let xmax = v.x + v.width;
+
+		let ymin = v.y;
+		let ymax = v.y + v.height;
+
+		context.lineWidth = onePixel;// + "px";
+		// grid
+		context.beginPath();
+		context.strokeStyle = "#7772";
+		for(let offset = 1; offset < 1000; offset+=1){
+			if(offset > ymin && offset < ymax){
+				context.moveTo(xmin, offset);
+				context.lineTo(xmax, offset);
+			}
+			if(-offset > ymin && -offset < ymax){
+				context.moveTo(xmin, -offset);
+				context.lineTo(xmax, -offset);
+			}
+			if(offset > xmin && offset < xmax){
+				context.moveTo(offset, ymin);
+				context.lineTo(offset, ymax);
+			}
+			if(-offset > xmin && -offset < xmax){
+				context.moveTo(-offset, ymin);
+				context.lineTo(-offset, ymax);
+			}
+		}
+		context.stroke();
+
+		// grid
+		context.beginPath();
+		context.strokeStyle = "#7773";
+		for(let offset = 6; offset < 1000; offset+=12){
+			if(offset > ymin && offset < ymax){
+				context.moveTo(xmin, offset);
+				context.lineTo(xmax, offset);
+			}
+			if(-offset > ymin && -offset < ymax){
+				context.moveTo(xmin, -offset);
+				context.lineTo(xmax, -offset);
+			}
+			if(offset > xmin && offset < xmax){
+				context.moveTo(offset, ymin);
+				context.lineTo(offset, ymax);
+			}
+			if(-offset > xmin && -offset < xmax){
+				context.moveTo(-offset, ymin);
+				context.lineTo(-offset, ymax);
+			}
+		}
+		context.stroke();
+
+		// grid
+		context.beginPath();
+		context.strokeStyle = "#7777";
+		for(let offset = 12; offset < 1000; offset+=12){
+			if(offset > ymin && offset < ymax){
+				context.moveTo(xmin, offset);
+				context.lineTo(xmax, offset);
+			}
+			if(-offset > ymin && -offset < ymax){
+				context.moveTo(xmin, -offset);
+				context.lineTo(xmax, -offset);
+			}
+			if(offset > xmin && offset < xmax){
+				context.moveTo(offset, ymin);
+				context.lineTo(offset, ymax);
+			}
+			if(-offset > xmin && -offset < xmax){
+				context.moveTo(-offset, ymin);
+				context.lineTo(-offset, ymax);
+			}
+		}
+		context.stroke();
+
+		// main axis
+		context.strokeStyle = "#777f";
+		context.beginPath();
+		context.moveTo(-10000, 0);
+		context.lineTo(10000, 0);
+		context.moveTo(0,-10000);
+		context.lineTo(0, 10000);
+		context.stroke();
+
+		this.updateAttachments();
+	}
+
+	updateAttachments(){
+		let v= this.#view;
+		for(let attachment of this.attachments){
+			let x = (attachment.x ?? 0) - v.x;
+			let t = `translate(${x * v.zoom}px, ${((attachment.y ?? 0) - v.y) * v.zoom}px) scale(${v.zoom})`;
+			attachment.style.transform = t;
+		}
+	}
+}
+customElements.define('ui-viewport', Viewport);
 
 // @ts-ignore
 let URL$1 = import.meta.url;
@@ -1641,6 +2041,7 @@ const UI = {
 	Splash,
 	Toast,
 	Toggle,
+	Viewport,
 
 	utils
 };
@@ -1649,4 +2050,4 @@ const UI = {
 
 window["UI"] = UI;
 
-export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, HashManager, Json, List, Modal, Panel, Spacer, Spinner, Splash, Table, Toast, Toggle, utils };
+export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, HashManager, Json, List, Modal, Panel, Spacer, Spinner, Splash, Table, Toast, Toggle, Viewport, utils };

@@ -20,6 +20,7 @@ import { Spinner } from "./src/component/Spinner.js";
 import { Splash } from "./src/Splash.js";
 import { Toast } from "./src/feedback/Toast.js";
 import { Toggle } from "./src/forms/Toggle.js";
+import { Viewport } from "./src/canvas/Viewport.js";
 
 // @ts-ignore
 let URL = import.meta.url;
@@ -53,6 +54,7 @@ const UI = {
 	Splash,
 	Toast,
 	Toggle,
+	Viewport,
 
 	utils
 };
@@ -79,4 +81,5 @@ export {Spinner};
 export {Splash};
 export {Toast};
 export {Toggle};
+export {Viewport};
 export {utils};

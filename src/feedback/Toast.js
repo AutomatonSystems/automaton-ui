@@ -10,9 +10,17 @@ export class Toaster extends BasicElement{
 }
 customElements.define('ui-toaster', Toaster);
 
+function parseMessage(msg){
+	if(typeof msg === 'object'){
+		return JSON.stringify(msg, null, '\t');
+	}else{
+		return ""+ msg;
+	}
+}
+
 export class Toast extends BasicElement {
 	constructor(message, { level = 'info' } = {}) {
-		super(message);
+		super(parseMessage(message));
 
 		let i = document.createElement('i');
 		let icon = { 'debug': 'fa-bug', 'info': 'fa-info-circle', 'warn': 'fa-exclamation-circle', 'error': 'fa-exclamation-triangle', 'success': 'fa-check-circle' }[level];

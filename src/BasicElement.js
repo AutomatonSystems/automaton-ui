@@ -135,5 +135,60 @@ export class BasicElement extends HTMLElement {
 	static castHtmlElements(...elements) {
 		return /** @type {HTMLElement[]} */ ([...elements]);
 	}
+
+
+	/****** DROP LOGIC - TODO move to a behaviour class ********/
+
+	#dropTypeSet = new Set();
+	droppable = false;
+
+	makeDraggable(type='element', data = null){
+		this.draggable = true;
+
+		this.addEventListener('dragstart', (event)=>{
+			if(data == null){
+				if(this.dataset['drag'] == null){
+					let id = "D_"+Math.floor(1_000_000*Math.random()).toString(16);
+					// TODO collision detection
+					this.dataset['drag'] = id;
+				}
+				let selector = `[data-drag="${this.dataset['drag']}"]`;
+				event.dataTransfer.setData(type, selector);
+			}else{
+				event.dataTransfer.setData(type, data);
+			}
+		});
+	}
+
+	makeDroppable(){
+		this.droppable = true;
+		let handler = (event)=>{
+			let types = event.dataTransfer.types;
+			for(let type of this.#dropTypeSet){
+				if(types.includes(type)){
+					event.preventDefault();
+					return;
+				}
+			}
+		}
+		this.addEventListener('dragenter', handler);
+		this.addEventListener('dragover', handler);
+	}
+
+	onDrop(type, behaviour){
+		type = type.toLowerCase();
+		if(!this.droppable)
+			this.makeDroppable();
+		this.#dropTypeSet.add(type);
+		this.addEventListener('drop', (event)=>{
+			let data = event.dataTransfer.getData(type);
+			if(data == "")
+				return;
+			if(data.startsWith('[data-drag')){
+				data = document.querySelector(data);
+			}
+			behaviour(data, event);
+		});
+	}
 }
 customElements.define('ui-basic', BasicElement);

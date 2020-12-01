@@ -1,7 +1,10 @@
-import { BasicElement } from "./BasicElement.js";
-export default class Viewport extends BasicElement{
+import "./Viewport.css";
+
+import { BasicElement } from "../BasicElement.js";
+export class Viewport extends BasicElement{
 
 	#view = {
+		parent: null,
 		// what position the top left corner maps to
 		x: 0, 
 		y: 0,
@@ -9,18 +12,27 @@ export default class Viewport extends BasicElement{
 
 		/** @type {Number} */
 		get width(){
-			return this.element.width * this.view.zoom;
+			return this.parent.element.width / this.zoom;
 		},
 
 		/** @type {Number} */
 		get height(){
-			return this.element.height * this.view.zoom;
+			return this.parent.element.height / this.zoom;
 		}
 	};
 
+	attachments = [];
+
 	constructor(){
+		super();
+		this.#view.parent = this;
 		this.canvas = document.createElement('canvas');
-		this.append(canvas);
+		this.append(this.canvas);
+	}
+
+	addAttachment(element){
+		this.attachments.push(element);
+		this.append(element);
 	}
 
 	/**
@@ -30,8 +42,8 @@ export default class Viewport extends BasicElement{
 	 * @param {Number} vy 
 	 */
 	center(vx,vy){
-		this.#view.x = vx - this.#view.width/2;
-		this.#view.y = vy - this.#view.height/2;
+		this.#view.x = vx - (this.#view.width/2);
+		this.#view.y = vy - (this.#view.height/2);
 	}
 
 	/**
@@ -39,20 +51,16 @@ export default class Viewport extends BasicElement{
 	 * Zoom on a point in screen space, keeping that point in the same place
 	 * 
 	 * @param {Number} vz target zoom level
-	 * @param {Number} sx screen point to keep in the same position on screen
-	 * @param {Number} sy screen point to keep in the same position on screen
+	 * @param {Number} vx point to keep in the same position on screen
+	 * @param {Number} vy point to keep in the same position on screen
 	 */
-	zoom(vz, sx, sy){
-		// TODO CLAMP zoom
-
-		let vxy = this.toView(sx, sy);
-		
+	zoom(vz, vx, vy){
+		let s1 = this.toScreen(vx, vy);
 		this.#view.zoom = vz;
-
-		let vxy2 = this.toView(sx, sy);
-		
-		this.#view.x += vxy.x - vxy2.x;
-		this.#view.y += vxy.y - vxy2.y;
+		let s2 = this.toScreen(vx, vy);
+		let px = s2.x-s1.x;
+		let py = s2.y-s1.y;
+		this.pan(px, py);
 	}
 
 	/**
@@ -61,10 +69,8 @@ export default class Viewport extends BasicElement{
 	 * @param {Number} rsy 
 	 */
 	pan(rsx, rsy){
-		this.#view.x += rsx * this.#view.zoom;
-		this.#view.y += rsy * this.#view.zoom;
-
-		// TODO CLAMP position
+		this.#view.x += rsx / this.#view.zoom;
+		this.#view.y += rsy / this.#view.zoom;
 	}
 
 	/**
@@ -74,46 +80,165 @@ export default class Viewport extends BasicElement{
 	 * @param {Number} sx 
 	 * @param {Number} sy 
 	 * 
-	 * @returns {{x:number,y:number}}
+	 * @returns {{x:number,y:number, out: boolean}}
 	 */
 	toView(sx,sy){
-		return {
-			x: sx/this.#view.zoom + this.view.x,
-			y: sy/this.#view.zoom + this.view.y
+		let v = this.#view;
+		let e = this.element;
+		let xy = {
+			x: (sx-e.x)/v.zoom + v.x,
+			y: (sy-e.y)/v.zoom + v.y,
 		};
+		xy.out = xy.x < v.x || xy.x > v.x + v.width 
+			|| xy.y < v.y || xy.y > v.y + v.height;
+		return xy;
+	}
+
+	/**
+	 * convert the viewport cordinates to screen co-ordinates
+	 * 
+	 * @param {Number} sx 
+	 * @param {Number} sy 
+	 * 
+	 * @returns {{x:number,y:number}}
+	 */
+	toScreen(vx, vy){
+		let v = this.#view;
+		return {
+			x: (vx - v.x)*v.zoom,
+			y: (vy - v.y)*v.zoom
+		}
 	}
 
 	get element(){
 		return this.getBoundingClientRect();
 	}
 
+	#lastV;
+
 	render(){
+		let v = this.#view;
+		let lv = JSON.stringify({x:v.x,y:v.y,w:v.width,h:v.height,z:v.zoom});
+		if(!(this.#lastV == null || this.#lastV != lv)){
+			this.#lastV = lv;
+			this.updateAttachments();
+			return;
+		}
+		this.#lastV = lv;
+
 		let element = this.element;
 		if(this.canvas.width!=element.width || this.canvas.height!=element.height){
 			this.canvas.width=element.width;
 			this.canvas.height=element.height;
-		}
+		}		
 
 		// clear the canvas
 		let context = this.canvas.getContext("2d");
+		context.resetTransform();
 		context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
 		// set correct position
-		context.setTransform(this.#view.zoom, 0, 0, this.#view.zoom, -this.#view.x, -this.#view.y);
+		
+		context.setTransform(v.zoom, 0, 0, v.zoom, -v.x * v.zoom, -v.y * v.zoom);
 
-		let onePixel = 1/this.#view.zoom;
+		let onePixel = 1.01/v.zoom;
 		// draw grid
 
-		context.strokeStyle = "red";
-		context.lineWidth = onePixel + "px";
+		let xmin = v.x;
+		let xmax = v.x + v.width;
+
+		let ymin = v.y;
+		let ymax = v.y + v.height;
+
+		context.lineWidth = onePixel;// + "px";
+		// grid
+		context.beginPath();
+		context.strokeStyle = "#7772";
+		for(let offset = 1; offset < 1000; offset+=1){
+			if(offset > ymin && offset < ymax){
+				context.moveTo(xmin, offset);
+				context.lineTo(xmax, offset);
+			}
+			if(-offset > ymin && -offset < ymax){
+				context.moveTo(xmin, -offset);
+				context.lineTo(xmax, -offset);
+			}
+			if(offset > xmin && offset < xmax){
+				context.moveTo(offset, ymin);
+				context.lineTo(offset, ymax);
+			}
+			if(-offset > xmin && -offset < xmax){
+				context.moveTo(-offset, ymin);
+				context.lineTo(-offset, ymax);
+			}
+		}
+		context.stroke();
+
+		// grid
+		context.beginPath();
+		context.strokeStyle = "#7773";
+		for(let offset = 6; offset < 1000; offset+=12){
+			if(offset > ymin && offset < ymax){
+				context.moveTo(xmin, offset);
+				context.lineTo(xmax, offset);
+			}
+			if(-offset > ymin && -offset < ymax){
+				context.moveTo(xmin, -offset);
+				context.lineTo(xmax, -offset);
+			}
+			if(offset > xmin && offset < xmax){
+				context.moveTo(offset, ymin);
+				context.lineTo(offset, ymax);
+			}
+			if(-offset > xmin && -offset < xmax){
+				context.moveTo(-offset, ymin);
+				context.lineTo(-offset, ymax);
+			}
+		}
+		context.stroke();
+
+		// grid
+		context.beginPath();
+		context.strokeStyle = "#7777";
+		for(let offset = 12; offset < 1000; offset+=12){
+			if(offset > ymin && offset < ymax){
+				context.moveTo(xmin, offset);
+				context.lineTo(xmax, offset);
+			}
+			if(-offset > ymin && -offset < ymax){
+				context.moveTo(xmin, -offset);
+				context.lineTo(xmax, -offset);
+			}
+			if(offset > xmin && offset < xmax){
+				context.moveTo(offset, ymin);
+				context.lineTo(offset, ymax);
+			}
+			if(-offset > xmin && -offset < xmax){
+				context.moveTo(-offset, ymin);
+				context.lineTo(-offset, ymax);
+			}
+		}
+		context.stroke();
+
+		// main axis
+		context.strokeStyle = "#777f";
+		context.beginPath();
 		context.moveTo(-10000, 0);
-		context.lineTo(-10000, 0);
+		context.lineTo(10000, 0);
 		context.moveTo(0,-10000);
 		context.lineTo(0, 10000);
 		context.stroke();
 
-		// callback
+		this.updateAttachments();
+	}
 
-
+	updateAttachments(){
+		let v= this.#view;
+		for(let attachment of this.attachments){
+			let x = (attachment.x ?? 0) - v.x;
+			let t = `translate(${x * v.zoom}px, ${((attachment.y ?? 0) - v.y) * v.zoom}px) scale(${v.zoom})`;
+			attachment.style.transform = t;
+		}
 	}
 }
+customElements.define('ui-viewport', Viewport);

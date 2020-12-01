@@ -64,7 +64,8 @@ export class HashHandler{
 	async handle(path, oldPath){
 
 		let parts = path.match(this.path);
-		if(!parts)
+		// if no match or it didn't match the whole string
+		if(!parts || parts[0].length != path.length)
 			return false;
 
 		// compute vars
@@ -92,7 +93,7 @@ export class HashManager extends BasicElement {
 
 
 	key = null;
-	hash = "";
+	hash = null;
 	depth = 0;
 
 	/** @type {HashHandler[]} */
@@ -150,7 +151,6 @@ export class HashManager extends BasicElement {
 		let hash = window.location.hash.substring(1);
 		let pairs = hash.split('|').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
 
-		
 		let pair = pairs.find(i=>i[0]==this.key);
 		if(pair == null)
 			pair = [this.key,""];
@@ -166,7 +166,11 @@ export class HashManager extends BasicElement {
 		for (let handler of this.handlers) {
 			let result = await handler.handle(newHash, oldHash);
 			if (result) {
-				await this.swapContent(result[0], result[1]);
+				if(Array.isArray(result)){
+					await this.swapContent(result[0], result[1]);
+				}else{
+					await this.swapContent(result, null);
+				}
 				break;
 			}
 		}
@@ -185,6 +189,12 @@ export class HashManager extends BasicElement {
 
 		if (this.firstElementChild == null)
 			return this.appendChild(content);
+
+		if(direction == null){
+			this.firstElementChild.remove();
+			this.appendChild(content);
+			return;
+		}
 
 		let enter, exit;
 		if (direction == HashManager.DIRECTION.RANDOM) {

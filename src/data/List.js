@@ -101,7 +101,7 @@ export class List extends BasicElement{
 		return `
 	<!-- pagination -->
 	<header>
-		<span>Sort By <span class="sort"></span></span>
+		<span><span class="sort"></span></span>
 		<ui-spacer></ui-spacer>
 		<span class="paging top"></span>
 	</header>
@@ -178,9 +178,12 @@ export class List extends BasicElement{
 
 		wrapper.innerHTML = "";
 		wrapper.appendChild(select);
+
+		if(Object.values(this.attrs).length==0)
+			wrapper.style.display = "none";
 	}
 
-	render() {
+	async render() {
 
 		// TODO render busy spinner
 
@@ -188,7 +191,7 @@ export class List extends BasicElement{
 		this.sortDisplay();
 		
 		// setup paging
-		this.page();
+		await this.page();
 
 		// show the body
 		//this.listBody.style.removeProperty('display');
@@ -287,7 +290,12 @@ export class List extends BasicElement{
 		this.listBody.innerHTML = "";
 		for(let index = this.pageNumber*this.itemsPerPage; index < (this.pageNumber+1)*this.itemsPerPage && index < visibleCount; index++){
 			let item = this.display[index];
-			this.listBody.append(await this.getItemElement(item));
+			let ele = (await this.getItemElement(item));
+			if(ele instanceof BasicElement){
+				ele.attach(this.listBody);
+			}else{
+				this.listBody.appendChild(ele);
+			}
 		}
 	}
 

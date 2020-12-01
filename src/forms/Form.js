@@ -5,7 +5,6 @@ import { Button } from "./Button.js";
 import { Toggle } from "./Toggle.js";
 import * as utils from "../utils.js";
 /****** FORM COMPONENTS ******/
-
 export class Form extends BasicElement {
 
 	static STYLE = {
@@ -28,6 +27,8 @@ export class Form extends BasicElement {
 
 
 	async build(json) {
+		this.value = json;
+
 		this.changeListeners = [];
 		let eles = await this.jsonToHtml(this.template, json);
 		this.append(...eles);
@@ -37,21 +38,25 @@ export class Form extends BasicElement {
 			input.addEventListener('change', this.onChange);
 		}
 		// finally trigger them for the starting state
-		this.onChange();
+		this.changeListeners.forEach(l => l(json));
 
 		return this;
 	}
 
 	onChange() {
 		let json = this.json();
-		this.changeListeners.forEach(l => l(json));
 		this.value = json;
+		this.changeListeners.forEach(l => l(json));
 	}
 
-	json(includeHidden = true) {
+	json(includeHidden = false) {
+		return this._readValue(this, includeHidden);
+	}
+
+	_readValue(element, includeHidden = false){
 		let json = {};
 
-		let inputs = this.querySelectorAll('[data-key]');
+		let inputs = element.querySelectorAll('[data-key]');
 		for (let input of inputs) {
 			// skip hidden inputs is required
 			if(!includeHidden && input.closest('[hidden]'))
@@ -112,29 +117,32 @@ export class Form extends BasicElement {
 		return json;
 	}
 
-
-	async jsonToHtml(template, json, jsonKey = '', options = { style: this.formStyle }) {
+	async jsonToHtml(templates, json, jsonKey = '', options = { style: this.formStyle }) {
 		let elements = [];
-		if (!Array.isArray(template))
-			template = [template];
-		for (let item of template) {
-			if (typeof item == "string") {
-				if (item.indexOf(":") == -1) {
-					item = {
+		if (!Array.isArray(templates))
+			templates = [templates];
+		for (let template of templates) {
+			if (typeof template == "string") {
+				if (template.indexOf(":") == -1) {
+					template = {
 						key: null,
-						type: item
+						type: template
 					};
 				}
 				else {
-					item = {
-						key: item.split(':')[0],
-						type: item.split(':')[1]
+					template = {
+						key: template.split(':')[0],
+						type: template.split(':')[1]
 					};
 					if (json == null)
 						json = {};
 				}
 			}
-			elements.push(await this.oneItem(item, item.key ? json[item.key] : json, item.key ? ((jsonKey ? jsonKey + "." : '') + item.key) : jsonKey, options));
+
+			// template value
+			let value = (template.key ? json[template.key] : json) ?? template.default;
+			
+			elements.push(await this.oneItem(template, value, template.key ? ((jsonKey ? jsonKey + "." : '') + template.key) : jsonKey, options));
 		}
 
 		if (options.style?.parent) {
@@ -147,7 +155,31 @@ export class Form extends BasicElement {
 		}
 	}
 
-	async oneItem(template, json, jsonKey, { style = Form.STYLE.ROW } = {}) {
+	_readJsonWithKey(json, key){
+		try{
+			let keys = key.split('.');
+			for(let part of keys){
+				if(json == null)
+					return null;
+				if(part.endsWith('[]')){
+					part = part.substring(0, part.length-2);
+					json = json[part];
+					if(json?.length > 0)
+						json = json[0];
+					else
+						json = null;
+				}else{
+					json = json[part];
+				}
+				
+			}
+			return json;
+		}catch(e){
+			return null;
+		}
+	}
+
+	async oneItem(template, itemValue, jsonKey, { style = Form.STYLE.ROW } = {}) {
 
 		let element = document.createElement(style.wrap);
 
@@ -157,7 +189,7 @@ export class Form extends BasicElement {
 			});
 		}
 
-		let render = async ()=>{
+		let render = async (elementValue)=>{
 			let label;
 			if (template.key) {
 				label = document.createElement(style.label);
@@ -195,42 +227,44 @@ export class Form extends BasicElement {
 						break;
 					//
 					case 'checkbox':
-						html += `<input data-key="${jsonKey}" type="checkbox" ${json ? 'checked' : ''}/>`;
+						html += `<input data-key="${jsonKey}" type="checkbox" ${elementValue ? 'checked' : ''}/>`;
 						wrapper.innerHTML = html;
 						break;
 					case 'toggle':
-						html += `<ui-toggle data-key="${jsonKey}" value="${json ?? false}"></ui-toggle>`;
+						html += `<ui-toggle data-key="${jsonKey}" value="${elementValue ?? false}"></ui-toggle>`;
 						wrapper.innerHTML = html;
 						break;
+					case "dropdown":
+					case "select":
 					case 'list':
 						html += `<select data-key="${jsonKey}" data-format="${template.format}">`;
 						let options = template.options;
 						if (!Array.isArray(options))
-							options = await options();
+							options = await options(this.value);
 						html += options.map(v => `<option 
-								${(json == (v.value ? v.value : v)) ? 'selected' : ''}
+								${(elementValue == (v.value ? v.value : v)) ? 'selected' : ''}
 								value=${v.value ? v.value : v}>${v.name ? v.name : v}</option>`).join('');
 						html += `</select>`;
 						wrapper.innerHTML = html;
 						break;
 					case 'text':
-						html += `<textarea data-key="${jsonKey}">${json ?? ''}</textarea>`;
+						html += `<textarea data-key="${jsonKey}">${elementValue ?? ''}</textarea>`;
 						wrapper.innerHTML = html;
 						break;
 					case 'string':
 						let input = utils.htmlToElement(`<input data-key="${jsonKey}" type="text" placeholder="${template.placeholder ?? ''}"/>`);
-						input.value = json ?? null;
+						input.value = elementValue ?? null;
 						wrapper.append(input);
 						break;
 					case 'number':
-						html += `<input data-key="${jsonKey}" type="number" value="${json ?? ''}"/>`;
+						html += `<input data-key="${jsonKey}" type="number" value="${elementValue ?? ''}"/>`;
 						wrapper.innerHTML = html;
 						break;
 					// complex types
 					// nested types (compound object)
 					case 'compound':
 						//
-						wrapper.append(...await this.jsonToHtml(template.children, json ?? {}, jsonKey));
+						wrapper.append(...await this.jsonToHtml(template.children, elementValue ?? {}, jsonKey));
 						break;
 					// repeating object
 					case 'array':
@@ -248,12 +282,12 @@ export class Form extends BasicElement {
 						let button = new Button("Add", null, { icon: 'fa-plus' });
 
 
-						let createItem = async (json) => {
+						let createItem = async (itemValue) => {
 
 							let item = document.createElement('span');
 							item.classList.add('item');
 
-							item.append(...await this.jsonToHtml(template.children, json, jsonKey, { style: substyle }));
+							item.append(...await this.jsonToHtml(template.children, itemValue, jsonKey, { style: substyle }));
 
 							item.append(new Button("", () => {
 								item.remove();
@@ -265,11 +299,16 @@ export class Form extends BasicElement {
 							}
 
 							contain.append(item);
-						};
-						button.addEventListener('click', () => createItem(Array.isArray(template.children)?{}:null));
 
-						if (Array.isArray(json)) {
-							for(let j of json){
+						};
+						button.addEventListener('click', async () => {
+							let item = await createItem(Array.isArray(template.children)?{}:null)
+							this.onChange();
+							return item;
+						});
+
+						if (Array.isArray(elementValue)) {
+							for(let j of elementValue){
 								await createItem(j);
 							}
 
@@ -281,33 +320,38 @@ export class Form extends BasicElement {
 
 						break;
 				}
-			}
-			else if (typeof template.type == 'function') {
-				let input = new template.type(json);
+			}else if (typeof template.type == 'function') {
+				let input = new template.type(elementValue);
 				input.dataset['key'] = jsonKey;
 				wrapper.append(input);
 			}
-
-			/*if (element.children.length == 1)
-				return element.firstElementChild;*/
-
-			return element;
 		};
 
-		if(template.redraw){
-			let lastValue = this.value[template.redraw];
+		await render(itemValue);
 
-			this.changeListeners.push(async (fullJson) => {
-				let newValue = fullJson[template.redraw];
-				if(lastValue!=newValue){
+		if(template.redraw){
+			// cache of the previous value
+			let lastValue = {};
+			// handle change events can filter them
+			let changeListener = async (fullJson) => {
+				let newJsonValue = this._readJsonWithKey(fullJson, template.redraw);
+				let newValue = JSON.stringify(newJsonValue);
+				if(lastValue!==newValue){
+					// grab the current value directly from the element
+					let v = this._readValue(element);
+					let value = this._readJsonWithKey(v,jsonKey);
+					// rebuild the element
 					element.innerHTML = "";
-					await render();
+					await render(value);
+					// cache the value
 					lastValue = newValue;
 				}
-			});
+			};
+			// resgister the change listener
+			this.changeListeners.push(changeListener);
 		}
 
-		return await render();
+		return element;
 	}
 }
 customElements.define('ui-form', Form);
