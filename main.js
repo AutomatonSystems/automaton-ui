@@ -2,6 +2,7 @@ import "./base.css";
 
 import { BasicElement } from "./src/BasicElement.js";
 import * as utils from "./src/utils.js";
+import * as factory from "./src/Factory.js";
 
 import { Badge } from "./src/component/Badge.js";
 import { Button } from "./src/forms/Button.js";
@@ -83,3 +84,4 @@ export {Toast};
 export {Toggle};
 export {Viewport};
 export {utils};
+export {factory};

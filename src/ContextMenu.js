@@ -52,34 +52,40 @@ export class ContextMenu extends BasicElement {
 	 */
 	for(element){
 		let listener = (event)=>{
-			this.target = element;
+			
 			// prevent the default contextmenu
 			event.preventDefault();
-			
-			// work out where to place the menu
-			let w = window.innerWidth;
-			let h = window.innerHeight;
 
-			let right = event.pageX < w*0.75;
-			let down = event.pageY < h*0.5;
-
-			// show the menu
-			this.style.left = right?(event.pageX + "px"):null;
-			this.style.right = right?null:((w-event.pageX) + "px");
-			this.style.top = down?(event.pageY + "px"):null;
-			this.style.bottom = down?null:((h-event.pageY) + "px");
-
-			for(let item of this.items){
-				item.element.hidden = item.hide && item.hide(element);
-			}
-
-			this.show();
+			this.renderMenu(element, event.pageX, event.pageY)
 			// setup the hide behaviour
 		};
 		element.addEventListener("contextmenu", listener);
 		element.setAttribute("context-menu", '');
 		this.#attachments.set(element, listener);
 		return this;
+	}
+
+	renderMenu(element, x,y){
+		this.target = element;
+			
+		// work out where to place the menu
+		let w = window.innerWidth;
+		let h = window.innerHeight;
+
+		let right = x < w*0.75;
+		let down = y < h*0.5;
+
+		// show the menu
+		this.style.left = right?(x + "px"):null;
+		this.style.right = right?null:((w-x) + "px");
+		this.style.top = down?(y + "px"):null;
+		this.style.bottom = down?null:((h-y) + "px");
+
+		for(let item of this.items){
+			item.element.hidden = item.hide && item.hide(element);
+		}
+
+		this.show();
 	}
 
 	detach(element){
@@ -115,5 +121,11 @@ export class ContextMenu extends BasicElement {
 		this.firstElementChild.appendChild(htmlToElement(`<hr/>`));
 		return this;
 	}
+
+	clearMenuItems(){
+		this.items = [];
+		this.firstElementChild.innerHTML = "";
+	}
+
 }
 customElements.define('ui-context', ContextMenu);

@@ -25,12 +25,12 @@ export class Form extends BasicElement {
 		this.value = {};
 	}
 
-
 	async build(json) {
 		this.value = json;
 
 		this.changeListeners = [];
 		let eles = await this.jsonToHtml(this.template, json);
+		this.innerHTML = "";
 		this.append(...eles);
 		// add change listeners
 		let inputs = this.querySelectorAll('[data-key]');

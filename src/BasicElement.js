@@ -5,8 +5,12 @@ export class BasicElement extends HTMLElement {
 
 		this.self = this;
 
-		if (content) {
-			this.innerHTML = content;
+		if(content){
+			if (typeof content == 'string') {
+				this.innerHTML = content;
+			}else{
+				this.append(content);
+			}
 		}
 
 		this.remove = this.remove.bind(this);

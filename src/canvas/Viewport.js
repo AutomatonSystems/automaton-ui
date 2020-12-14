@@ -35,6 +35,11 @@ export class Viewport extends BasicElement{
 		this.append(element);
 	}
 
+	removeAttachment(element){
+		this.attachments = this.attachments.filter(e=>e!=element);
+		this.removeChild(element);
+	}
+
 	/**
 	 * Move the view so vx,vy is in the center of the viewport
 	 * 
@@ -236,7 +241,8 @@ export class Viewport extends BasicElement{
 		let v= this.#view;
 		for(let attachment of this.attachments){
 			let x = (attachment.x ?? 0) - v.x;
-			let t = `translate(${x * v.zoom}px, ${((attachment.y ?? 0) - v.y) * v.zoom}px) scale(${v.zoom})`;
+			let y = (attachment.y ?? 0) - v.y;
+			let t = `translate(${x * v.zoom}px, ${y * v.zoom}px) scale(${v.zoom})`;
 			attachment.style.transform = t;
 		}
 	}
