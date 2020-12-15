@@ -262,6 +262,7 @@ export class Form extends BasicElement {
 						break;
 					// complex types
 					// nested types (compound object)
+					case 'object':
 					case 'compound':
 						//
 						wrapper.append(...await this.jsonToHtml(template.children, elementValue ?? {}, jsonKey));

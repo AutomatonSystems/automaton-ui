@@ -619,6 +619,7 @@ class Form extends BasicElement {
 						break;
 					// complex types
 					// nested types (compound object)
+					case 'object':
 					case 'compound':
 						//
 						wrapper.append(...await this.jsonToHtml(template.children, elementValue ?? {}, jsonKey));
@@ -1182,6 +1183,8 @@ class HashManager extends BasicElement {
 	hash = null;
 	depth = 0;
 
+	eventlistener;
+
 	/** @type {HashHandler[]} */
 	handlers = [];
 
@@ -1204,9 +1207,18 @@ class HashManager extends BasicElement {
 	constructor(key=null) {
 		super();
 		this.key = key;
-		window.addEventListener('hashchange', () => this.hashChange());
+
+		this.eventlistener = () => this.hashChange();
+
+		window.addEventListener('hashchange', this.eventlistener);
 	}
 
+	remove(){
+		super.remove();
+		window.removeEventListener('hashchange', this.eventlistener);
+		return this;
+	}
+	
 	get value(){
 		return this.hash;
 	}
