@@ -1555,17 +1555,13 @@ class List extends BasicElement{
 	}
 
 	async render() {
-
-		// TODO render busy spinner
+		// TODO render busy spinner?
 
 		//render headers
 		this.sortDisplay();
 		
 		// setup paging
 		await this.page();
-
-		// show the body
-		//this.listBody.style.removeProperty('display');
 	}
 
 	async getItemElement(item){
@@ -1584,7 +1580,7 @@ class List extends BasicElement{
 	 * @param {Attr|String} attribute name of the attribute to sort on
 	 * @param {Boolean} asc ASC of DESC sort
 	 */
-	sort(attribute = this._sort?.attr, asc = !this._sort?.asc) {
+	async sort(attribute = this._sort?.attr, asc = !this._sort?.asc) {
 		this.dirty = true;
 
 		let attr = (typeof attribute == 'string')?this.attrs[attribute]:attribute;
@@ -1602,7 +1598,7 @@ class List extends BasicElement{
 			return;
 
 		// render
-		this.render();
+		await this.render();
 	}
 
 	/**
