@@ -238,7 +238,7 @@ export class Viewport extends BasicElement{
 	}
 
 	updateAttachments(){
-		let v= this.#view;
+		let v = this.#view;
 		for(let attachment of this.attachments){
 			let x = (attachment.x ?? 0) - v.x;
 			let y = (attachment.y ?? 0) - v.y;

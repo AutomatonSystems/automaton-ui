@@ -600,7 +600,7 @@ class Form extends BasicElement {
 							options = await options(this.value);
 						html += options.map(v => `<option 
 								${(elementValue == (v.value ? v.value : v)) ? 'selected' : ''}
-								value=${v.value ? v.value : v}>${v.name ? v.name : v}</option>`).join('');
+								value="${v.value ? v.value : v}">${v.name ? v.name : v}</option>`).join('');
 						html += `</select>`;
 						wrapper.innerHTML = html;
 						break;
@@ -2064,7 +2064,7 @@ class Viewport extends BasicElement{
 	}
 
 	updateAttachments(){
-		let v= this.#view;
+		let v = this.#view;
 		for(let attachment of this.attachments){
 			let x = (attachment.x ?? 0) - v.x;
 			let y = (attachment.y ?? 0) - v.y;
