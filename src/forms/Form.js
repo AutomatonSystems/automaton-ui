@@ -32,21 +32,22 @@ export class Form extends BasicElement {
 		let eles = await this.jsonToHtml(this.template, json);
 		this.innerHTML = "";
 		this.append(...eles);
-		// add change listeners
+		/*// add change listeners
 		let inputs = this.querySelectorAll('[data-key]');
 		for (let input of inputs) {
 			input.addEventListener('change', this.onChange);
-		}
+		}*/
 		// finally trigger them for the starting state
 		this.onChange();
 
 		return this;
 	}
 
-	onChange() {
+	async onChange() {
 		let json = this.json();
 		this.value = json;
-		this.changeListeners.forEach(l => l(json));
+		for(let listener of this.changeListeners)
+			await listener(json);
 	}
 
 	json(includeHidden = false) {
@@ -182,14 +183,10 @@ export class Form extends BasicElement {
 	async oneItem(template, itemValue, jsonKey, { style = Form.STYLE.ROW } = {}) {
 
 		let element = document.createElement(style.wrap);
-
-		if (template.hidden) {
-			this.changeListeners.push((json) => {
-				element.hidden = template.hidden(json, element);
-			});
-		}
+		element.dataset.element = jsonKey;
 
 		let render = async (elementValue)=>{
+
 			let label;
 			if (template.key) {
 				label = document.createElement(style.label);
@@ -322,35 +319,59 @@ export class Form extends BasicElement {
 						break;
 				}
 			}else if (typeof template.type == 'function') {
-				let input = new template.type(elementValue);
-				input.dataset['key'] = jsonKey;
-				wrapper.append(input);
+				let obj = template.type;
+				if(!!obj.prototype && !!obj.prototype.constructor.name){
+					let input = new template.type(elementValue, jsonKey, element);
+					input.dataset['key'] = jsonKey;
+					wrapper.append(input);
+				}else{
+					let input = template.type(elementValue, jsonKey, element);
+					input.dataset['key'] = jsonKey;
+					wrapper.append(input);
+				}
+			}
+
+			let inputs = element.querySelectorAll('[data-key]');
+			for (let input of inputs) {
+				input.addEventListener('change', this.onChange);
 			}
 		};
 
 		await render(itemValue);
 
-		if(template.redraw){
-			// cache of the previous value
-			let lastValue = {};
-			// handle change events can filter them
-			let changeListener = async (fullJson) => {
-				let newJsonValue = this._readJsonWithKey(fullJson, template.redraw);
-				let newValue = JSON.stringify(newJsonValue);
-				if(lastValue!==newValue){
-					// grab the current value directly from the element
-					let v = this._readValue(element);
-					let value = this._readJsonWithKey(v,jsonKey);
-					// rebuild the element
-					element.innerHTML = "";
-					await render(value);
-					// cache the value
-					lastValue = newValue;
-				}
-			};
-			// resgister the change listener
-			this.changeListeners.push(changeListener);
+		if (template.hidden) {
+			this.changeListeners.push((json) => {
+				element.hidden = template.hidden(json, element);
+			});
 		}
+
+		if(template.redraw){
+			let redraws = Array.isArray(template.redraw)?template.redraw:[template.redraw];
+			for(let redraw of redraws){
+				// cache of the previous value
+				let lastValue = {};
+				// handle change events can filter them
+				let changeListener = async (fullJson) => {
+					
+					let newJsonValue = this._readJsonWithKey(fullJson, redraw);
+					let newValue = JSON.stringify(newJsonValue);
+
+					if(lastValue!==newValue){
+						// grab the current value directly from the element
+						let v = this._readValue(element);
+						let value = this._readJsonWithKey(v,jsonKey);
+						// rebuild the element
+						element.innerHTML = "";
+						await render(value);
+						// cache the value
+						lastValue = newValue;
+					}
+				};
+				// resgister the change listener
+				this.changeListeners.push(changeListener);
+			}
+		}
+		
 
 		return element;
 	}
