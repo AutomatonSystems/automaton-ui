@@ -7,13 +7,39 @@ export class Button extends BasicElement {
     /**
      *
      * @param {String|HTMLElement} content
-     * @param {EventListenerOrEventListenerObject} callback callback when the button is clicked
+     * @param {EventListenerOrEventListenerObject|String} callback callback when the button is clicked
      * @param {{icon?: String, style?: String, color?: String|boolean}} options
      */
 	constructor(content, callback, { icon = '', style = 'button', color = false } = {}) {
 		super(content);
 
-		this.addEventListener('click', callback);
+		if(typeof callback == "string"){
+			// create link like behaviour (left click open; middle/ctrl+click new tab)
+			this.addEventListener('click', (e)=>{
+				// control key
+				if(e.ctrlKey){
+					window.open(callback);
+				}else{
+					// otherwise
+					location.href = callback;
+				}
+			});
+			this.addEventListener('auxclick', (e)=>{
+				// middle click
+				if(e.button == 1){
+					window.open(callback);
+				}
+			});
+			this.addEventListener('mousedown',(e)=>{
+				if(e.button == 1){
+					// on windows middlemouse down bring up the scroll widget; disable that
+					e.preventDefault();
+				}
+			})
+		}else{
+			// fire the provided event
+			this.addEventListener('click', callback);
+		}
 
 		this.classList.add(style);
 		if (color)

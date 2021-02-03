@@ -121,6 +121,12 @@ export class Viewport extends BasicElement{
 
 	#lastV;
 
+	grid = [
+		{step: 1, offset: 1, color: "#7772"},
+		{step: 12, offset: 6, color: "#7773"},
+		{step: 12, offset: 6, color: "#7774"}
+	]
+
 	render(){
 		let v = this.#view;
 		let lv = JSON.stringify({x:v.x,y:v.y,w:v.width,h:v.height,z:v.zoom});
@@ -157,81 +163,40 @@ export class Viewport extends BasicElement{
 
 		context.lineWidth = onePixel;// + "px";
 		// grid
-		context.beginPath();
-		context.strokeStyle = "#7772";
-		for(let offset = 1; offset < 1000; offset+=1){
-			if(offset > ymin && offset < ymax){
-				context.moveTo(xmin, offset);
-				context.lineTo(xmax, offset);
+		for(let grid of this.grid){
+			if(v.zoom*grid.step < 10){
+				continue;
 			}
-			if(-offset > ymin && -offset < ymax){
-				context.moveTo(xmin, -offset);
-				context.lineTo(xmax, -offset);
+			context.beginPath();
+			context.strokeStyle = grid.color;
+			for(let offset = grid.offset??0; offset < 100*grid.step; offset+=grid.step){
+				if(offset > ymin && offset < ymax){
+					context.moveTo(xmin, offset);
+					context.lineTo(xmax, offset);
+				}
+				if(-offset > ymin && -offset < ymax){
+					context.moveTo(xmin, -offset);
+					context.lineTo(xmax, -offset);
+				}
+				if(offset > xmin && offset < xmax){
+					context.moveTo(offset, ymin);
+					context.lineTo(offset, ymax);
+				}
+				if(-offset > xmin && -offset < xmax){
+					context.moveTo(-offset, ymin);
+					context.lineTo(-offset, ymax);
+				}
 			}
-			if(offset > xmin && offset < xmax){
-				context.moveTo(offset, ymin);
-				context.lineTo(offset, ymax);
-			}
-			if(-offset > xmin && -offset < xmax){
-				context.moveTo(-offset, ymin);
-				context.lineTo(-offset, ymax);
-			}
+			context.stroke();
 		}
-		context.stroke();
-
-		// grid
-		context.beginPath();
-		context.strokeStyle = "#7773";
-		for(let offset = 6; offset < 1000; offset+=12){
-			if(offset > ymin && offset < ymax){
-				context.moveTo(xmin, offset);
-				context.lineTo(xmax, offset);
-			}
-			if(-offset > ymin && -offset < ymax){
-				context.moveTo(xmin, -offset);
-				context.lineTo(xmax, -offset);
-			}
-			if(offset > xmin && offset < xmax){
-				context.moveTo(offset, ymin);
-				context.lineTo(offset, ymax);
-			}
-			if(-offset > xmin && -offset < xmax){
-				context.moveTo(-offset, ymin);
-				context.lineTo(-offset, ymax);
-			}
-		}
-		context.stroke();
-
-		// grid
-		context.beginPath();
-		context.strokeStyle = "#7777";
-		for(let offset = 12; offset < 1000; offset+=12){
-			if(offset > ymin && offset < ymax){
-				context.moveTo(xmin, offset);
-				context.lineTo(xmax, offset);
-			}
-			if(-offset > ymin && -offset < ymax){
-				context.moveTo(xmin, -offset);
-				context.lineTo(xmax, -offset);
-			}
-			if(offset > xmin && offset < xmax){
-				context.moveTo(offset, ymin);
-				context.lineTo(offset, ymax);
-			}
-			if(-offset > xmin && -offset < xmax){
-				context.moveTo(-offset, ymin);
-				context.lineTo(-offset, ymax);
-			}
-		}
-		context.stroke();
 
 		// main axis
 		context.strokeStyle = "#777f";
 		context.beginPath();
-		context.moveTo(-10000, 0);
-		context.lineTo(10000, 0);
-		context.moveTo(0,-10000);
-		context.lineTo(0, 10000);
+		context.moveTo(-1000000, 0);
+		context.lineTo(1000000, 0);
+		context.moveTo(0,-1000000);
+		context.lineTo(0, 1000000);
 		context.stroke();
 
 		this.updateAttachments();
