@@ -1,7 +1,5 @@
 :root{
 	/* variables for colour */
-
-
 	--text-light: white;
 	--text-dark: #333;
 
@@ -25,6 +23,8 @@
 
 	--font-header: 'Nunito Sans',sans-serif;
 	--font-body: 'Nunito Sans',sans-serif;
+
+	--icon-font: 900 1em 'Font Awesome 5 Free';
 }
 
 html, body{
@@ -247,22 +247,45 @@ table.ui-table > tbody > tr:nth-child(2n + 1){
 	background-color: var(--brand-primary);
 	display: inline-block;
 }
-
-
-ui-badge{
-	font-size: 0.8em;
-	padding: 3px 8px;
-	border-radius: calc(var(--corner-smoothing) * 2);
-	box-shadow: var(--shadow);
-	background-color: white;
-	color: black;
+ui-button{
 	display: inline-block;
+	margin: 2px;
+	padding: 4px 12px;
+
+	cursor: pointer;
+
+	border-radius: var(--corner-smoothing);
+	background-color: var(--brand-primary);
+	color: var(--brand-primary-text);
+	/*box-shadow: var(--shadow);	*/
 }
 
-ui-badge > i{
-	margin-right: 8px;
+ui-button::selection{
+	user-select: all;
 }
-/*** CONTEXT MENU **/
+
+ui-button.text{
+	background-color: transparent;
+	padding: 0;
+}
+
+ui-button a{
+	text-decoration: none;
+	color: var(--brand-primary-text);
+}
+
+ui-button > i{
+	margin-right: 4px;
+}
+
+ui-button:hover{
+	filter: brightness(1.1);
+}
+
+ui-button[disabled]{
+	filter: grayscale(1);
+	pointer-events: none;
+}/*** CONTEXT MENU **/
 
 ui-context{
 	position: absolute;
@@ -310,45 +333,22 @@ ui-context section hr{
 	border: none;
 	border-top: 1px solid #ccc;
 	margin: 5px 2px;
-}ui-button{
+}
+
+ui-badge{
+	font-size: 0.8em;
+	padding: 3px 8px;
+	border-radius: calc(var(--corner-smoothing) * 2);
+	box-shadow: var(--shadow);
+	background-color: white;
+	color: black;
 	display: inline-block;
-	margin: 2px;
-	padding: 4px 12px;
-
-	cursor: pointer;
-
-	border-radius: var(--corner-smoothing);
-	background-color: var(--brand-primary);
-	color: var(--brand-primary-text);
-	/*box-shadow: var(--shadow);	*/
 }
 
-ui-button::selection{
-	user-select: all;
+ui-badge > i{
+	margin-right: 8px;
 }
-
-ui-button.text{
-	background-color: transparent;
-	padding: 0;
-}
-
-ui-button a{
-	text-decoration: none;
-	color: var(--brand-primary-text);
-}
-
-ui-button > i{
-	margin-right: 4px;
-}
-
-ui-button:hover{
-	filter: brightness(1.1);
-}
-
-ui-button[disabled]{
-	filter: grayscale(1);
-	pointer-events: none;
-}[ui-card]{
+[ui-card]{
 	display: inline-block;
 	perspective-origin: center;
 	perspective: 500px;
@@ -531,33 +531,6 @@ ui-hash > *.bottom{
 
 [ui-table] > table > tbody > tr:nth-child(2n + 1){
 	background-color: #f6f6f6;
-}ui-toaster{
-	pointer-events: none;
-	position: fixed;
-	top: 0;
-	left:0;
-	width:100vw;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	z-index: 100;
-}
-
-ui-toast{
-	border-radius: var(--corner-smoothing);
-	background-color: grey;
-	margin: 5px;
-	padding: 8px 12px;
-	color:white;	
-	margin-top: -40px;
-	min-width: 40vw;
-	/*height: 40px;*/
-	opacity: 1;
-	transition: 0.2s margin-top ease, 0.2s opacity ease;
-}
-
-ui-toast > i{
-	margin-right: 8px;
 }[ui-panel]{
 	display: block;
 
@@ -676,6 +649,45 @@ ui-form table{
 	border-collapse: separate;
 	border-spacing: 0 10px;
 	padding: 10px;
+}ui-toaster{
+	pointer-events: none;
+	position: fixed;
+	top: 0;
+	left:0;
+	width:100vw;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	z-index: 100;
+}
+
+ui-toast{
+	border-radius: var(--corner-smoothing);
+	background-color: grey;
+	margin: 5px;
+	padding: 8px 12px;
+	color:white;	
+	margin-top: -40px;
+	min-width: 40vw;
+	/*height: 40px;*/
+	opacity: 1;
+	transition: 0.2s margin-top ease, 0.2s opacity ease;
+}
+
+ui-toast > i{
+	margin-right: 8px;
+}
+ui-viewport{
+	position: relative;
+	overflow: hidden;
+}
+
+ui-viewport > *{
+	position: absolute;
+	top: 0;
+	left: 0;
+	transform-origin: 0 0;
+	image-rendering: pixelated;
 }ui-toggle{
 	width: 50px;
 	--size: 20px;
@@ -723,17 +735,4 @@ ui-toggle input:checked + div{
 
 ui-toggle input:checked + div span{
 	margin-left: calc(100% - var(--size));
-}
-
-ui-viewport{
-	position: relative;
-	overflow: hidden;
-}
-
-ui-viewport > *{
-	position: absolute;
-	top: 0;
-	left: 0;
-	transform-origin: 0 0;
-	image-rendering: pixelated;
 }

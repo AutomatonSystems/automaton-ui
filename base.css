@@ -1,7 +1,5 @@
 :root{
 	/* variables for colour */
-
-
 	--text-light: white;
 	--text-dark: #333;
 
@@ -25,6 +23,8 @@
 
 	--font-header: 'Nunito Sans',sans-serif;
 	--font-body: 'Nunito Sans',sans-serif;
+
+	--icon-font: 900 1em 'Font Awesome 5 Free';
 }
 
 html, body{

@@ -11,6 +11,7 @@ import { Card } from "./src/component/Card.js";
 import { Code } from "./src/text/Code.js";
 import { ContextMenu } from "./src/ContextMenu.js";
 import { Form } from "./src/forms/Form.js";
+import { NumberInput, StringInput } from "./src/forms/Input.js";
 import { HashManager } from "./src/HashManager.js";
 import { Json } from "./src/text/Json.js";
 import { List, Table} from "./src/data/List.js";
@@ -33,7 +34,9 @@ let css = [
 
 let h = document.createElement('head');
 h.innerHTML = css.map(url=>`<link href="${url}" rel="stylesheet">`).join('');
-document.head.append(...h.childNodes);
+// push them to the start of the head so that same-specificity rules (eg [ui-panel]{} 
+// in a client css file) override the defaults
+document.head.prepend(...h.childNodes);
 
 const UI = {
 	BasicElement,
@@ -45,14 +48,18 @@ const UI = {
 	Code,
 	ContextMenu,
 	Form,
+
 	HashManager,
 	Json,
 	List, Table,
 	Modal,
+	NumberInput,
 	Panel,
 	Spacer,
 	Spinner,
 	Splash,
+	StringInput,
+	Table,
 	Toast,
 	Toggle,
 	Viewport,
@@ -64,6 +71,10 @@ const UI = {
 
 window["UI"] = UI;
 
+let createElement = utils.htmlToElement;
+
+export {createElement}
+
 export {BasicElement};
 export {Badge};
 export {Button};
@@ -72,6 +83,8 @@ export {Card};
 export {Code};
 export {ContextMenu};
 export {Form};
+export {NumberInput, StringInput};
+
 export {HashManager};
 export {Json};
 export {List, Table};
@@ -83,5 +96,7 @@ export {Splash};
 export {Toast};
 export {Toggle};
 export {Viewport};
+
 export {utils};
 export {factory};
+export default UI;

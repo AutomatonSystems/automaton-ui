@@ -1175,31 +1175,6 @@ class ContextMenu extends BasicElement {
 }
 customElements.define('ui-context', ContextMenu);
 
-class StringInput extends HTMLInputElement{
-	constructor(obj, key, callback, {size=null, color=null} = {}){
-		super();
-
-		this.type = "text";
-		
-		this.value = Reflect.get(obj, key);
-
-		if(size)
-			this.style.width = (size*24)+"px";
-		
-		if(color)
-			this.style.color = color;
-
-		this.addEventListener('change', ()=>{
-			let value = this.value;
-			Reflect.set(obj, key, value);
-			if(callback)
-				callback(value);
-		});
-	}
-}
-customElements.define('ui-stringinput', StringInput, {extends:'input'});
-
-
 /**
  * A number input that keeps a json object 
  * up to date with it's value
@@ -1212,7 +1187,7 @@ class NumberInput extends HTMLInputElement{
 	 * @param {*} obj json object/array to keep up to date
 	 * @param {*} key json key/indes to keep up to date
 	 * @param {Function} callback callback that occurs immediately after a change
-	 * @param {{size?:Number, color?:String}} params configuration parameters 
+	 * @param {{size:Number, color:String}} params configuration parameters 
 	 */
 	constructor(obj, key, callback, {size=null, color=null} = {}){
 		super();
@@ -1222,7 +1197,7 @@ class NumberInput extends HTMLInputElement{
 		this.value = Reflect.get(obj, key);
 
 		if(size)
-			this.style.width = (size*24)+"px";
+			this.style.width = (size)+"ch";
 		
 		if(color)
 			this.style.color = color;
@@ -2296,9 +2271,7 @@ let css = [
 
 let h = document.createElement('head');
 h.innerHTML = css.map(url=>`<link href="${url}" rel="stylesheet">`).join('');
-// push them to the start of the head so that same-specificity rules (eg [ui-panel]{} 
-// in a client css file) override the defaults
-document.head.prepend(...h.childNodes);
+document.head.append(...h.childNodes);
 
 const UI = {
 	BasicElement,
@@ -2310,18 +2283,14 @@ const UI = {
 	Code,
 	ContextMenu,
 	Form,
-
 	HashManager,
 	Json,
 	List, Table,
 	Modal,
-	NumberInput,
 	Panel,
 	Spacer,
 	Spinner,
 	Splash,
-	StringInput,
-	Table,
 	Toast,
 	Toggle,
 	Viewport,
@@ -2335,5 +2304,33 @@ window["UI"] = UI;
 
 let createElement = htmlToElement;
 
-export default UI;
-export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, HashManager, Json, List, Modal, NumberInput, Panel, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, Factory as factory, utils };
+var UI$1 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	createElement: createElement,
+	BasicElement: BasicElement,
+	Badge: Badge,
+	Button: Button,
+	Cancel: Cancel,
+	Card: Card,
+	Code: Code,
+	ContextMenu: ContextMenu,
+	Form: Form,
+	NumberInput: NumberInput,
+	HashManager: HashManager,
+	Json: Json,
+	List: List,
+	Table: Table,
+	Modal: Modal,
+	Panel: Panel,
+	Spacer: Spacer,
+	Spinner: Spinner,
+	Splash: Splash,
+	Toast: Toast,
+	Toggle: Toggle,
+	Viewport: Viewport,
+	utils: utils,
+	factory: Factory,
+	'default': UI
+});
+
+export default UI$1;

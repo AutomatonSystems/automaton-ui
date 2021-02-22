@@ -48,6 +48,7 @@ export class Form extends BasicElement {
 		this.value = json;
 		for(let listener of this.changeListeners)
 			await listener(json);
+		this.dispatchEvent(new Event('change'));
 	}
 
 	json(includeHidden = false) {
@@ -289,6 +290,7 @@ export class Form extends BasicElement {
 
 							item.append(new Button("", () => {
 								item.remove();
+								this.onChange();
 							}, { icon: 'fa-trash', style: "text", color: "error" }));
 							
 							let inputs = item.querySelectorAll('[data-key]');

@@ -130,6 +130,26 @@ export class BasicElement extends HTMLElement {
 		return this;
 	}
 
+	/**
+	 * 
+	 * @param {String} string 
+	 * 
+	 * @returns {HTMLElement}
+	 */
+	querySelector(string){
+		return super.querySelector(string);
+	}
+
+	/**
+	 * 
+	 * @param {String} string 
+	 * 
+	 * @returns {NodeList<HTMLElement>}
+	 */
+	querySelectorAll(string){
+		return super.querySelectorAll(string);
+	}
+
     /**
      *
      * @param  {...Element} elements
@@ -177,6 +197,22 @@ export class BasicElement extends HTMLElement {
 		}
 		this.addEventListener('dragenter', handler);
 		this.addEventListener('dragover', handler);
+	}
+
+	onDragOver(type, behaviour){
+		type = type.toLowerCase();
+		if(!this.droppable)
+			this.makeDroppable();
+		this.#dropTypeSet.add(type);
+		this.addEventListener('dragover', (event)=>{
+			let data = event.dataTransfer.getData(type);
+			if(data == "")
+				return;
+			if(data.startsWith('[data-drag')){
+				data = document.querySelector(data);
+			}
+			behaviour(data, event);
+		});
 	}
 
 	onDrop(type, behaviour){

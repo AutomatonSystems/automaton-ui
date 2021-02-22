@@ -152,7 +152,7 @@ export class List extends BasicElement{
 		return this._filterFunc == null || this._filterFunc(item);
 	}
 
-	filter(func){
+	filter(func=this._filterFunc){
 		this._filterFunc = func;
 		this.dirty = true;
 		this.page(0);
@@ -183,9 +183,11 @@ export class List extends BasicElement{
 			wrapper.style.display = "none";
 	}
 
-	async render() {
+	async render(forceRedraw=false) {
 		// TODO render busy spinner?
-
+		if(forceRedraw){
+			this.dirty = true;
+		}
 		//render headers
 		this.sortDisplay();
 		
