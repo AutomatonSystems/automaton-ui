@@ -1,0 +1,25 @@
+[ui-input]{	
+	box-sizing: border-box;
+	display: inline-block;
+	--color: attr(color);
+	color: var(--color);
+	tab-size: 2;
+	width: 100%;
+}
+
+[ui-input].error{
+	border-right: 5px solid firebrick;
+}
+
+[ui-input] textarea{
+	box-sizing: border-box;
+	width: 100%;
+	color: var(--color);
+	white-space: pre;
+	overflow-y: hidden;
+}
+
+[ui-input]::-webkit-input-placeholder{
+	color: var(--color);
+	opacity: 0.8;
+}

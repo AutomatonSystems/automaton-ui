@@ -4,6 +4,7 @@ import { BasicElement } from "../BasicElement.js";
 import { Button } from "./Button.js";
 import { Toggle } from "./Toggle.js";
 import * as utils from "../utils.js";
+import UI from "../../main.js";
 /****** FORM COMPONENTS ******/
 export class Form extends BasicElement {
 
@@ -252,6 +253,27 @@ export class Form extends BasicElement {
 					case 'string':
 						let input = utils.htmlToElement(`<input data-key="${jsonKey}" type="text" placeholder="${template.placeholder ?? ''}"/>`);
 						input.value = elementValue ?? null;
+						if(template.disabled)
+							input.setAttribute('disabled', '');
+
+						// Provide autocomplete options for the input
+						if(template.options){
+							let options = template.options;
+							if (!Array.isArray(options))
+								options = await options(this.value);
+							let id = utils.uuid();
+							let list = UI.html(
+								`<datalist id="${id}">`
+								+ options.map(v => `<option 
+										${(elementValue == (v.value ? v.value : v)) ? 'selected' : ''}
+										value="${v.value ? v.value : v}">${v.name ? v.name : v}</option>`).join('')
+								+ '</datalist>');
+							wrapper.append(list);
+							// by default the list component only shows the items that match the input.value, which isn't very useful for a picker
+							input.addEventListener('focus', ()=>input.value = '');
+							input.setAttribute('list', id);
+						}
+
 						wrapper.append(input);
 						break;
 					case 'number':
@@ -291,7 +313,7 @@ export class Form extends BasicElement {
 							item.append(new Button("", () => {
 								item.remove();
 								this.onChange();
-							}, { icon: 'fa-trash', style: "text", color: "error" }));
+							}, { icon: 'fa-trash', style: "text", color: "error-color" }));
 							
 							let inputs = item.querySelectorAll('[data-key]');
 							for (let input of inputs) {
@@ -335,7 +357,10 @@ export class Form extends BasicElement {
 
 			let inputs = element.querySelectorAll('[data-key]');
 			for (let input of inputs) {
-				input.addEventListener('change', this.onChange);
+				input.addEventListener('change', (event)=>{
+					event.stopPropagation();
+					this.onChange();
+				});
 			}
 		};
 

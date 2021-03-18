@@ -281,7 +281,7 @@ export class Viewport extends BasicElement{
 			this.setZoom(zoom, v.x, v.y);
 			this.render();
 		});
-		this.addEventListener('mousedown', (e)=>{
+		document.addEventListener('mousedown', (e)=>{
 			if(e.button==MIDDLE_MOUSE){
 				drag = [e.x, e.y];
 			}
@@ -294,7 +294,7 @@ export class Viewport extends BasicElement{
 				rmouse = true;
 			}
 		});
-		this.addEventListener('mousemove', (e)=>{
+		document.addEventListener('mousemove', (e)=>{
 			if(drag){
 				let ndrag = [e.x, e.y];
 				this.panScreen(drag[0]-ndrag[0],drag[1]-ndrag[1]);
@@ -309,7 +309,7 @@ export class Viewport extends BasicElement{
 				// dragging with rightmouse down
 			}
 		});
-		this.addEventListener('mouseup', (e)=>{
+		document.addEventListener('mouseup', (e)=>{
 			
 			if(e.button==MIDDLE_MOUSE){
 				let ndrag = [e.x, e.y];

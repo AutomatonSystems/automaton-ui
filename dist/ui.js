@@ -1,3 +1,126 @@
+const sleep = (time, value)=>new Promise(r=>setTimeout(()=>r(value),time));
+window['sleep'] = sleep;
+
+/**
+ * Add items onto a element
+ * 
+ * @param {Element} element 
+ * @param {Element|String|Element[]} content 
+ */
+function append(element, content){
+	if(!element || content === undefined || content === null)
+		return;
+	if(typeof content == 'string' || typeof content == 'number'){
+		element.innerHTML = content;
+	}else if(Array.isArray(content)){
+		content = content.filter(c=>c!==null && c!==undefined);
+		element.append(...content);
+	}else {
+		element.appendChild(content);
+	}
+}
+
+const IDs = new Set();
+
+function uuid(){
+	let id = null;
+	do{
+		id = "ui-" + Math.random().toString(16).slice(2);
+	}while(IDs.has(id) || document.querySelector('#'+id));
+	IDs.add(id);
+	return id;
+}
+
+/**
+ * Convert html text to a HTMLElement
+ * 
+ * @param {String} html 
+ * 
+ * @returns {HTMLElement}
+ */
+function htmlToElement(html, wrapper='div'){
+	let d = document.createElement(wrapper);
+	d.innerHTML = html;
+	return d.firstElementChild;
+}
+
+/**
+ *
+ * @param  {...Element} elements
+ *
+ * @returns {HTMLElement[]}
+ */
+function castHtmlElements(...elements) {
+	return /** @type {HTMLElement[]} */ ([...elements]);
+}
+
+/**
+ * shuffle the contents of an array
+ * 
+ * @param {*[]} array 
+ */
+function shuffle(array) {
+	var currentIndex = array.length, temporaryValue, randomIndex;
+
+	// While there remain elements to shuffle...
+	while (0 !== currentIndex) {
+
+		// Pick a remaining element...
+		randomIndex = Math.floor(Math.random() * currentIndex);
+		currentIndex -= 1;
+
+		// And swap it with the current element.
+		temporaryValue = array[currentIndex];
+		array[currentIndex] = array[randomIndex];
+		array[randomIndex] = temporaryValue;
+	}
+
+	return array;
+}
+
+/**
+ * Downloads a file to the users machine - must be called from within a click event (or similar)
+ * 
+ * @param {String} filename 
+ * @param {Object} json 
+ */
+function downloadJson(filename, json){
+	const a = document.createElement('a');
+	a.href = URL.createObjectURL( new Blob([JSON.stringify(json, null, '\t')], { type:`text/json` }) );
+	a.download = filename;
+	a.click();
+}
+
+/**
+ * 
+ * Load a script
+ * 
+ * @param {String} url 
+ * 
+ * @returns {Promise}
+ */
+async function dynamicallyLoadScript(url) {
+	return new Promise(res=>{
+		var script = document.createElement('script');  // create a script DOM node
+		script.src = url;  // set its src to the provided URL
+		script.onreadystatechange = res;
+		script.onload = res;
+		document.head.appendChild(script);  
+	});
+}
+
+var utils = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	sleep: sleep,
+	append: append,
+	uuid: uuid,
+	htmlToElement: htmlToElement,
+	castHtmlElements: castHtmlElements,
+	shuffle: shuffle,
+	downloadJson: downloadJson,
+	dynamicallyLoadScript: dynamicallyLoadScript
+});
+
 class BasicElement extends HTMLElement {
 	constructor(content) {
 		super();
@@ -5,7 +128,9 @@ class BasicElement extends HTMLElement {
 		this.self = this;
 
 		if(content){
-			if (typeof content == 'string') {
+			if(Array.isArray(content)){
+				append(this, content);
+			}else if (typeof content == 'string') {
 				this.innerHTML = content;
 			}else {
 				this.append(content);
@@ -70,6 +195,10 @@ class BasicElement extends HTMLElement {
 
 	setCss(name, value){
 		this.style.setProperty(name, value);
+	}
+
+	getCss(name){
+		this.style.getPropertyValue(name);
 	}
 
 	get visible() {
@@ -232,116 +361,6 @@ class BasicElement extends HTMLElement {
 }
 customElements.define('ui-basic', BasicElement);
 
-const sleep = (time, value)=>new Promise(r=>setTimeout(()=>r(value),time));
-window['sleep'] = sleep;
-
-/**
- * Add items onto a element
- * 
- * @param {Element} element 
- * @param {Element|String|Element[]} content 
- */
-function append(element, content){
-	if(!element || content === undefined || content === null)
-		return;
-	if(typeof content == 'string' || typeof content == 'number'){
-		element.innerHTML = content;
-	}else if(Array.isArray(content)){
-		element.append(...content);
-	}else {
-		element.appendChild(content);
-	}
-}
-
-/**
- * Convert html text to a HTMLElement
- * 
- * @param {String} html 
- * 
- * @returns {HTMLElement}
- */
-function htmlToElement(html){
-	let d = document.createElement('div');
-	d.innerHTML = html;
-	return d.firstElementChild;
-}
-
-/**
- *
- * @param  {...Element} elements
- *
- * @returns {HTMLElement[]}
- */
-function castHtmlElements(...elements) {
-	return /** @type {HTMLElement[]} */ ([...elements]);
-}
-
-/**
- * shuffle the contents of an array
- * 
- * @param {*[]} array 
- */
-function shuffle(array) {
-	var currentIndex = array.length, temporaryValue, randomIndex;
-
-	// While there remain elements to shuffle...
-	while (0 !== currentIndex) {
-
-		// Pick a remaining element...
-		randomIndex = Math.floor(Math.random() * currentIndex);
-		currentIndex -= 1;
-
-		// And swap it with the current element.
-		temporaryValue = array[currentIndex];
-		array[currentIndex] = array[randomIndex];
-		array[randomIndex] = temporaryValue;
-	}
-
-	return array;
-}
-
-/**
- * Downloads a file to the users machine - must be called from within a click event (or similar)
- * 
- * @param {String} filename 
- * @param {Object} json 
- */
-function downloadJson(filename, json){
-	const a = document.createElement('a');
-	a.href = URL.createObjectURL( new Blob([JSON.stringify(json, null, '\t')], { type:`text/json` }) );
-	a.download = filename;
-	a.click();
-}
-
-/**
- * 
- * Load a script
- * 
- * @param {String} url 
- * 
- * @returns {Promise}
- */
-async function dynamicallyLoadScript(url) {
-	return new Promise(res=>{
-		var script = document.createElement('script');  // create a script DOM node
-		script.src = url;  // set its src to the provided URL
-		script.onreadystatechange = res;
-		script.onload = res;
-		document.head.appendChild(script);  
-	});
-}
-
-var utils = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	sleep: sleep,
-	append: append,
-	htmlToElement: htmlToElement,
-	castHtmlElements: castHtmlElements,
-	shuffle: shuffle,
-	downloadJson: downloadJson,
-	dynamicallyLoadScript: dynamicallyLoadScript
-});
-
 class Button extends BasicElement {
 
     /**
@@ -394,6 +413,9 @@ class Button extends BasicElement {
 				i.classList.add('fa');
 			i.classList.add(...classes);
 			this.prepend(i);
+
+			if(content=='')
+				i.classList.add('icon-only');
 		}
 		
 	}
@@ -671,6 +693,27 @@ class Form extends BasicElement {
 					case 'string':
 						let input = htmlToElement(`<input data-key="${jsonKey}" type="text" placeholder="${template.placeholder ?? ''}"/>`);
 						input.value = elementValue ?? null;
+						if(template.disabled)
+							input.setAttribute('disabled', '');
+
+						// Provide autocomplete options for the input
+						if(template.options){
+							let options = template.options;
+							if (!Array.isArray(options))
+								options = await options(this.value);
+							let id = uuid();
+							let list = UI.html(
+								`<datalist id="${id}">`
+								+ options.map(v => `<option 
+										${(elementValue == (v.value ? v.value : v)) ? 'selected' : ''}
+										value="${v.value ? v.value : v}">${v.name ? v.name : v}</option>`).join('')
+								+ '</datalist>');
+							wrapper.append(list);
+							// by default the list component only shows the items that match the input.value, which isn't very useful for a picker
+							input.addEventListener('focus', ()=>input.value = '');
+							input.setAttribute('list', id);
+						}
+
 						wrapper.append(input);
 						break;
 					case 'number':
@@ -710,7 +753,7 @@ class Form extends BasicElement {
 							item.append(new Button("", () => {
 								item.remove();
 								this.onChange();
-							}, { icon: 'fa-trash', style: "text", color: "error" }));
+							}, { icon: 'fa-trash', style: "text", color: "error-color" }));
 							
 							let inputs = item.querySelectorAll('[data-key]');
 							for (let input of inputs) {
@@ -754,7 +797,10 @@ class Form extends BasicElement {
 
 			let inputs = element.querySelectorAll('[data-key]');
 			for (let input of inputs) {
-				input.addEventListener('change', this.onChange);
+				input.addEventListener('change', (event)=>{
+					event.stopPropagation();
+					this.onChange();
+				});
 			}
 		};
 
@@ -818,7 +864,7 @@ class Panel extends BasicElement {
 				${(footer || buttons)? `<footer>${buttons}</footer>` : ''}
 			`;
 
-			append(this.querySelector('content'), content);
+			append(this.content, content);
 		}
 
 		if (clazz) {
@@ -826,12 +872,16 @@ class Panel extends BasicElement {
 		}
 	}
 
+	get content(){
+		return this.querySelector('content');
+	}
+
 	/**
 	 * 
 	 * @param  {...String|HTMLElement} elements 
 	 */
 	append(...elements) {
-		append(this.querySelector('content'), elements);
+		append(this.content, elements);
 	}
 
 	header(...elements){
@@ -883,6 +933,48 @@ class Modal extends Splash {
 }
 customElements.define('ui-modal', Modal);
 
+class Toaster extends BasicElement{
+	constructor(){
+		super();
+		this.attach();
+	}
+}
+customElements.define('ui-toaster', Toaster);
+
+function parseMessage(msg, topLevel = false){
+	if(Array.isArray(msg) && topLevel === true){
+		return msg.map(parseMessage).join(' ');
+	}else if(typeof msg === 'object'){
+		return JSON.stringify(msg, null, '\t');
+	}else {
+		return ""+ msg;
+	}
+}
+
+class Toast extends BasicElement {
+	constructor(message, { level = 'info' } = {}) {
+		super(parseMessage(message, true));
+
+		let i = document.createElement('i');
+		let icon = { 'debug': 'fa-bug', 'info': 'fa-info-circle', 'warn': 'fa-exclamation-circle', 'error': 'fa-exclamation-triangle', 'success': 'fa-check-circle' }[level];
+		i.classList.add("fa", icon);
+		this.prepend(i);
+
+		if (!document.querySelector('ui-toaster')) {
+			new Toaster();
+		}
+		let toaster = document.querySelector('ui-toaster');
+
+		this.classList.add(level);
+		toaster.prepend(this);
+		let count = document.querySelectorAll('ui-toast').length;
+		setTimeout(() => this.style.marginTop = '10px', 10);
+		setTimeout(() => { this.style.marginTop = '-50px'; this.style.opacity = '0'; }, 4800);
+		setTimeout(() => this.remove(), 5000);
+	}
+}
+customElements.define('ui-toast', Toast);
+
 // ! utility methods for common patterns
 
 /**
@@ -895,12 +987,16 @@ customElements.define('ui-modal', Modal);
 async function popupForm(template, {
 		value = {},
 		title = null,
-		submitText = "Submit"
+		submitText = "Submit",
+		wrapper = null
 }={}){
 	return new Promise(res=>{
 		let form = new Form(template);
 		form.build(value).then(()=>{
-			let modal = new Modal(form, {title: title, buttons: '<ui-cancel></ui-cancel><ui-spacer></ui-spacer>'});
+			let body = form;
+			if(wrapper)
+				body = wrapper(body);
+			let modal = new Modal(body, {title: title, buttons: '<ui-cancel></ui-cancel><ui-spacer></ui-spacer>'});
 			modal.close = ()=>{
 				modal.self.remove();
 				res(null);
@@ -914,9 +1010,24 @@ async function popupForm(template, {
 	})
 }
 
-var Factory = /*#__PURE__*/Object.freeze({
+function info(...args){
+	new Toast(args, {level: 'info'});
+}
+
+function warn(...args){
+	new Toast(args, {level: 'warn'});
+}
+
+function error(...args){
+	new Toast(args, {level: 'error'});
+}
+
+var factory = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	popupForm: popupForm
+	popupForm: popupForm,
+	info: info,
+	warn: warn,
+	error: error
 });
 
 class Badge extends BasicElement {
@@ -1175,19 +1286,164 @@ class ContextMenu extends BasicElement {
 }
 customElements.define('ui-context', ContextMenu);
 
-class StringInput extends HTMLInputElement{
-	constructor(obj, key, callback, {size=null, color=null} = {}){
+class Grid extends BasicElement{
+
+	#columns = 0;
+	#rows = 0;
+
+	/**
+	 * @param {{padding?: string, columnGap?: string, rowGap?: string}}
+	 */
+	constructor({padding, columnGap, rowGap}= {}){
+		super();
+
+		this.setAttribute('ui-grid', '');
+		
+		if(padding !== undefined){
+			this.setCss('--padding', padding);
+		}
+
+		if(rowGap !== undefined){
+			this.setCss('row-gap', rowGap);
+		}
+
+		if(columnGap !== undefined){
+			this.setCss('column-gap', columnGap);
+		}
+	}
+
+	get columns(){
+		return this.#columns;
+	}
+
+	set columns(n){
+		this.#columns = n;
+		this.setCss('--columns', n);
+	}
+
+	get rows(){
+		return this.#rows;
+	}
+
+	set rows(n){
+		this.#columns = n;
+		this.setCss('--rows', n);
+	}
+
+	/**
+	 * 
+	 * @param {HTMLElement|HTMLElement[]} element 
+	 * @param {Number} column 
+	 * @param {Number} row 
+	 * @param {Number} width 
+	 * @param {Number} height 
+	 */
+	put(element, row, column, width=1, height=1){
+		// auto expand rows
+		if(this.rows < row + height - 1){
+			this.rows = row + height - 1;
+		}
+		// auto expand rows
+		if(this.columns < column + width - 1){
+			this.columns = column + width - 1;
+		}
+		if(Array.isArray(element)){
+			element = new UI.BasicElement(element);
+			element.style.display = "flex";
+		}
+		element.style.setProperty('grid-area', `${row} / ${column} / span ${height} / span ${width}`);
+		this.append(element);
+	}
+}
+customElements.define('ui-grid', Grid);
+
+class AbstractInput extends BasicElement{
+
+	
+
+	/**
+	 * 
+	 * @param {*} obj json object/array to keep up to date
+	 * @param {*} key json key/indes to keep up to date
+	 * @param {{callback?: Function, size?:Number, color?:String, placeholder?:string}} params configuration parameters 
+	 */
+	constructor(obj, key, params){
+		super();
+
+		this.obj = obj;
+		this.key = key;
+
+		this.setAttribute("ui-input", '');
+	}
+
+	get value(){
+		return Reflect.get(this.obj, this.key);
+	}
+
+	set value(value){
+		Reflect.set(this.obj, this.key, value);
+	}
+
+	/**
+	 * 
+	 * @param {String} name 
+	 * 
+	 * @returns {InputLabel}
+	 */
+	label(name){
+		return new InputLabel(this, name, {wrapped: true});
+	}
+}
+
+class AbstractHTMLInput extends HTMLInputElement{
+
+
+	/**
+	 * 
+	 * @param {*} obj json object/array to keep up to date
+	 * @param {*} key json key/indes to keep up to date
+	 * @param {{callback?: Function, size?:Number, color?:String, placeholder?:string}} params configuration parameters 
+	 */
+	constructor(obj, key, params){
+		super();
+
+		this.setAttribute("ui-input", '');
+	}
+
+	/**
+	 * 
+	 * @param {String} name 
+	 * 
+	 * @returns {InputLabel}
+	 */
+	label(name){
+		return new InputLabel(this, name, {wrapped: true});
+	}
+}
+
+class StringInput extends AbstractHTMLInput{
+
+	/**
+	 * 
+	 * @param {*} obj json object/array to keep up to date
+	 * @param {*} key json key/indes to keep up to date
+	 * @param {{callback?: Function, size?:Number, color?:String, placeholder?:string}} params configuration parameters 
+	 */
+	constructor(obj, key, {callback=null, size=null, color=null, placeholder=null} = {}){
 		super();
 
 		this.type = "text";
 		
-		this.value = Reflect.get(obj, key);
+		this.value = Reflect.get(obj, key) ?? null;
 
 		if(size)
 			this.style.width = (size*24)+"px";
 		
 		if(color)
-			this.style.color = color;
+			this.style.setProperty('--color', color);
+
+		if(placeholder)
+			this.setAttribute('placeholder', placeholder);
 
 		this.addEventListener('change', ()=>{
 			let value = this.value;
@@ -1205,16 +1461,15 @@ customElements.define('ui-stringinput', StringInput, {extends:'input'});
  * up to date with it's value
  * 
  */
-class NumberInput extends HTMLInputElement{
+class NumberInput extends AbstractHTMLInput{
 
 	/**
 	 * 
 	 * @param {*} obj json object/array to keep up to date
 	 * @param {*} key json key/indes to keep up to date
-	 * @param {Function} callback callback that occurs immediately after a change
-	 * @param {{size?:Number, color?:String}} params configuration parameters 
+	 * @param {{callback?: Function, size?:Number, color?:String, placeholder?:string}} params configuration parameters 
 	 */
-	constructor(obj, key, callback, {size=null, color=null} = {}){
+	constructor(obj, key, {callback=null, size=null, color=null, placeholder=null} = {}){
 		super();
 
 		this.type = "number";
@@ -1225,7 +1480,10 @@ class NumberInput extends HTMLInputElement{
 			this.style.width = (size*24)+"px";
 		
 		if(color)
-			this.style.color = color;
+			this.style.setProperty('--color', color);
+
+		if(placeholder)
+			this.setAttribute('placeholder', placeholder);
 
 		this.addEventListener('change', ()=>{
 			let value = parseFloat(this.value);
@@ -1234,8 +1492,217 @@ class NumberInput extends HTMLInputElement{
 				callback(value);
 		});
 	}
+	
 }
 customElements.define('ui-numberinput', NumberInput, {extends:'input'});
+
+class SelectInput extends HTMLSelectElement{
+
+	_value = null;
+
+	constructor(obj, key, {options=[], callback=null, size=null, color=null, placeholder=null} = {}){
+		super(obj, key);
+		this.obj = obj;
+		this.key = key;
+
+		this.setAttribute("ui-input", '');
+
+		if(size)
+			this.style.width = (size*24)+"px";
+		
+		if(color)
+			this.style.setProperty('--color', color);
+
+		if(placeholder)
+			this.setAttribute('placeholder', placeholder);
+
+		this.addEventListener('change', ()=>{
+			let value = this.value;
+			this.setValue(value);
+			if(callback)
+				callback(value);
+		});
+
+		this.renderOptions(options);
+	}
+
+	getValue(){
+		return Reflect.get(this.obj, this.key) ?? null;
+	}
+
+	setValue(value){
+		Reflect.set(this.obj, this.key, value);
+	}
+	async renderOptions(options){
+		if(typeof options == 'function'){
+			options = await options();
+		}
+		let value = this.getValue();
+		for(let opt of options){
+			let option = document.createElement('option');
+			if(opt == value)
+				option.setAttribute('selected', '');
+			option.innerText = opt;
+			this.append(option);
+		}
+	}
+}
+customElements.define('ui-selectinput', SelectInput, {extends:'select'});
+
+
+class JsonInput extends AbstractInput{
+
+	constructor(obj, key){
+		super(obj, key);
+
+		let text = document.createElement('textarea');
+		text.onkeydown = function(e){
+			if(e.key=='Tab'){
+				e.preventDefault();
+				let s = this.selectionStart;
+				this.value = this.value.substring(0,this.selectionStart) + "\t" + this.value.substring(this.selectionEnd);
+				this.selectionEnd = s+1; 
+			}
+		};
+		let resize = ()=>{
+			text.style["height"] = "1px";
+			text.style["height"] = text.scrollHeight+"px";
+		};
+		text.onkeyup = resize;
+		text.addEventListener('change', ()=>{
+			try{
+				let json = JSON.parse(text.value);
+				this.value = json;
+				this.classList.toggle('error', false);
+			}catch(e){
+				this.classList.toggle('error', true);
+			}
+		});
+		text.value = JSON.stringify(this.value ?? "", null, "\t");
+		this.append(text);
+
+		setTimeout(resize, 10);
+	}
+
+
+}
+customElements.define('ui-json-input', JsonInput);
+
+class InputLabel extends HTMLLabelElement{
+
+	/** @type {AbstractInput} */
+	input;
+
+	/**
+	 * 
+	 * @param {AbstractInput} inputElement 
+	 * @param {String} display 
+	 * @param {{wrapped?:boolean}}
+	 */
+	constructor(inputElement, display, {wrapped = false}= {}){
+		super();
+
+		if(wrapped){
+			// wrap the item with the label
+			this.innerHTML = `<span class="label">${display}</span>`;
+			this.append(inputElement);
+		}else {
+
+			let id = inputElement.id;
+			if(id==null){
+				// generate a (likely) unique id and use it
+				id =  "ui-" + Math.random().toString(16).slice(2);
+				inputElement.id = id;
+			}
+
+			this.setAttribute('for', id);
+
+			this.innerText = display;
+		}
+	}
+
+	get value(){
+		return this.input.value;
+	}
+
+	set value(v){
+		this.input.value = v;
+	}
+}
+customElements.define('ui-label', InputLabel, {extends:'label'});
+
+class LabelledInput extends InputLabel{
+
+	/**
+	 * 
+	 * @param {*} json 
+	 * @param {String} key 
+	 * @param {typeof AbstractInput| typeof AbstractHTMLInput} type 
+	 * @param {*} options 
+	 */
+	constructor(json, key, type, options={}){
+		super(new type(json, key, options), options.name ?? key, {wrapped: true});
+	}
+}
+customElements.define('ui-labelledinput', LabelledInput, {extends:'label'});
+
+/**
+ * @typedef {typeof AbstractInput|[typeof AbstractInput, {}]} TemplateParam
+ */
+
+/**
+ * @typedef {Object.<string, (TemplateParam|Object.<string, TemplateParam>)>} Template
+ */
+
+class Form2 extends Grid {
+
+	json;
+
+	/**
+	 * 
+	 * @param {Template} template 
+	 * @param {*} json 
+	 * @param {*} options 
+	 */
+	constructor(template, json, options){
+		super();
+
+		this.json = json;
+
+		this.build(template, json);
+	}
+
+	build(template, json){
+		console.log("build", template, json);
+		for(let key of Object.keys(template)){
+			let pattern = template[key];
+			
+			if(typeof pattern == 'function'){
+				// shorthand - a direct type declaration
+				this.append(new LabelledInput(json, key, pattern));
+			}else if(Array.isArray(pattern)){
+				// a component has been named to deal with this - handover to it
+				this.append(new LabelledInput(json, key, pattern[0], pattern[1]));
+			}else {
+				// compounded type....
+				let subJson = Reflect.get(json, key);
+				// initalize nulls
+				if(subJson == null){
+					subJson = {};
+					Reflect.set(json, key, subJson);
+				}
+				// build a component for this pattern
+				this.build(pattern, subJson);
+			}
+		}
+	}
+
+	get value(){
+		return this.json;
+	}
+
+}
+customElements.define('ui-form2', Form2);
 
 class HashHandler{
 
@@ -1520,7 +1987,7 @@ class Json extends Code {
 }
 customElements.define('ui-json', Json);
 
-let uuid = 0;
+let uuid$1 = 0;
 
 
 /**
@@ -1638,7 +2105,7 @@ class List extends BasicElement{
 		this._data = data;
 		for (let item of this._data) {
 			if (item.__id == null)
-				item.__id = item.id ? item.id : ('' + uuid++);
+				item.__id = item.id ? item.id : ('' + uuid$1++);
 		}
 		this.dirty = true;
 	}
@@ -1656,7 +2123,7 @@ class List extends BasicElement{
 	 */
 	addAttribute(name, valueFunc = (i)=>i[name], displayFunc = valueFunc, width = null) {
 		this.attrs[name] = {
-			"id": uuid++,
+			"id": uuid$1++,
 			"name": name,
 			"width": width,
 			"value": (typeof valueFunc == "string") ? i => i[valueFunc] : valueFunc,
@@ -1936,46 +2403,6 @@ class Spinner extends BasicElement {
 }
 customElements.define('ui-spinner', Spinner);
 
-class Toaster extends BasicElement{
-	constructor(){
-		super();
-		this.attach();
-	}
-}
-customElements.define('ui-toaster', Toaster);
-
-function parseMessage(msg){
-	if(typeof msg === 'object'){
-		return JSON.stringify(msg, null, '\t');
-	}else {
-		return ""+ msg;
-	}
-}
-
-class Toast extends BasicElement {
-	constructor(message, { level = 'info' } = {}) {
-		super(parseMessage(message));
-
-		let i = document.createElement('i');
-		let icon = { 'debug': 'fa-bug', 'info': 'fa-info-circle', 'warn': 'fa-exclamation-circle', 'error': 'fa-exclamation-triangle', 'success': 'fa-check-circle' }[level];
-		i.classList.add("fa", icon);
-		this.prepend(i);
-
-		if (!document.querySelector('ui-toaster')) {
-			new Toaster();
-		}
-		let toaster = document.querySelector('ui-toaster');
-
-		this.classList.add(level);
-		toaster.prepend(this);
-		let count = document.querySelectorAll('ui-toast').length;
-		setTimeout(() => this.style.marginTop = '10px', 10);
-		setTimeout(() => { this.style.marginTop = '-50px'; this.style.opacity = '0'; }, 4800);
-		setTimeout(() => this.remove(), 5000);
-	}
-}
-customElements.define('ui-toast', Toast);
-
 class Viewport extends BasicElement{
 
 	#view = {
@@ -2253,7 +2680,7 @@ class Viewport extends BasicElement{
 			this.setZoom(zoom, v.x, v.y);
 			this.render();
 		});
-		this.addEventListener('mousedown', (e)=>{
+		document.addEventListener('mousedown', (e)=>{
 			if(e.button==MIDDLE_MOUSE){
 				drag = [e.x, e.y];
 			}
@@ -2262,7 +2689,7 @@ class Viewport extends BasicElement{
 			
 			if(e.button==RIGHT_MOUSE);
 		});
-		this.addEventListener('mousemove', (e)=>{
+		document.addEventListener('mousemove', (e)=>{
 			if(drag){
 				let ndrag = [e.x, e.y];
 				this.panScreen(drag[0]-ndrag[0],drag[1]-ndrag[1]);
@@ -2270,7 +2697,7 @@ class Viewport extends BasicElement{
 				this.render();
 			}
 		});
-		this.addEventListener('mouseup', (e)=>{
+		document.addEventListener('mouseup', (e)=>{
 			
 			if(e.button==MIDDLE_MOUSE){
 				let ndrag = [e.x, e.y];
@@ -2309,14 +2736,19 @@ const UI = {
 	Card,
 	Code,
 	ContextMenu,
-	Form,
+	Form,Form2,
+	Grid,
 
 	HashManager,
+	InputLabel, 
 	Json,
+	JsonInput,
+	LabelledInput,
 	List, Table,
 	Modal,
 	NumberInput,
 	Panel,
+	SelectInput,
 	Spacer,
 	Spinner,
 	Splash,
@@ -2326,14 +2758,21 @@ const UI = {
 	Toggle,
 	Viewport,
 
-	utils
+	info: info,
+	warn: warn,
+	error: error,
+
+	html: htmlToElement,
+
+	uuid: uuid,
+
+	utils,
+	factory
 };
-
-
 
 window["UI"] = UI;
 
 let createElement = htmlToElement;
 
 export default UI;
-export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, HashManager, Json, List, Modal, NumberInput, Panel, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, Factory as factory, utils };
+export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Grid, HashManager, InputLabel, Json, LabelledInput, List, Modal, NumberInput, Panel, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, factory, utils };

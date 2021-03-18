@@ -11,7 +11,9 @@ import { Card } from "./src/component/Card.js";
 import { Code } from "./src/text/Code.js";
 import { ContextMenu } from "./src/ContextMenu.js";
 import { Form } from "./src/forms/Form.js";
-import { NumberInput, StringInput } from "./src/forms/Input.js";
+import { Form2 } from "./src/forms/Form2.js";
+import { Grid } from "./src/layout/Grid.js";
+import { JsonInput, InputLabel, NumberInput, StringInput, LabelledInput, SelectInput} from "./src/forms/Input.js";
 import { HashManager } from "./src/HashManager.js";
 import { Json } from "./src/text/Json.js";
 import { List, Table} from "./src/data/List.js";
@@ -47,14 +49,19 @@ const UI = {
 	Card,
 	Code,
 	ContextMenu,
-	Form,
+	Form,Form2,
+	Grid,
 
 	HashManager,
+	InputLabel, 
 	Json,
+	JsonInput,
+	LabelledInput,
 	List, Table,
 	Modal,
 	NumberInput,
 	Panel,
+	SelectInput,
 	Spacer,
 	Spinner,
 	Splash,
@@ -64,10 +71,17 @@ const UI = {
 	Toggle,
 	Viewport,
 
-	utils
+	info: factory.info,
+	warn: factory.warn,
+	error: factory.error,
+
+	html: utils.htmlToElement,
+
+	uuid: utils.uuid,
+
+	utils,
+	factory
 };
-
-
 
 window["UI"] = UI;
 
@@ -83,8 +97,8 @@ export {Card};
 export {Code};
 export {ContextMenu};
 export {Form};
-export {NumberInput, StringInput};
-
+export {InputLabel, NumberInput, StringInput, LabelledInput};
+export {Grid};
 export {HashManager};
 export {Json};
 export {List, Table};
@@ -99,4 +113,5 @@ export {Viewport};
 
 export {utils};
 export {factory};
+
 export default UI;

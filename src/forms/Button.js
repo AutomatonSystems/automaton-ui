@@ -54,6 +54,9 @@ export class Button extends BasicElement {
 				i.classList.add('fa');
 			i.classList.add(...classes);
 			this.prepend(i);
+
+			if(content=='')
+				i.classList.add('icon-only');
 		}
 		
 	}

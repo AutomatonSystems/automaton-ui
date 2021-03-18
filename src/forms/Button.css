@@ -25,7 +25,7 @@ ui-button a{
 	color: var(--brand-primary-text);
 }
 
-ui-button > i{
+ui-button > i:not(.icon-only){
 	margin-right: 4px;
 }
 

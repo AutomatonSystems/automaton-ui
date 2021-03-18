@@ -1,3 +1,4 @@
+import * as utils from './utils.js';
 
 export class BasicElement extends HTMLElement {
 	constructor(content) {
@@ -6,7 +7,9 @@ export class BasicElement extends HTMLElement {
 		this.self = this;
 
 		if(content){
-			if (typeof content == 'string') {
+			if(Array.isArray(content)){
+				utils.append(this, content);
+			}else if (typeof content == 'string') {
 				this.innerHTML = content;
 			}else{
 				this.append(content);
@@ -71,6 +74,10 @@ export class BasicElement extends HTMLElement {
 
 	setCss(name, value){
 		this.style.setProperty(name, value);
+	}
+
+	getCss(name){
+		this.style.getPropertyValue(name);
 	}
 
 	get visible() {

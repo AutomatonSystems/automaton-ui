@@ -22,7 +22,7 @@ export class Panel extends BasicElement {
 				${(footer || buttons)? `<footer>${buttons}</footer>` : ''}
 			`;
 
-			append(this.querySelector('content'), content);
+			append(this.content, content);
 		}
 
 		if (clazz) {
@@ -30,12 +30,16 @@ export class Panel extends BasicElement {
 		}
 	}
 
+	get content(){
+		return this.querySelector('content');
+	}
+
 	/**
 	 * 
 	 * @param  {...String|HTMLElement} elements 
 	 */
 	append(...elements) {
-		append(this.querySelector('content'), elements);
+		append(this.content, elements);
 	}
 
 	header(...elements){

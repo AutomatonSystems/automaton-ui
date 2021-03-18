@@ -13,10 +13,22 @@ export function append(element, content){
 	if(typeof content == 'string' || typeof content == 'number'){
 		element.innerHTML = content;
 	}else if(Array.isArray(content)){
+		content = content.filter(c=>c!==null && c!==undefined);
 		element.append(...content);
 	}else{
 		element.appendChild(content);
 	}
+}
+
+const IDs = new Set();
+
+export function uuid(){
+	let id = null;
+	do{
+		id = "ui-" + Math.random().toString(16).slice(2);
+	}while(IDs.has(id) || document.querySelector('#'+id));
+	IDs.add(id);
+	return id;
 }
 
 /**
@@ -26,8 +38,8 @@ export function append(element, content){
  * 
  * @returns {HTMLElement}
  */
-export function htmlToElement(html){
-	let d = document.createElement('div');
+export function htmlToElement(html, wrapper='div'){
+	let d = document.createElement(wrapper);
 	d.innerHTML = html;
 	return d.firstElementChild;
 }
