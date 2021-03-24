@@ -37,7 +37,7 @@ ui-form .item{
 	margin: 5px;
 }
 
-ui-form .item ui-button{
+ui-form .item > ui-button{
 	position: absolute;
     right: 5px;
     top: 5px;
