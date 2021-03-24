@@ -13,7 +13,7 @@ import { ContextMenu } from "./src/ContextMenu.js";
 import { Form } from "./src/forms/Form.js";
 import { Form2 } from "./src/forms/Form2.js";
 import { Grid } from "./src/layout/Grid.js";
-import { JsonInput, InputLabel, NumberInput, StringInput, LabelledInput, SelectInput} from "./src/forms/Input.js";
+import { JsonInput, InputLabel, NumberInput, StringInput, LabelledInput, SelectInput, MultiSelectInput} from "./src/forms/Input.js";
 import { HashManager } from "./src/HashManager.js";
 import { Json } from "./src/text/Json.js";
 import { List, Table} from "./src/data/List.js";
@@ -59,6 +59,7 @@ const UI = {
 	LabelledInput,
 	List, Table,
 	Modal,
+	MultiSelectInput,
 	NumberInput,
 	Panel,
 	SelectInput,
@@ -79,6 +80,8 @@ const UI = {
 
 	uuid: utils.uuid,
 
+	sleep: utils.sleep,
+
 	utils,
 	factory
 };
@@ -97,7 +100,7 @@ export {Card};
 export {Code};
 export {ContextMenu};
 export {Form};
-export {InputLabel, NumberInput, StringInput, LabelledInput};
+export {InputLabel, NumberInput, StringInput, LabelledInput, MultiSelectInput};
 export {Grid};
 export {HashManager};
 export {Json};

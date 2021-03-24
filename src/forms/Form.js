@@ -23,6 +23,14 @@ export class Form extends BasicElement {
 
 		this.formStyle = Form.STYLE.ROW;
 
+		this.configuration = {
+			formatting: {
+				strings: {
+					trim: true
+				}
+			}
+		}
+
 		this.value = {};
 	}
 
@@ -61,7 +69,7 @@ export class Form extends BasicElement {
 
 		let inputs = element.querySelectorAll('[data-key]');
 		for (let input of inputs) {
-			// skip hidden inputs is required
+			// skip hidden inputs if required
 			if(!includeHidden && input.closest('[hidden]'))
 				continue;
 			let parent = json;
@@ -86,6 +94,10 @@ export class Form extends BasicElement {
 			}
 			// read the value
 			let value = input[input['type'] == 'checkbox' ? 'checked' : 'value'];
+			if(input['type'] == 'text' || input.dataset.format == 'string'){
+				if(this.configuration.formatting.strings.trim)
+					value = value.trim();
+			}
 			if(input['type'] == 'number' || input.dataset.format == 'number'){
 				value = parseFloat(value);
 			}
@@ -103,9 +115,8 @@ export class Form extends BasicElement {
 				if (key === null) {
 					// key is just the next unset entry
 					key = parent.length;
-				}
-				else {
-					// array of objects -
+				} else {
+					// array of objects - add new item if empty or the last item is already populated
 					if (parent.length == 0 || parent[parent.length - 1][key] != null) {
 						parent.push({});
 					}
@@ -205,7 +216,7 @@ export class Form extends BasicElement {
 			wrapper.classList.add('value');
 			element.append(wrapper);
 
-			if (typeof template.type == "string") {
+			if (typeof template.type == "string" || !template.type) {
 				let html = '';
 				switch (template.type) {
 					//
@@ -249,32 +260,6 @@ export class Form extends BasicElement {
 					case 'text':
 						html += `<textarea data-key="${jsonKey}">${elementValue ?? ''}</textarea>`;
 						wrapper.innerHTML = html;
-						break;
-					case 'string':
-						let input = utils.htmlToElement(`<input data-key="${jsonKey}" type="text" placeholder="${template.placeholder ?? ''}"/>`);
-						input.value = elementValue ?? null;
-						if(template.disabled)
-							input.setAttribute('disabled', '');
-
-						// Provide autocomplete options for the input
-						if(template.options){
-							let options = template.options;
-							if (!Array.isArray(options))
-								options = await options(this.value);
-							let id = utils.uuid();
-							let list = UI.html(
-								`<datalist id="${id}">`
-								+ options.map(v => `<option 
-										${(elementValue == (v.value ? v.value : v)) ? 'selected' : ''}
-										value="${v.value ? v.value : v}">${v.name ? v.name : v}</option>`).join('')
-								+ '</datalist>');
-							wrapper.append(list);
-							// by default the list component only shows the items that match the input.value, which isn't very useful for a picker
-							input.addEventListener('focus', ()=>input.value = '');
-							input.setAttribute('list', id);
-						}
-
-						wrapper.append(input);
 						break;
 					case 'number':
 						html += `<input data-key="${jsonKey}" type="number" value="${elementValue ?? ''}"/>`;
@@ -340,6 +325,33 @@ export class Form extends BasicElement {
 
 						wrapper.append(button);
 
+						break;
+					case 'string':
+					default:
+						let input = utils.htmlToElement(`<input data-key="${jsonKey}" type="text" placeholder="${template.placeholder ?? ''}"/>`);
+						input.value = elementValue ?? null;
+						if(template.disabled)
+							input.setAttribute('disabled', '');
+
+						// Provide autocomplete options for the input
+						if(template.options){
+							let options = template.options;
+							if (!Array.isArray(options))
+								options = await options(this.value);
+							let id = utils.uuid();
+							let list = UI.html(
+								`<datalist id="${id}">`
+								+ options.map(v => `<option 
+										${(elementValue == (v.value ? v.value : v)) ? 'selected' : ''}
+										value="${v.value ? v.value : v}">${v.name ? v.name : v}</option>`).join('')
+								+ '</datalist>');
+							wrapper.append(list);
+							// by default the list component only shows the items that match the input.value, which isn't very useful for a picker
+							input.addEventListener('focus', ()=>input.value = '');
+							input.setAttribute('list', id);
+						}
+
+						wrapper.append(input);
 						break;
 				}
 			}else if (typeof template.type == 'function') {

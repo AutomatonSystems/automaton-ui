@@ -1,9 +1,8 @@
+import UI from "../../main.js";
 import { BasicElement } from "../BasicElement.js";
 import "./Input.css";
 
 export class AbstractInput extends BasicElement{
-
-	
 
 	/**
 	 * 
@@ -193,6 +192,45 @@ export class SelectInput extends HTMLSelectElement{
 }
 customElements.define('ui-selectinput', SelectInput, {extends:'select'});
 
+export class MultiSelectInput extends AbstractInput{
+	constructor(obj, key, {options}){
+		super(obj, key);
+
+		if(!Array.isArray(this.value))
+			this.value = [];
+
+		let list = document.createElement("content");
+		this.list = list;
+		this.append(list);
+
+		// picker
+		// TODO other string picker options
+		let select = document.createElement("select");
+		select.innerHTML = "<option selected disabled hidden>Add...</option>"+options.map(o=>`<option>${o}</option>`).join('');
+		select.addEventListener("change", ()=>{
+			this.value.push(select.value);
+			select.value = "Add...";
+			this.renderList();
+		});
+		this.append(select);
+
+		this.renderList();
+	}
+
+	renderList(){
+		this.list.innerHTML = "";
+		this.list.append(...this.value.map((v, index)=>{
+			let badge = new UI.Badge(v);
+			badge.append(new UI.Button('', ()=>{
+				// remove this item and redraw
+				this.value.splice(index, 1);
+				this.renderList();
+			}, {icon: 'fa-times', style: 'text', color: 'error-color'}))
+			return badge;
+		}));
+	}
+}
+customElements.define('ui-multiselectinput', MultiSelectInput);
 
 export class JsonInput extends AbstractInput{
 

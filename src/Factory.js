@@ -16,7 +16,8 @@ export async function popupForm(template, {
 		value = {},
 		title = null,
 		submitText = "Submit",
-		wrapper = null
+		wrapper = null,
+		dismissable = true
 }={}){
 	return new Promise(res=>{
 		let form = new Form(template);
@@ -24,7 +25,11 @@ export async function popupForm(template, {
 			let body = form;
 			if(wrapper)
 				body = wrapper(body)
-			let modal = new Modal(body, {title: title, buttons: '<ui-cancel></ui-cancel><ui-spacer></ui-spacer>'});
+			let modal = new Modal(body, {
+				title: title, 
+				buttons: '<ui-cancel></ui-cancel><ui-spacer></ui-spacer>',
+				dismissable: dismissable
+			});
 			modal.close = ()=>{
 				modal.self.remove();
 				res(null);

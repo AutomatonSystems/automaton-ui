@@ -463,6 +463,14 @@ class Form extends BasicElement {
 
 		this.formStyle = Form.STYLE.ROW;
 
+		this.configuration = {
+			formatting: {
+				strings: {
+					trim: true
+				}
+			}
+		};
+
 		this.value = {};
 	}
 
@@ -501,7 +509,7 @@ class Form extends BasicElement {
 
 		let inputs = element.querySelectorAll('[data-key]');
 		for (let input of inputs) {
-			// skip hidden inputs is required
+			// skip hidden inputs if required
 			if(!includeHidden && input.closest('[hidden]'))
 				continue;
 			let parent = json;
@@ -526,6 +534,10 @@ class Form extends BasicElement {
 			}
 			// read the value
 			let value = input[input['type'] == 'checkbox' ? 'checked' : 'value'];
+			if(input['type'] == 'text' || input.dataset.format == 'string'){
+				if(this.configuration.formatting.strings.trim)
+					value = value.trim();
+			}
 			if(input['type'] == 'number' || input.dataset.format == 'number'){
 				value = parseFloat(value);
 			}
@@ -543,9 +555,8 @@ class Form extends BasicElement {
 				if (key === null) {
 					// key is just the next unset entry
 					key = parent.length;
-				}
-				else {
-					// array of objects -
+				} else {
+					// array of objects - add new item if empty or the last item is already populated
 					if (parent.length == 0 || parent[parent.length - 1][key] != null) {
 						parent.push({});
 					}
@@ -645,7 +656,7 @@ class Form extends BasicElement {
 			wrapper.classList.add('value');
 			element.append(wrapper);
 
-			if (typeof template.type == "string") {
+			if (typeof template.type == "string" || !template.type) {
 				let html = '';
 				switch (template.type) {
 					//
@@ -689,32 +700,6 @@ class Form extends BasicElement {
 					case 'text':
 						html += `<textarea data-key="${jsonKey}">${elementValue ?? ''}</textarea>`;
 						wrapper.innerHTML = html;
-						break;
-					case 'string':
-						let input = htmlToElement(`<input data-key="${jsonKey}" type="text" placeholder="${template.placeholder ?? ''}"/>`);
-						input.value = elementValue ?? null;
-						if(template.disabled)
-							input.setAttribute('disabled', '');
-
-						// Provide autocomplete options for the input
-						if(template.options){
-							let options = template.options;
-							if (!Array.isArray(options))
-								options = await options(this.value);
-							let id = uuid();
-							let list = UI.html(
-								`<datalist id="${id}">`
-								+ options.map(v => `<option 
-										${(elementValue == (v.value ? v.value : v)) ? 'selected' : ''}
-										value="${v.value ? v.value : v}">${v.name ? v.name : v}</option>`).join('')
-								+ '</datalist>');
-							wrapper.append(list);
-							// by default the list component only shows the items that match the input.value, which isn't very useful for a picker
-							input.addEventListener('focus', ()=>input.value = '');
-							input.setAttribute('list', id);
-						}
-
-						wrapper.append(input);
 						break;
 					case 'number':
 						html += `<input data-key="${jsonKey}" type="number" value="${elementValue ?? ''}"/>`;
@@ -780,6 +765,33 @@ class Form extends BasicElement {
 
 						wrapper.append(button);
 
+						break;
+					case 'string':
+					default:
+						let input = htmlToElement(`<input data-key="${jsonKey}" type="text" placeholder="${template.placeholder ?? ''}"/>`);
+						input.value = elementValue ?? null;
+						if(template.disabled)
+							input.setAttribute('disabled', '');
+
+						// Provide autocomplete options for the input
+						if(template.options){
+							let options = template.options;
+							if (!Array.isArray(options))
+								options = await options(this.value);
+							let id = uuid();
+							let list = UI.html(
+								`<datalist id="${id}">`
+								+ options.map(v => `<option 
+										${(elementValue == (v.value ? v.value : v)) ? 'selected' : ''}
+										value="${v.value ? v.value : v}">${v.name ? v.name : v}</option>`).join('')
+								+ '</datalist>');
+							wrapper.append(list);
+							// by default the list component only shows the items that match the input.value, which isn't very useful for a picker
+							input.addEventListener('focus', ()=>input.value = '');
+							input.setAttribute('list', id);
+						}
+
+						wrapper.append(input);
 						break;
 				}
 			}else if (typeof template.type == 'function') {
@@ -988,7 +1000,8 @@ async function popupForm(template, {
 		value = {},
 		title = null,
 		submitText = "Submit",
-		wrapper = null
+		wrapper = null,
+		dismissable = true
 }={}){
 	return new Promise(res=>{
 		let form = new Form(template);
@@ -996,7 +1009,11 @@ async function popupForm(template, {
 			let body = form;
 			if(wrapper)
 				body = wrapper(body);
-			let modal = new Modal(body, {title: title, buttons: '<ui-cancel></ui-cancel><ui-spacer></ui-spacer>'});
+			let modal = new Modal(body, {
+				title: title, 
+				buttons: '<ui-cancel></ui-cancel><ui-spacer></ui-spacer>',
+				dismissable: dismissable
+			});
 			modal.close = ()=>{
 				modal.self.remove();
 				res(null);
@@ -1359,8 +1376,6 @@ customElements.define('ui-grid', Grid);
 
 class AbstractInput extends BasicElement{
 
-	
-
 	/**
 	 * 
 	 * @param {*} obj json object/array to keep up to date
@@ -1549,6 +1564,45 @@ class SelectInput extends HTMLSelectElement{
 }
 customElements.define('ui-selectinput', SelectInput, {extends:'select'});
 
+class MultiSelectInput extends AbstractInput{
+	constructor(obj, key, {options}){
+		super(obj, key);
+
+		if(!Array.isArray(this.value))
+			this.value = [];
+
+		let list = document.createElement("content");
+		this.list = list;
+		this.append(list);
+
+		// picker
+		// TODO other string picker options
+		let select = document.createElement("select");
+		select.innerHTML = "<option selected disabled hidden>Add...</option>"+options.map(o=>`<option>${o}</option>`).join('');
+		select.addEventListener("change", ()=>{
+			this.value.push(select.value);
+			select.value = "Add...";
+			this.renderList();
+		});
+		this.append(select);
+
+		this.renderList();
+	}
+
+	renderList(){
+		this.list.innerHTML = "";
+		this.list.append(...this.value.map((v, index)=>{
+			let badge = new UI.Badge(v);
+			badge.append(new UI.Button('', ()=>{
+				// remove this item and redraw
+				this.value.splice(index, 1);
+				this.renderList();
+			}, {icon: 'fa-times', style: 'text', color: 'error-color'}));
+			return badge;
+		}));
+	}
+}
+customElements.define('ui-multiselectinput', MultiSelectInput);
 
 class JsonInput extends AbstractInput{
 
@@ -2182,7 +2236,12 @@ class List extends BasicElement{
 
 	async getItemElement(item){
 		if(!this.elementMap.has(item)){
-			this.elementMap.set(item, await this.renderItem(item));
+			let ele = await this.renderItem(item);
+			if(typeof item == "string"){
+				// TODO support caching of string based item elements....
+				return ele;
+			}
+			this.elementMap.set(item, ele);
 		}
 		return this.elementMap.get(item);
 	}
@@ -2746,6 +2805,7 @@ const UI = {
 	LabelledInput,
 	List, Table,
 	Modal,
+	MultiSelectInput,
 	NumberInput,
 	Panel,
 	SelectInput,
@@ -2766,6 +2826,8 @@ const UI = {
 
 	uuid: uuid,
 
+	sleep: sleep,
+
 	utils,
 	factory
 };
@@ -2775,4 +2837,4 @@ window["UI"] = UI;
 let createElement = htmlToElement;
 
 export default UI;
-export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Grid, HashManager, InputLabel, Json, LabelledInput, List, Modal, NumberInput, Panel, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, factory, utils };
+export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Grid, HashManager, InputLabel, Json, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, factory, utils };

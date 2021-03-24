@@ -197,7 +197,12 @@ export class List extends BasicElement{
 
 	async getItemElement(item){
 		if(!this.elementMap.has(item)){
-			this.elementMap.set(item, await this.renderItem(item));
+			let ele = await this.renderItem(item);
+			if(typeof item == "string"){
+				// TODO support caching of string based item elements....
+				return ele;
+			}
+			this.elementMap.set(item, ele);
 		}
 		return this.elementMap.get(item);
 	}
