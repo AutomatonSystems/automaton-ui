@@ -26,15 +26,19 @@ export class BasicElement extends HTMLElement {
 	 * 
 	 * @param {*} callback 
 	 * @param {Number} time in ms
+	 * 
+	 * @returns {Number} interval id.
 	 */
 	setInterval(callback, time){
-		this.intervals.push(setInterval(()=>{
+		let id = setInterval(()=>{
 			if(!document.body.contains(this)){
 				this.intervals.forEach(i=>clearInterval(i));
 			}else{
 				callback();
 			}
-		}, time));
+		}, time);
+		this.intervals.push(id);
+		return id;
 	}
 
     /**

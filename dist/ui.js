@@ -147,15 +147,19 @@ class BasicElement extends HTMLElement {
 	 * 
 	 * @param {*} callback 
 	 * @param {Number} time in ms
+	 * 
+	 * @returns {Number} interval id.
 	 */
 	setInterval(callback, time){
-		this.intervals.push(setInterval(()=>{
+		let id = setInterval(()=>{
 			if(!document.body.contains(this)){
 				this.intervals.forEach(i=>clearInterval(i));
 			}else {
 				callback();
 			}
-		}, time));
+		}, time);
+		this.intervals.push(id);
+		return id;
 	}
 
     /**
@@ -1555,9 +1559,15 @@ class SelectInput extends HTMLSelectElement{
 		let value = this.getValue();
 		for(let opt of options){
 			let option = document.createElement('option');
-			if(opt == value)
-				option.setAttribute('selected', '');
-			option.innerText = opt;
+			if(opt && opt.hasOwnProperty('value')){
+				if(opt.value == value)
+					option.setAttribute('selected', '');
+				option.innerText = opt.display ?? opt.value;
+			}else {
+				if(opt == value)
+					option.setAttribute('selected', '');
+				option.innerText = opt;
+			}
 			this.append(option);
 		}
 	}

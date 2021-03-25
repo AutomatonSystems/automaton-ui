@@ -183,9 +183,15 @@ export class SelectInput extends HTMLSelectElement{
 		let value = this.getValue();
 		for(let opt of options){
 			let option = document.createElement('option');
-			if(opt == value)
-				option.setAttribute('selected', '');
-			option.innerText = opt;
+			if(opt && opt.hasOwnProperty('value')){
+				if(opt.value == value)
+					option.setAttribute('selected', '');
+				option.innerText = opt.display ?? opt.value;
+			}else{
+				if(opt == value)
+					option.setAttribute('selected', '');
+				option.innerText = opt;
+			}
 			this.append(option);
 		}
 	}
