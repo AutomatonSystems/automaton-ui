@@ -122,7 +122,7 @@ var utils = /*#__PURE__*/Object.freeze({
 });
 
 class BasicElement extends HTMLElement {
-	constructor(content) {
+	constructor(content, {clazz=''}={}) {
 		super();
 
 		this.self = this;
@@ -135,6 +135,10 @@ class BasicElement extends HTMLElement {
 			}else {
 				this.append(content);
 			}
+		}
+
+		if (clazz) {
+			this.classList.add(...clazz.split(" "));
 		}
 
 		this.remove = this.remove.bind(this);
@@ -1052,8 +1056,8 @@ var factory = /*#__PURE__*/Object.freeze({
 });
 
 class Badge extends BasicElement {
-	constructor(content, { icon = '' } = {}) {
-		super(content);
+	constructor(content, { icon = '', clazz = ''} = {}) {
+		super(content, {clazz});
 
 		icon = icon || this.attributes.getNamedItem("icon")?.value;
 		if (icon) {
@@ -1065,6 +1069,7 @@ class Badge extends BasicElement {
 			i.classList.add(...classes);
 			this.prepend(i);
 		}
+
 	}
 }
 customElements.define('ui-badge', Badge);
@@ -1258,11 +1263,14 @@ class ContextMenu extends BasicElement {
 		this.style.top = down?(y + "px"):null;
 		this.style.bottom = down?null:((h-y) + "px");
 
+		let hasItem = false;
 		for(let item of this.items){
 			item.element.hidden = item.hide && item.hide(element);
+			hasItem = hasItem || !item.element.hidden;
 		}
 
-		this.show();
+		if(hasItem)
+			this.show();
 	}
 
 	detach(element){
@@ -1889,6 +1897,31 @@ class HashManager extends BasicElement {
 		this.eventlistener = () => this.hashChange();
 
 		window.addEventListener('hashchange', this.eventlistener);
+	}
+
+	static read(pathlike){
+		let [path, type] = pathlike.split(':');
+		let hash = window.location.hash.substring(1);
+		let pairs = hash.split('|').filter(i=>i!='').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
+		let pair = pairs.find(i=>i[0]==path);
+
+		let value = pair?.[1];
+
+		if(value){
+			switch(type){
+				case 'number':
+					value = parseFloat(value);
+					break;
+				case 'boolean':
+					value = (value.toLowerCase() == 'true');	
+					break;
+				case 'json':
+					value = JSON.parse(value);	
+					break;
+			}
+		}
+
+		return value;
 	}
 
 	remove(){

@@ -81,11 +81,14 @@ export class ContextMenu extends BasicElement {
 		this.style.top = down?(y + "px"):null;
 		this.style.bottom = down?null:((h-y) + "px");
 
+		let hasItem = false;
 		for(let item of this.items){
 			item.element.hidden = item.hide && item.hide(element);
+			hasItem = hasItem || !item.element.hidden;
 		}
 
-		this.show();
+		if(hasItem)
+			this.show();
 	}
 
 	detach(element){

@@ -3,8 +3,8 @@ import "./Badge.css";
 import { BasicElement } from "../BasicElement.js";
 
 export class Badge extends BasicElement {
-	constructor(content, { icon = '' } = {}) {
-		super(content);
+	constructor(content, { icon = '', clazz = ''} = {}) {
+		super(content, {clazz});
 
 		icon = icon || this.attributes.getNamedItem("icon")?.value;
 		if (icon) {
@@ -16,6 +16,7 @@ export class Badge extends BasicElement {
 			i.classList.add(...classes);
 			this.prepend(i);
 		}
+
 	}
 }
 customElements.define('ui-badge', Badge);

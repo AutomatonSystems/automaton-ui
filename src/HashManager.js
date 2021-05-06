@@ -126,6 +126,31 @@ export class HashManager extends BasicElement {
 		window.addEventListener('hashchange', this.eventlistener);
 	}
 
+	static read(pathlike){
+		let [path, type] = pathlike.split(':');
+		let hash = window.location.hash.substring(1);
+		let pairs = hash.split('|').filter(i=>i!='').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
+		let pair = pairs.find(i=>i[0]==path);
+
+		let value = pair?.[1];
+
+		if(value){
+			switch(type){
+				case 'number':
+					value = parseFloat(value);
+					break;
+				case 'boolean':
+					value = (value.toLowerCase() == 'true');	
+					break;
+				case 'json':
+					value = JSON.parse(value);	
+					break;
+			}
+		}
+
+		return value;
+	}
+
 	remove(){
 		super.remove();
 		window.removeEventListener('hashchange', this.eventlistener);

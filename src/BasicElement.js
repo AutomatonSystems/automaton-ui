@@ -1,7 +1,7 @@
 import * as utils from './utils.js';
 
 export class BasicElement extends HTMLElement {
-	constructor(content) {
+	constructor(content, {clazz=''}={}) {
 		super();
 
 		this.self = this;
@@ -14,6 +14,10 @@ export class BasicElement extends HTMLElement {
 			}else{
 				this.append(content);
 			}
+		}
+
+		if (clazz) {
+			this.classList.add(...clazz.split(" "));
 		}
 
 		this.remove = this.remove.bind(this);
