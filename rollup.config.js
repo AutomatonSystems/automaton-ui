@@ -8,7 +8,7 @@ export default [
 		input: 'src/ui.ts',
 		plugins: [
 			typescript({ tsconfig: './tsconfig.json' }),
-			webWorkerLoader({targetPlatform: "browser", inline: false, preserveFileNames: true}),
+			webWorkerLoader({targetPlatform: "browser", inline: true, preserveFileNames: true}),
 			css({ output: 'dist/ui.css' }),
 		], 
 		output: {
