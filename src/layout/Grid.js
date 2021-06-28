@@ -1,7 +1,7 @@
 import "./Grid.css";
 
 import { BasicElement } from "../BasicElement";
-import UI from "../../main.js";
+import UI from "../ui.js";
 export class Grid extends BasicElement{
 
 	#columns = 0;

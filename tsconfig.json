@@ -1,0 +1,24 @@
+{
+	"compileOnSave": true,
+	"compilerOptions": {
+		"declaration": true,
+		"outDir": "./dist",
+		"module": "ESNext",
+		"moduleResolution": "node",
+		"allowSyntheticDefaultImports": true,
+		"allowJs": true,
+		"checkJs": false,
+		"noImplicitAny": true,
+		/*"noImplicitOverride": true,*/
+		"target": "esnext",
+		"newLine": "lf",
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"paths": {}
+	},
+	"include": ["**/*.js","**/*.ts"],
+	"exclude": [],
+	"typeAcquisition": {
+		"enable": true
+	}
+}

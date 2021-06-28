@@ -6,7 +6,7 @@ export class BasicElement extends HTMLElement {
 
 		this.self = this;
 
-		if(content){
+		if(content != null){
 			if(Array.isArray(content)){
 				utils.append(this, content);
 			}else if (typeof content == 'string') {

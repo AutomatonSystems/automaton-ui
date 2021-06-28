@@ -1,4 +1,4 @@
-import { NumberInput } from "../../main.js";
+import { NumberInput } from "../ui.js";
 import { Grid } from "../layout/Grid.js";
 import {AbstractInput, LabelledInput } from "./Input.js";
 

@@ -4,7 +4,7 @@ import { BasicElement } from "../BasicElement.js";
 import { Button } from "./Button.js";
 import { Toggle } from "./Toggle.js";
 import * as utils from "../utils.js";
-import UI from "../../main.js";
+import UI from "../ui.js";
 /****** FORM COMPONENTS ******/
 export class Form extends BasicElement {
 
@@ -12,6 +12,8 @@ export class Form extends BasicElement {
 		ROW: { parent: 'table', wrap: 'tr', label: 'th', value: 'td' },
 		INLINE: { parent: null, wrap: 'span', label: 'label', value: 'span' }
 	};
+
+	static TRUE_STRINGS = new Set("true", "1", "yes", "t", "y");
 
 
 	constructor(template) {
@@ -100,6 +102,9 @@ export class Form extends BasicElement {
 			}
 			if(input['type'] == 'number' || input.dataset.format == 'number'){
 				value = parseFloat(value);
+			}
+			if(input.dataset.format == 'boolean'){
+				value = TRUE_STRINGS.has(value?.toLowercase());
 			}
 
 			// if the last step is an array - init it
@@ -240,6 +245,7 @@ export class Form extends BasicElement {
 						html += `<input data-key="${jsonKey}" type="checkbox" ${elementValue ? 'checked' : ''}/>`;
 						wrapper.innerHTML = html;
 						break;
+					case 'boolean':
 					case 'toggle':
 						html += `<ui-toggle data-key="${jsonKey}" value="${elementValue ?? false}"></ui-toggle>`;
 						wrapper.innerHTML = html;
@@ -374,6 +380,10 @@ export class Form extends BasicElement {
 					this.onChange();
 				});
 			}
+
+			if(template.afterRender){
+				template.afterRender(element, this);
+			}
 		};
 
 		await render(itemValue);
@@ -410,7 +420,6 @@ export class Form extends BasicElement {
 				this.changeListeners.push(changeListener);
 			}
 		}
-		
 
 		return element;
 	}

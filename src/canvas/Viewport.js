@@ -29,7 +29,7 @@ export class Viewport extends BasicElement{
 		this.canvas = document.createElement('canvas');
 		this.append(this.canvas);
 	}
-
+	
 	addAttachment(element, update = true){
 		this.attachments.push(element);
 		this.append(element);
@@ -250,11 +250,15 @@ export class Viewport extends BasicElement{
 	updateAttachments(){
 		let v = this.#view;
 		for(let attachment of this.attachments){
-			let scale = attachment.scalar ?? 1;
-			let x = (attachment.x ?? 0)*scale - v.x;
-			let y = (attachment.y ?? 0)*scale - v.y;
-			let t = `translate(${x * v.zoom}px, ${y * v.zoom}px) scale(${v.zoom * scale})`;
-			attachment.style.transform = t;
+			if(attachment.render){
+				attachment.render(this);
+			}else{
+				let scale = attachment.scalar ?? 1;
+				let x = (attachment.x ?? 0)*scale - v.x;
+				let y = (attachment.y ?? 0)*scale - v.y;
+				let t = `translate(${x * v.zoom}px, ${y * v.zoom}px) scale(${v.zoom * scale})`;
+				attachment.style.transform = t;
+			}
 		}
 	}
 

@@ -1,28 +1,30 @@
 import { terser } from "rollup-plugin-terser";
 import css from 'rollup-plugin-css-only';
 import webWorkerLoader from 'rollup-plugin-web-worker-loader';
+import typescript from '@rollup/plugin-typescript';
 
 export default [
 	{
-		input: 'main.js',
+		input: 'src/ui.ts',
 		plugins: [
-			webWorkerLoader({targetPlatform: "browser", }),
+			typescript({ tsconfig: './tsconfig.json' }),
+			webWorkerLoader({targetPlatform: "browser", inline: false, preserveFileNames: true}),
 			css({ output: 'dist/ui.css' }),
 		], 
 		output: {
-		  file: 'dist/ui.js',
-		  format: 'es'
+			dir: 'dist',
+			/*file: 'ui.js',*/
+			format: 'es',
+			sourcemap: true
 		}
 	},{
-		input: 'main.js',
+		input: 'dist/ui.js',
 		plugins: [
-			webWorkerLoader({targetPlatform: "browser", }),
-			css({ output: 'dist/ui.css' }),
 			terser()
 		], 
 		output: {
-		file: 'dist/ui.min.js',
-		format: 'es'
+			file: 'dist/ui.min.js',
+			format: 'es'
 		}
 	}
 ];

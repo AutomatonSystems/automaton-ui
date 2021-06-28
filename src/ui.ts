@@ -1,30 +1,30 @@
 import "./base.css";
 
-import { BasicElement } from "./src/BasicElement.js";
-import * as utils from "./src/utils.js";
-import * as factory from "./src/Factory.js";
+import { BasicElement } from "./BasicElement.js";
+import * as utils from "./utils.js";
+import * as factory from "./Factory.js";
 
-import { Badge } from "./src/component/Badge.js";
-import { Button } from "./src/forms/Button.js";
-import { Cancel } from "./src/forms/Cancel.js";
-import { Card } from "./src/component/Card.js";
-import { Code } from "./src/text/Code.js";
-import { ContextMenu } from "./src/ContextMenu.js";
-import { Form } from "./src/forms/Form.js";
-import { Form2 } from "./src/forms/Form2.js";
-import { Grid } from "./src/layout/Grid.js";
-import { JsonInput, InputLabel, NumberInput, StringInput, LabelledInput, SelectInput, MultiSelectInput} from "./src/forms/Input.js";
-import { HashManager } from "./src/HashManager.js";
-import { Json } from "./src/text/Json.js";
-import { List, Table} from "./src/data/List.js";
-import { Modal } from "./src/Modal.js";
-import { Panel } from "./src/layout/Panel.js";
-import { Spacer } from "./src/layout/Spacer.js";
-import { Spinner } from "./src/component/Spinner.js";
-import { Splash } from "./src/Splash.js";
-import { Toast } from "./src/feedback/Toast.js";
-import { Toggle } from "./src/forms/Toggle.js";
-import { Viewport } from "./src/canvas/Viewport.js";
+import { Badge } from "./component/Badge.js";
+import { Button } from "./forms/Button.js";
+import { Cancel } from "./forms/Cancel.js";
+import { Card } from "./component/Card.js";
+import { Code } from "./text/Code.js";
+import { ContextMenu } from "./ContextMenu.js";
+import { Form } from "./forms/Form.js";
+import { Form2 } from "./forms/Form2.js";
+import { Grid } from "./layout/Grid.js";
+import { JsonInput, InputLabel, NumberInput, StringInput, LabelledInput, SelectInput, MultiSelectInput} from "./forms/Input.js";
+import { HashManager } from "./HashManager.js";
+import { Json } from "./text/Json.js";
+import { List, Table} from "./data/List.js";
+import { Modal } from "./Modal.js";
+import { Panel } from "./layout/Panel.js";
+import { Spacer } from "./layout/Spacer.js";
+import { Spinner } from "./component/Spinner.js";
+import { Splash } from "./Splash.js";
+import { Toast } from "./feedback/Toast.js";
+import { Toggle } from "./forms/Toggle.js";
+import { Viewport } from "./canvas/Viewport.js";
 
 // @ts-ignore
 let URL = import.meta.url;
@@ -57,7 +57,7 @@ const UI = {
 	Json,
 	JsonInput,
 	LabelledInput,
-	List, Table,
+	List, 
 	Modal,
 	MultiSelectInput,
 	NumberInput,
@@ -86,6 +86,7 @@ const UI = {
 	factory
 };
 
+// @ts-ignore
 window["UI"] = UI;
 
 let createElement = utils.htmlToElement;

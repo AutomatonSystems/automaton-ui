@@ -1,4 +1,4 @@
-import UI from "../../main.js";
+import UI from "../ui.js";
 import { BasicElement } from "../BasicElement.js";
 import "./Input.css";
 
