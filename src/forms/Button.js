@@ -13,6 +13,8 @@ export class Button extends BasicElement {
 	constructor(content, callback, { icon = '', style = 'button', color = false } = {}) {
 		super(content);
 
+		this.setAttribute("ui-button", '');
+
 		if(typeof callback == "string"){
 			// create link like behaviour (left click open; middle/ctrl+click new tab)
 			this.addEventListener('click', (e)=>{

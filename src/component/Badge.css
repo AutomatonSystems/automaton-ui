@@ -1,6 +1,6 @@
 
 
-ui-badge{
+:where([ui-badge]){
 	font-size: 0.8em;
 	padding: 3px 8px;
 	border-radius: calc(var(--corner-smoothing) * 2);
@@ -10,6 +10,6 @@ ui-badge{
 	display: inline-block;
 }
 
-ui-badge > i{
+:where([ui-badge]) > i{
 	margin-right: 8px;
 }

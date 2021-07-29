@@ -1,4 +1,4 @@
-ui-button{
+:where([ui-button]){
 	display: inline-block;
 	margin: 2px;
 	padding: 4px 12px;
@@ -11,29 +11,29 @@ ui-button{
 	/*box-shadow: var(--shadow);	*/
 }
 
-ui-button::selection{
+[ui-button]::selection{
 	user-select: all;
 }
 
-ui-button.text{
+[ui-button].text{
 	background-color: transparent;
 	padding: 0;
 }
 
-ui-button a{
+[ui-button] a{
 	text-decoration: none;
 	color: var(--brand-primary-text);
 }
 
-ui-button > i:not(.icon-only){
+[ui-button] > i:not(.icon-only){
 	margin-right: 4px;
 }
 
-ui-button:hover{
+[ui-button]:hover{
 	filter: brightness(1.1);
 }
 
-ui-button[disabled]{
+[ui-button][disabled]{
 	filter: grayscale(1);
 	pointer-events: none;
 }

@@ -4,14 +4,17 @@
   "version": "1.4.1",
   "description": "A set of HTML elements to speed up UI prototyping",
   "main": "dist/ui.js",
+  "types": "dist/ui.d.ts",
   "scripts": {
     "build": "rollup --config",
     "dev": "rollup --config --watch"
   },
   "author": "",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+  },
   "devDependencies": {
+    "rollup-plugin-typescript2": "^0.30.0",
     "@rollup/plugin-typescript": "^8.2.1",
     "babel-eslint": "^10.1.0",
     "eslint": "^5.6.1",

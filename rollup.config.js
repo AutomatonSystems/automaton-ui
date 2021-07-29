@@ -7,7 +7,10 @@ export default [
 	{
 		input: 'src/ui.ts',
 		plugins: [
-			typescript({ tsconfig: './tsconfig.json' }),
+			typescript({
+				"declaration": true,
+				tsconfig: './tsconfig.json'
+			}),
 			webWorkerLoader({targetPlatform: "browser", inline: true, preserveFileNames: true}),
 			css({ output: 'dist/ui.css' }),
 		], 
@@ -17,7 +20,7 @@ export default [
 			format: 'es',
 			sourcemap: true
 		}
-	},{
+	}/*,{
 		input: 'dist/ui.js',
 		plugins: [
 			terser()
@@ -26,5 +29,5 @@ export default [
 			file: 'dist/ui.min.js',
 			format: 'es'
 		}
-	}
+	}*/
 ];

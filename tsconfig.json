@@ -5,18 +5,19 @@
 		"outDir": "./dist",
 		"module": "esnext",
 		"moduleResolution": "node",
-		"allowSyntheticDefaultImports": true,
+		/*"allowSyntheticDefaultImports": true,*/
 		"allowJs": true,
 		"checkJs": false,
 		"noImplicitAny": true,
 		/*"noImplicitOverride": true,*/
-		"target": "esnext",
+		"target": "es2015",
 		"newLine": "lf",
 		"skipLibCheck": true,
 		"sourceMap": true,
-		"paths": {}
+		"paths": {},
+		"rootDir": "./src"
 	},
-	"include": ["**/*.js","**/*.ts"],
+	"include": ["src/**/*.js","src/**/*.ts"],
 	"exclude": [],
 	"typeAcquisition": {
 		"enable": true

@@ -103,6 +103,9 @@ export class Form extends BasicElement {
 			if(input['type'] == 'number' || input.dataset.format == 'number'){
 				value = parseFloat(value);
 			}
+			if(input['type'] == 'datetime-local' || input.dataset.format == 'datetime'){
+				value = new Date(value);
+			}
 			if(input.dataset.format == 'boolean'){
 				value = TRUE_STRINGS.has(value?.toLowercase());
 			}
@@ -332,8 +335,17 @@ export class Form extends BasicElement {
 						wrapper.append(button);
 
 						break;
+					case 'datetime':{
+						let input = utils.htmlToElement(`<input data-key="${jsonKey}" type="datetime-local" placeholder="${template.placeholder ?? ''}"/>`);
+						input.value = elementValue ?? new Date().toISOString().substring(0, 16);
+						console.log(elementValue, new Date(elementValue), input.value);
+						if(template.disabled)
+							input.setAttribute('disabled', '');
+						wrapper.append(input);
+						break;
+					}
 					case 'string':
-					default:
+					default:{
 						let input = utils.htmlToElement(`<input data-key="${jsonKey}" type="text" placeholder="${template.placeholder ?? ''}"/>`);
 						input.value = elementValue ?? null;
 						if(template.disabled)
@@ -359,6 +371,7 @@ export class Form extends BasicElement {
 
 						wrapper.append(input);
 						break;
+					}
 				}
 			}else if (typeof template.type == 'function') {
 				let obj = template.type;
