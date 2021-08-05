@@ -788,7 +788,6 @@ class Form extends BasicElement {
 					case 'datetime':{
 						let input = htmlToElement(`<input data-key="${jsonKey}" type="datetime-local" placeholder="${template.placeholder ?? ''}"/>`);
 						input.value = elementValue ?? new Date().toISOString().substring(0, 16);
-						console.log(elementValue, new Date(elementValue), input.value);
 						if(template.disabled)
 							input.setAttribute('disabled', '');
 						wrapper.append(input);
@@ -1597,6 +1596,7 @@ class SelectInput extends HTMLSelectElement{
 				if(opt.value == value)
 					option.setAttribute('selected', '');
 				option.innerText = opt.display ?? opt.value;
+				option.value = opt.value;
 			}else {
 				if(opt == value)
 					option.setAttribute('selected', '');

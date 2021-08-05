@@ -338,7 +338,6 @@ export class Form extends BasicElement {
 					case 'datetime':{
 						let input = utils.htmlToElement(`<input data-key="${jsonKey}" type="datetime-local" placeholder="${template.placeholder ?? ''}"/>`);
 						input.value = elementValue ?? new Date().toISOString().substring(0, 16);
-						console.log(elementValue, new Date(elementValue), input.value);
 						if(template.disabled)
 							input.setAttribute('disabled', '');
 						wrapper.append(input);

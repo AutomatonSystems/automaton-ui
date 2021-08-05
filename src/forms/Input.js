@@ -187,6 +187,7 @@ export class SelectInput extends HTMLSelectElement{
 				if(opt.value == value)
 					option.setAttribute('selected', '');
 				option.innerText = opt.display ?? opt.value;
+				option.value = opt.value;
 			}else{
 				if(opt == value)
 					option.setAttribute('selected', '');
