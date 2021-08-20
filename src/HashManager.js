@@ -170,7 +170,7 @@ export class HashManager extends BasicElement {
 		this.handlers.push(h);
 	}
 
-	set(value){
+	set(value, fireOnChange=false){
 		let hash = window.location.hash.substring(1);
 		let pairs = hash.split('|').filter(i=>i!='').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
 		let pair = pairs.find(i=>i[0]==this.key);
@@ -181,6 +181,8 @@ export class HashManager extends BasicElement {
 		pair[1] = value;
 
 		window.location.hash = pairs.map(p=>p[0]?p.join('='):p[1]).join('|');
+		if(fireOnChange)
+			return this.hashChange();
 	}
 
 	async hashChange() {
@@ -238,7 +240,6 @@ export class HashManager extends BasicElement {
 			direction = dirs[Math.floor(Math.random() * dirs.length)];
 		}
 		if(Array.isArray(direction)){
-			console.log(this.position, direction);
 			let newPosition = direction;
 			// positional slide mode
 			if(this.position[0] != direction[0]){

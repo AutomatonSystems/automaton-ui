@@ -22,7 +22,7 @@ function append(element, content){
 
 const IDs = new Set();
 
-function uuid(){
+function uuid$1(){
 	let id = null;
 	do{
 		id = "ui-" + Math.random().toString(16).slice(2);
@@ -113,7 +113,7 @@ var utils = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	sleep: sleep,
 	append: append,
-	uuid: uuid,
+	uuid: uuid$1,
 	htmlToElement: htmlToElement,
 	castHtmlElements: castHtmlElements,
 	shuffle: shuffle,
@@ -123,7 +123,18 @@ var utils = /*#__PURE__*/Object.freeze({
 
 class BasicElement extends HTMLElement {
 	constructor(content, {clazz=''}={}) {
-		super();
+		try{
+			super();
+		}catch(e){
+			if(e.message == "Illegal constructor"){
+				//console.log(arguments, instance);
+				//debugger;
+				//window.customElements.define("ui-unregistered-component-" + (Math.floor(Math.random()*16*16)).toString(16), CompanyListPanel);
+				//super();
+				console.warn(`Unregistered component: call 'customElements.define("ui-???", ???);'`);
+			}
+			throw e;
+		}
 
 		this.self = this;
 
@@ -369,6 +380,31 @@ class BasicElement extends HTMLElement {
 }
 customElements.define('ui-basic', BasicElement);
 
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+
+function __awaiter(thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+}
+
 class Button extends BasicElement {
 
     /**
@@ -433,459 +469,405 @@ class Button extends BasicElement {
 }
 customElements.define('ui-button', Button);
 
-class Toggle extends BasicElement {
-	constructor(v, changeCallback) {
-		super(`<input type="checkbox"/><div><span></span></div>`);
-		this.value = v ?? (this.attributes.getNamedItem("value")?.value == "true");
-
-		if(changeCallback){
-			this.querySelector('input').addEventListener('change', ()=>{
-				changeCallback(this.value);
-			});
-		}
-	}
-
-	get value() {
-		return this.querySelector('input').checked;
-	}
-
-	set value(b) {
-		this.querySelector('input').checked = b;
-	}
-}
-customElements.define('ui-toggle', Toggle);
-
-/****** FORM COMPONENTS ******/
 class Form extends BasicElement {
-
-	static STYLE = {
-		ROW: { parent: 'table', wrap: 'tr', label: 'th', value: 'td' },
-		INLINE: { parent: null, wrap: 'span', label: 'label', value: 'span' }
-	};
-
-	static TRUE_STRINGS = new Set("true", "1", "yes", "t", "y");
-
-
-	constructor(template) {
-		super();
-
-		this.template = template;
-		this.changeListeners = [];
-		this.onChange = this.onChange.bind(this);
-
-		this.formStyle = Form.STYLE.ROW;
-
-		this.configuration = {
-			formatting: {
-				strings: {
-					trim: true
-				}
-			}
-		};
-
-		this.value = {};
-	}
-
-	async build(json) {
-		this.value = json;
-
-		this.changeListeners = [];
-		let eles = await this.jsonToHtml(this.template, json);
-		this.innerHTML = "";
-		this.append(...eles);
-		/*// add change listeners
-		let inputs = this.querySelectorAll('[data-key]');
-		for (let input of inputs) {
-			input.addEventListener('change', this.onChange);
-		}*/
-		// finally trigger them for the starting state
-		this.onChange();
-
-		return this;
-	}
-
-	async onChange() {
-		let json = this.json();
-		this.value = json;
-		for(let listener of this.changeListeners)
-			await listener(json);
-		this.dispatchEvent(new Event('change'));
-	}
-
-	json(includeHidden = false) {
-		return this._readValue(this, includeHidden);
-	}
-
-	_readValue(element, includeHidden = false){
-		let json = {};
-
-		let inputs = element.querySelectorAll('[data-key]');
-		for (let input of inputs) {
-			// skip hidden inputs if required
-			if(!includeHidden && input.closest('[hidden]'))
-				continue;
-			let parent = json;
-			// grab the correct place to store this value
-			let keys = input['dataset']['key'].split('.');
-			let key = keys.pop();
-			// initialize any nesting
-			for (let k of keys) {
-				if (Array.isArray(parent)) {
-					let a = {};
-					parent.push(a);
-					parent = a;
-				}
-				if (k.includes('[]')) {
-					k = k.replace('[]', '');
-					parent[k] = parent[k] ?? [];
-				}
-				else {
-					parent[k] = parent[k] ?? {};
-				}
-				parent = parent[k];
-			}
-			// read the value
-			let value = input[input['type'] == 'checkbox' ? 'checked' : 'value'];
-			if(input['type'] == 'text' || input.dataset.format == 'string'){
-				if(this.configuration.formatting.strings.trim)
-					value = value.trim();
-			}
-			if(input['type'] == 'number' || input.dataset.format == 'number'){
-				value = parseFloat(value);
-			}
-			if(input['type'] == 'datetime-local' || input.dataset.format == 'datetime'){
-				value = new Date(value);
-			}
-			if(input.dataset.format == 'boolean'){
-				value = TRUE_STRINGS.has(value?.toLowercase());
-			}
-
-			// if the last step is an array - init it
-			if (key.includes('[]')) {
-				key = key.replace('[]', '');
-				parent[key] = parent[key] ?? [];
-				parent = parent[key];
-				key = null;
-			}
-
-			// if we are dealing with an array fiddle the key
-			if (Array.isArray(parent)) {
-				if (key === null) {
-					// key is just the next unset entry
-					key = parent.length;
-				} else {
-					// array of objects - add new item if empty or the last item is already populated
-					if (parent.length == 0 || parent[parent.length - 1][key] != null) {
-						parent.push({});
-					}
-					parent = parent[parent.length - 1];
-				}
-			}
-
-			// finally set the value on the object (or array)
-			parent[key] = value;
-		}
-
-		return json;
-	}
-
-	async jsonToHtml(templates, json, jsonKey = '', options = { style: this.formStyle }) {
-		let elements = [];
-		if (!Array.isArray(templates))
-			templates = [templates];
-		for (let template of templates) {
-			if (typeof template == "string") {
-				if (template.indexOf(":") == -1) {
-					template = {
-						key: null,
-						type: template
-					};
-				}
-				else {
-					template = {
-						key: template.split(':')[0],
-						type: template.split(':')[1]
-					};
-					if (json == null)
-						json = {};
-				}
-			}
-
-			// template value
-			let value = (template.key ? json[template.key] : json) ?? template.default;
-			
-			elements.push(await this.oneItem(template, value, template.key ? ((jsonKey ? jsonKey + "." : '') + template.key) : jsonKey, options));
-		}
-
-		if (options.style?.parent) {
-			let parent = document.createElement(options.style?.parent);
-			parent.append(...elements);
-			return [parent];
-		}
-		else {
-			return elements;
-		}
-	}
-
-	_readJsonWithKey(json, key){
-		try{
-			let keys = key.split('.');
-			for(let part of keys){
-				if(json == null)
-					return null;
-				if(part.endsWith('[]')){
-					part = part.substring(0, part.length-2);
-					json = json[part];
-					if(json?.length > 0)
-						json = json[0];
-					else
-						json = null;
-				}else {
-					json = json[part];
-				}
-				
-			}
-			return json;
-		}catch(e){
-			return null;
-		}
-	}
-
-	async oneItem(template, itemValue, jsonKey, { style = Form.STYLE.ROW } = {}) {
-
-		let element = document.createElement(style.wrap);
-		element.dataset.element = jsonKey;
-
-		let render = async (elementValue)=>{
-
-			let label;
-			if (template.key) {
-				label = document.createElement(style.label);
-				label.innerHTML = template.name ?? template.key;
-				if (template.hint) {
-					let hint = document.createElement('div');
-					hint.innerHTML = template.hint;
-					label.append(hint);
-				}
-				element.append(label);
-			}
-
-			let wrapper = document.createElement(style.value);
-			wrapper.classList.add('value');
-			element.append(wrapper);
-
-			if (typeof template.type == "string" || !template.type) {
-				let html = '';
-				switch (template.type) {
-					//
-					case 'header':
-						label.setAttribute("colspan", "2");
-						label.classList.add("header");
-						wrapper.remove();
-						break;
-					case 'description':
-						wrapper.setAttribute("colspan", "2");
-						wrapper.classList.add("description");
-						wrapper.innerHTML = template.key;
-						label.remove();
-						break;
-					case 'hr':
-						wrapper.setAttribute("colspan", "2");
-						wrapper.innerHTML = "<hr/>";
-						break;
-					//
-					case 'checkbox':
-						html += `<input data-key="${jsonKey}" type="checkbox" ${elementValue ? 'checked' : ''}/>`;
-						wrapper.innerHTML = html;
-						break;
-					case 'boolean':
-					case 'toggle':
-						html += `<ui-toggle data-key="${jsonKey}" value="${elementValue ?? false}"></ui-toggle>`;
-						wrapper.innerHTML = html;
-						break;
-					case "dropdown":
-					case "select":
-					case 'list':
-						html += `<select data-key="${jsonKey}" data-format="${template.format}">`;
-						let options = template.options;
-						if (!Array.isArray(options))
-							options = await options(this.value);
-						html += options.map(v => `<option 
+    constructor(template) {
+        super();
+        this.template = template;
+        this.changeListeners = [];
+        this.onChange = this.onChange.bind(this);
+        this.formStyle = Form.STYLE.ROW;
+        this.configuration = {
+            formatting: {
+                strings: {
+                    trim: true
+                }
+            }
+        };
+        this.value = {};
+    }
+    build(json) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.value = json;
+            this.changeListeners = [];
+            let eles = yield this.jsonToHtml(this.template, json);
+            this.innerHTML = "";
+            this.append(...eles);
+            /*// add change listeners
+            let inputs = this.querySelectorAll('[data-key]');
+            for (let input of inputs) {
+                input.addEventListener('change', this.onChange);
+            }*/
+            // finally trigger them for the starting state
+            this.onChange();
+            return this;
+        });
+    }
+    onChange() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let json = this.json();
+            this.value = json;
+            for (let listener of this.changeListeners)
+                yield listener(json);
+            this.dispatchEvent(new Event('change'));
+        });
+    }
+    json(includeHidden = false) {
+        return this._readValue(this, includeHidden);
+    }
+    _readValue(element, includeHidden = false) {
+        var _a, _b, _c;
+        let json = {};
+        let inputs = element.querySelectorAll('[data-key]');
+        for (let input of inputs) {
+            // skip hidden inputs if required
+            if (!includeHidden && input.closest('[hidden]'))
+                continue;
+            let parent = json;
+            // grab the correct place to store this value
+            let keys = input['dataset']['key'].split('.');
+            let key = keys.pop();
+            // initialize any nesting
+            for (let k of keys) {
+                if (Array.isArray(parent)) {
+                    let a = {};
+                    parent.push(a);
+                    parent = a;
+                }
+                if (k.includes('[]')) {
+                    k = k.replace('[]', '');
+                    parent[k] = (_a = parent[k]) !== null && _a !== void 0 ? _a : [];
+                }
+                else {
+                    parent[k] = (_b = parent[k]) !== null && _b !== void 0 ? _b : {};
+                }
+                parent = parent[k];
+            }
+            // read the value
+            let value = input[input['type'] == 'checkbox' ? 'checked' : 'value'];
+            if (typeof value == "string") {
+                if (input['type'] == 'text' || input.dataset.format == 'string') {
+                    if (this.configuration.formatting.strings.trim)
+                        value = value.trim();
+                }
+                if (input['type'] == 'number' || input.dataset.format == 'number') {
+                    value = parseFloat(value);
+                }
+                if (input['type'] == 'datetime-local' || input.dataset.format == 'datetime') {
+                    value = new Date(value);
+                }
+                if (input.dataset.format == 'boolean') {
+                    value = Form.TRUE_STRINGS.has((value + "").toLowerCase());
+                }
+            }
+            // if the last step is an array - init it
+            if (key.includes('[]')) {
+                key = key.replace('[]', '');
+                parent[key] = (_c = parent[key]) !== null && _c !== void 0 ? _c : [];
+                parent = parent[key];
+                key = null;
+            }
+            // if we are dealing with an array fiddle the key
+            if (Array.isArray(parent)) {
+                if (key === null) {
+                    // key is just the next unset entry
+                    key = parent.length;
+                }
+                else {
+                    // array of objects - add new item if empty or the last item is already populated
+                    if (parent.length == 0 || parent[parent.length - 1][key] != null) {
+                        parent.push({});
+                    }
+                    parent = parent[parent.length - 1];
+                }
+            }
+            // finally set the value on the object (or array)
+            parent[key] = value;
+        }
+        return json;
+    }
+    jsonToHtml(templates, json, jsonKey = '', options = { style: this.formStyle }) {
+        var _a, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            let elements = [];
+            let templatesArray = Array.isArray(templates) ? templates : [templates];
+            for (let template of templatesArray) {
+                let templateJson;
+                if (typeof template == "string") {
+                    if (template.indexOf(":") == -1) {
+                        templateJson = {
+                            key: null,
+                            type: template
+                        };
+                    }
+                    else {
+                        templateJson = {
+                            key: template.split(':')[0],
+                            type: template.split(':')[1]
+                        };
+                        if (json == null)
+                            json = {};
+                    }
+                }
+                else {
+                    templateJson = template;
+                }
+                // template value
+                let value = (_a = (templateJson.key ? json[templateJson.key] : json)) !== null && _a !== void 0 ? _a : templateJson.default;
+                elements.push(yield this.oneItem(templateJson, value, templateJson.key ? ((jsonKey ? jsonKey + "." : '') + templateJson.key) : jsonKey, options));
+            }
+            if ((_b = options.style) === null || _b === void 0 ? void 0 : _b.parent) {
+                let parent = document.createElement((_c = options.style) === null || _c === void 0 ? void 0 : _c.parent);
+                parent.append(...elements);
+                return [parent];
+            }
+            else {
+                return elements;
+            }
+        });
+    }
+    _readJsonWithKey(json, key) {
+        try {
+            let keys = key.split('.');
+            for (let part of keys) {
+                if (json == null)
+                    return null;
+                if (part.endsWith('[]')) {
+                    part = part.substring(0, part.length - 2);
+                    json = json[part];
+                    if ((json === null || json === void 0 ? void 0 : json.length) > 0)
+                        json = json[0];
+                    else
+                        json = null;
+                }
+                else {
+                    json = json[part];
+                }
+            }
+            return json;
+        }
+        catch (e) {
+            return null;
+        }
+    }
+    oneItem(template, itemValue, jsonKey, { style = Form.STYLE.ROW } = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let element = document.createElement(style.wrap);
+            element.dataset.element = jsonKey;
+            let render = (elementValue) => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b, _c, _d;
+                let label;
+                if (template.key) {
+                    label = document.createElement(style.label);
+                    label.innerHTML = (_a = template.name) !== null && _a !== void 0 ? _a : template.key;
+                    if (template.hint) {
+                        let hint = document.createElement('div');
+                        hint.innerHTML = template.hint;
+                        label.append(hint);
+                    }
+                    element.append(label);
+                }
+                let wrapper = document.createElement(style.value);
+                wrapper.classList.add('value');
+                element.append(wrapper);
+                if (typeof template.type == "string" || !template.type) {
+                    let html = '';
+                    switch (template.type) {
+                        //
+                        case 'header':
+                            label.setAttribute("colspan", "2");
+                            label.classList.add("header");
+                            wrapper.remove();
+                            break;
+                        case 'description':
+                            wrapper.setAttribute("colspan", "2");
+                            wrapper.classList.add("description");
+                            wrapper.innerHTML = template.key;
+                            label.remove();
+                            break;
+                        case 'hr':
+                            wrapper.setAttribute("colspan", "2");
+                            wrapper.innerHTML = "<hr/>";
+                            break;
+                        //
+                        case 'checkbox':
+                            html += `<input data-key="${jsonKey}" type="checkbox" ${elementValue ? 'checked' : ''}/>`;
+                            wrapper.innerHTML = html;
+                            break;
+                        case 'boolean':
+                        case 'toggle':
+                            html += `<ui-toggle data-key="${jsonKey}" value="${elementValue !== null && elementValue !== void 0 ? elementValue : false}"></ui-toggle>`;
+                            wrapper.innerHTML = html;
+                            break;
+                        case "dropdown":
+                        case "select":
+                        case 'list':
+                            html += `<select data-key="${jsonKey}" data-format="${template.format}">`;
+                            let parsedOptions;
+                            if (!Array.isArray(template.options))
+                                parsedOptions = yield template.options(this.value);
+                            else
+                                parsedOptions = template.options;
+                            html += parsedOptions.map(v => `<option 
 								${(elementValue == (v.value ? v.value : v)) ? 'selected' : ''}
 								value="${v.value ? v.value : v}">${v.name ? v.name : v}</option>`).join('');
-						html += `</select>`;
-						wrapper.innerHTML = html;
-						break;
-					case 'text':
-						html += `<textarea data-key="${jsonKey}">${elementValue ?? ''}</textarea>`;
-						wrapper.innerHTML = html;
-						break;
-					case 'number':
-						html += `<input data-key="${jsonKey}" type="number" value="${elementValue ?? ''}"/>`;
-						wrapper.innerHTML = html;
-						break;
-					// complex types
-					// nested types (compound object)
-					case 'object':
-					case 'compound':
-						//
-						wrapper.append(...await this.jsonToHtml(template.children, elementValue ?? {}, jsonKey));
-						break;
-					// repeating object
-					case 'array':
-						// the element repeats multiple times
-						jsonKey = jsonKey + "[]";
-
-						let tStyle = template.style ?? 'INLINE';
-
-						let substyle = Form.STYLE[tStyle];
-
-						let contain = document.createElement('div');
-						contain.classList.add('array');
-						contain.classList.add(tStyle);
-						// add button
-						let button = new Button("Add", null, { icon: 'fa-plus' });
-
-
-						let createItem = async (itemValue) => {
-
-							let item = document.createElement('span');
-							item.classList.add('item');
-
-							item.append(...await this.jsonToHtml(template.children, itemValue, jsonKey, { style: substyle }));
-
-							item.append(new Button("", () => {
-								item.remove();
-								this.onChange();
-							}, { icon: 'fa-trash', style: "text", color: "error-color" }));
-							
-							let inputs = item.querySelectorAll('[data-key]');
-							for (let input of inputs) {
-								input.addEventListener('change', this.onChange);
-							}
-
-							contain.append(item);
-
-						};
-						button.addEventListener('click', async () => {
-							let item = await createItem(Array.isArray(template.children)?{}:null);
-							this.onChange();
-							return item;
-						});
-
-						if (Array.isArray(elementValue)) {
-							for(let j of elementValue){
-								await createItem(j);
-							}
-
-						}
-
-						wrapper.append(contain);
-
-						wrapper.append(button);
-
-						break;
-					case 'datetime':{
-						let input = htmlToElement(`<input data-key="${jsonKey}" type="datetime-local" placeholder="${template.placeholder ?? ''}"/>`);
-						input.value = elementValue ?? new Date().toISOString().substring(0, 16);
-						if(template.disabled)
-							input.setAttribute('disabled', '');
-						wrapper.append(input);
-						break;
-					}
-					case 'string':
-					default:{
-						let input = htmlToElement(`<input data-key="${jsonKey}" type="text" placeholder="${template.placeholder ?? ''}"/>`);
-						input.value = elementValue ?? null;
-						if(template.disabled)
-							input.setAttribute('disabled', '');
-
-						// Provide autocomplete options for the input
-						if(template.options){
-							let options = template.options;
-							if (!Array.isArray(options))
-								options = await options(this.value);
-							let id = uuid();
-							let list = UI.html(
-								`<datalist id="${id}">`
-								+ options.map(v => `<option 
+                            html += `</select>`;
+                            wrapper.innerHTML = html;
+                            break;
+                        case 'text':
+                            html += `<textarea data-key="${jsonKey}">${elementValue !== null && elementValue !== void 0 ? elementValue : ''}</textarea>`;
+                            wrapper.innerHTML = html;
+                            break;
+                        case 'number':
+                            html += `<input data-key="${jsonKey}" type="number" value="${elementValue !== null && elementValue !== void 0 ? elementValue : ''}"/>`;
+                            wrapper.innerHTML = html;
+                            break;
+                        // complex types
+                        // nested types (compound object)
+                        case 'object':
+                        case 'compound':
+                            //
+                            wrapper.append(...yield this.jsonToHtml(template.children, elementValue !== null && elementValue !== void 0 ? elementValue : {}, jsonKey));
+                            break;
+                        // repeating object
+                        case 'array':
+                            // the element repeats multiple times
+                            jsonKey = jsonKey + "[]";
+                            let tStyle = (_b = template.style) !== null && _b !== void 0 ? _b : 'INLINE';
+                            let substyle = Form.STYLE[tStyle];
+                            let contain = document.createElement('div');
+                            contain.classList.add('array');
+                            contain.classList.add(tStyle);
+                            // add button
+                            let button = new Button("Add", null, { icon: 'fa-plus' });
+                            let createItem = (itemValue) => __awaiter(this, void 0, void 0, function* () {
+                                let item = document.createElement('span');
+                                item.classList.add('item');
+                                item.append(...yield this.jsonToHtml(template.children, itemValue, jsonKey, { style: substyle }));
+                                item.append(new Button("", () => {
+                                    item.remove();
+                                    this.onChange();
+                                }, { icon: 'fa-trash', style: "text", color: "error-color" }));
+                                let inputs = item.querySelectorAll('[data-key]');
+                                for (let input of inputs) {
+                                    input.addEventListener('change', this.onChange);
+                                }
+                                contain.append(item);
+                            });
+                            button.addEventListener('click', () => __awaiter(this, void 0, void 0, function* () {
+                                let item = yield createItem(Array.isArray(template.children) ? {} : null);
+                                this.onChange();
+                                return item;
+                            }));
+                            if (Array.isArray(elementValue)) {
+                                for (let j of elementValue) {
+                                    yield createItem(j);
+                                }
+                            }
+                            wrapper.append(contain);
+                            wrapper.append(button);
+                            break;
+                        case 'datetime': {
+                            let input = htmlToElement(`<input data-key="${jsonKey}" type="datetime-local" placeholder="${(_c = template.placeholder) !== null && _c !== void 0 ? _c : ''}"/>`);
+                            input.value = elementValue !== null && elementValue !== void 0 ? elementValue : new Date().toISOString().substring(0, 16);
+                            if (template.disabled)
+                                input.setAttribute('disabled', '');
+                            wrapper.append(input);
+                            break;
+                        }
+                        case 'string':
+                        default: {
+                            let input = htmlToElement(`<input data-key="${jsonKey}" type="text" placeholder="${(_d = template.placeholder) !== null && _d !== void 0 ? _d : ''}"/>`);
+                            input.value = elementValue !== null && elementValue !== void 0 ? elementValue : null;
+                            if (template.disabled)
+                                input.setAttribute('disabled', '');
+                            // Provide autocomplete options for the input
+                            if (template.options) {
+                                let parsedOptions;
+                                if (!Array.isArray(template.options))
+                                    parsedOptions = yield template.options(this.value);
+                                else
+                                    parsedOptions = template.options;
+                                let id = uuid$1();
+                                let list = UI.html(`<datalist id="${id}">`
+                                    + parsedOptions.map(v => `<option 
 										${(elementValue == (v.value ? v.value : v)) ? 'selected' : ''}
 										value="${v.value ? v.value : v}">${v.name ? v.name : v}</option>`).join('')
-								+ '</datalist>');
-							wrapper.append(list);
-							// by default the list component only shows the items that match the input.value, which isn't very useful for a picker
-							input.addEventListener('focus', ()=>input.value = '');
-							input.setAttribute('list', id);
-						}
-
-						wrapper.append(input);
-						break;
-					}
-				}
-			}else if (typeof template.type == 'function') {
-				let obj = template.type;
-				if(!!obj.prototype && !!obj.prototype.constructor.name){
-					let input = new template.type(elementValue, jsonKey, element);
-					input.dataset['key'] = jsonKey;
-					wrapper.append(input);
-				}else {
-					let input = template.type(elementValue, jsonKey, element);
-					input.dataset['key'] = jsonKey;
-					wrapper.append(input);
-				}
-			}
-
-			let inputs = element.querySelectorAll('[data-key]');
-			for (let input of inputs) {
-				input.addEventListener('change', (event)=>{
-					event.stopPropagation();
-					this.onChange();
-				});
-			}
-
-			if(template.afterRender){
-				template.afterRender(element, this);
-			}
-		};
-
-		await render(itemValue);
-
-		if (template.hidden) {
-			this.changeListeners.push((json) => {
-				element.hidden = template.hidden(json, element);
-			});
-		}
-
-		if(template.redraw){
-			let redraws = Array.isArray(template.redraw)?template.redraw:[template.redraw];
-			for(let redraw of redraws){
-				// cache of the previous value
-				let lastValue = {};
-				// handle change events can filter them
-				let changeListener = async (fullJson) => {
-					
-					let newJsonValue = this._readJsonWithKey(fullJson, redraw);
-					let newValue = JSON.stringify(newJsonValue);
-
-					if(lastValue!==newValue){
-						// grab the current value directly from the element
-						let v = this._readValue(element);
-						let value = this._readJsonWithKey(v,jsonKey);
-						// rebuild the element
-						element.innerHTML = "";
-						await render(value);
-						// cache the value
-						lastValue = newValue;
-					}
-				};
-				// resgister the change listener
-				this.changeListeners.push(changeListener);
-			}
-		}
-
-		return element;
-	}
+                                    + '</datalist>');
+                                wrapper.append(list);
+                                // by default the list component only shows the items that match the input.value, which isn't very useful for a picker
+                                input.addEventListener('focus', () => input.value = '');
+                                input.setAttribute('list', id);
+                            }
+                            wrapper.append(input);
+                            break;
+                        }
+                    }
+                }
+                else if (typeof template.type == 'function') {
+                    let obj = template.type;
+                    if (!!obj.prototype && !!obj.prototype.constructor.name) {
+                        // TODO figure out the typoescript safe way to do this...
+                        // @ts-ignore
+                        let input = new template.type(elementValue, jsonKey, element);
+                        input.dataset['key'] = jsonKey;
+                        wrapper.append(input);
+                    }
+                    else {
+                        let input = template.type(elementValue, jsonKey, element);
+                        input.dataset['key'] = jsonKey;
+                        wrapper.append(input);
+                    }
+                }
+                let inputs = element.querySelectorAll('[data-key]');
+                for (let input of inputs) {
+                    input.addEventListener('change', (event) => {
+                        event.stopPropagation();
+                        this.onChange();
+                    });
+                }
+                if (template.afterRender) {
+                    template.afterRender(element, this);
+                }
+            });
+            yield render(itemValue);
+            if (template.hidden) {
+                this.changeListeners.push((json) => {
+                    element.hidden = template.hidden(json, element);
+                });
+            }
+            if (template.redraw) {
+                let redraws = Array.isArray(template.redraw) ? template.redraw : [template.redraw];
+                for (let redraw of redraws) {
+                    // cache of the previous value
+                    let lastValue = {};
+                    // handle change events can filter them
+                    let changeListener = (fullJson) => __awaiter(this, void 0, void 0, function* () {
+                        let newJsonValue = this._readJsonWithKey(fullJson, redraw);
+                        let newValue = JSON.stringify(newJsonValue);
+                        if (lastValue !== newValue) {
+                            // grab the current value directly from the element
+                            let v = this._readValue(element);
+                            let value = this._readJsonWithKey(v, jsonKey);
+                            // rebuild the element
+                            element.innerHTML = "";
+                            yield render(value);
+                            // cache the value
+                            lastValue = newValue;
+                        }
+                    });
+                    // resgister the change listener
+                    this.changeListeners.push(changeListener);
+                }
+            }
+            return element;
+        });
+    }
 }
+Form.STYLE = {
+    ROW: { parent: 'table', wrap: 'tr', label: 'th', value: 'td' },
+    INLINE: { parent: null, wrap: 'span', label: 'label', value: 'span' }
+};
+Form.TRUE_STRINGS = new Set(["true", "1", "yes", "t", "y"]);
 customElements.define('ui-form', Form);
 
 class Panel extends BasicElement {
@@ -1010,7 +992,7 @@ class Toast extends BasicElement {
 
 		this.classList.add(level);
 		toaster.prepend(this);
-		let count = document.querySelectorAll('ui-toast').length;
+		document.querySelectorAll('ui-toast').length;
 		setTimeout(() => this.style.marginTop = '10px', 10);
 		setTimeout(() => { this.style.marginTop = '-50px'; this.style.opacity = '0'; }, 4800);
 		setTimeout(() => this.remove(), 5000);
@@ -1969,7 +1951,7 @@ class HashManager extends BasicElement {
 		this.handlers.push(h);
 	}
 
-	set(value){
+	set(value, fireOnChange=false){
 		let hash = window.location.hash.substring(1);
 		let pairs = hash.split('|').filter(i=>i!='').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
 		let pair = pairs.find(i=>i[0]==this.key);
@@ -1980,6 +1962,8 @@ class HashManager extends BasicElement {
 		pair[1] = value;
 
 		window.location.hash = pairs.map(p=>p[0]?p.join('='):p[1]).join('|');
+		if(fireOnChange)
+			return this.hashChange();
 	}
 
 	async hashChange() {
@@ -2037,7 +2021,6 @@ class HashManager extends BasicElement {
 			direction = dirs[Math.floor(Math.random() * dirs.length)];
 		}
 		if(Array.isArray(direction)){
-			console.log(this.position, direction);
 			let newPosition = direction;
 			// positional slide mode
 			if(this.position[0] != direction[0]){
@@ -2110,7 +2093,7 @@ class Json extends Code {
 }
 customElements.define('ui-json', Json);
 
-let uuid$1 = 0;
+let uuid = 0;
 
 
 /**
@@ -2228,7 +2211,7 @@ class List extends BasicElement{
 		this._data = data;
 		for (let item of this._data) {
 			if (item.__id == null)
-				item.__id = item.id ? item.id : ('' + uuid$1++);
+				item.__id = item.id ? item.id : ('' + uuid++);
 		}
 		this.dirty = true;
 	}
@@ -2246,7 +2229,7 @@ class List extends BasicElement{
 	 */
 	addAttribute(name, valueFunc = (i)=>i[name], displayFunc = valueFunc, width = null) {
 		this.attrs[name] = {
-			"id": uuid$1++,
+			"id": uuid++,
 			"name": name,
 			"width": width,
 			"value": (typeof valueFunc == "string") ? i => i[valueFunc] : valueFunc,
@@ -2530,6 +2513,33 @@ class Spinner extends BasicElement {
 	}
 }
 customElements.define('ui-spinner', Spinner);
+
+class Toggle extends BasicElement {
+
+	changeCallback = null;
+	constructor(v, changeCallback) {
+		super(`<input type="checkbox"/><div><span></span></div>`);
+		this.value = v ?? (this.attributes.getNamedItem("value")?.value == "true");
+
+		this.changeCallback = changeCallback;
+		if(this.changeCallback){
+			this.querySelector('input').addEventListener('change', ()=>{
+				this.changeCallback(this.value);
+			});
+		}
+	}
+
+	get value() {
+		return this.querySelector('input').checked;
+	}
+
+	set value(b) {
+		this.querySelector('input').checked = b;
+		if(this.changeCallback)
+			this.changeCallback(this.value);
+	}
+}
+customElements.define('ui-toggle', Toggle);
 
 class Viewport extends BasicElement{
 
@@ -2890,7 +2900,7 @@ const UI = {
     warn: warn,
     error: error,
     html: htmlToElement,
-    uuid: uuid,
+    uuid: uuid$1,
     sleep: sleep,
     utils,
     factory
@@ -2899,6 +2909,5 @@ const UI = {
 window["UI"] = UI;
 let createElement = htmlToElement;
 
-export default UI;
-export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Grid, HashManager, InputLabel, Json, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, factory, utils };
+export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Grid, HashManager, InputLabel, Json, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, UI as default, factory, utils };
 //# sourceMappingURL=ui.js.map

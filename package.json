@@ -6,6 +6,7 @@
   "main": "dist/ui.js",
   "types": "dist/ui.d.ts",
   "scripts": {
+    "tsc": "tsc",
     "build": "rollup --config",
     "dev": "rollup --config --watch"
   },

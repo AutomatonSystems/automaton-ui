@@ -2,7 +2,18 @@ import * as utils from './utils.js';
 
 export class BasicElement extends HTMLElement {
 	constructor(content, {clazz=''}={}) {
-		super();
+		try{
+			super();
+		}catch(e){
+			if(e.message == "Illegal constructor"){
+				//console.log(arguments, instance);
+				//debugger;
+				//window.customElements.define("ui-unregistered-component-" + (Math.floor(Math.random()*16*16)).toString(16), CompanyListPanel);
+				//super();
+				console.warn(`Unregistered component: call 'customElements.define("ui-???", ???);'`)
+			}
+			throw e;
+		}
 
 		this.self = this;
 

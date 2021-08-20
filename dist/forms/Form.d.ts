@@ -1,30 +1,35 @@
+import "./Form.css";
+import { BasicElement } from "../BasicElement.js";
 /****** FORM COMPONENTS ******/
-export class Form extends BasicElement {
-    static STYLE: {
-        ROW: {
-            parent: string;
-            wrap: string;
-            label: string;
-            value: string;
-        };
-        INLINE: {
-            parent: any;
-            wrap: string;
-            label: string;
-            value: string;
-        };
-    };
+interface FormTemplateJSON {
+    key?: string;
+    name?: string;
+    hint?: string;
+    placeholder?: string;
+    default?: string;
+    disabled?: boolean;
+    type?: string | Function;
+    format?: string;
+    hidden?: Function;
+    redraw?: string | string[];
+    options?: any[] | Function;
+    style?: "INLINE" | "ROW";
+    children?: FormTemplate | FormTemplate[];
+    afterRender?: Function;
+}
+declare type FormTemplate = FormTemplateJSON | string;
+interface FormStyle {
+    parent: string;
+    wrap: string;
+    label: string;
+    value: string;
+}
+export declare class Form extends BasicElement {
+    static STYLE: Record<string, FormStyle>;
     static TRUE_STRINGS: Set<string>;
-    constructor(template: any);
-    template: any;
+    template: FormTemplate | FormTemplate[];
     changeListeners: any[];
-    onChange(): Promise<void>;
-    formStyle: {
-        parent: string;
-        wrap: string;
-        label: string;
-        value: string;
-    };
+    formStyle: FormStyle;
     configuration: {
         formatting: {
             strings: {
@@ -32,27 +37,18 @@ export class Form extends BasicElement {
             };
         };
     };
-    value: {};
-    build(json: any): Promise<Form>;
-    json(includeHidden?: boolean): {};
-    _readValue(element: any, includeHidden?: boolean): {};
-    jsonToHtml(templates: any, json: any, jsonKey?: string, options?: {
-        style: {
-            parent: string;
-            wrap: string;
-            label: string;
-            value: string;
-        };
+    value: any;
+    constructor(template: FormTemplate | FormTemplate[]);
+    build(json: any): Promise<this>;
+    onChange(): Promise<void>;
+    json(includeHidden?: boolean): any;
+    _readValue(element: HTMLElement, includeHidden?: boolean): any;
+    jsonToHtml(templates: FormTemplate | FormTemplate[], json: any, jsonKey?: string, options?: {
+        style: FormStyle;
     }): Promise<HTMLElement[]>;
-    _readJsonWithKey(json: any, key: any): any;
-    oneItem(template: any, itemValue: any, jsonKey: any, { style }?: {
-        style?: {
-            parent: string;
-            wrap: string;
-            label: string;
-            value: string;
-        };
+    _readJsonWithKey(json: any, key: string): any;
+    oneItem(template: FormTemplateJSON, itemValue: any, jsonKey: string, { style }?: {
+        style?: FormStyle;
     }): Promise<HTMLElement>;
-    #private;
 }
-import { BasicElement } from "../BasicElement.js";
+export {};

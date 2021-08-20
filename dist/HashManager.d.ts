@@ -54,7 +54,7 @@ export class HashManager extends BasicElement {
     get value(): any;
     handler(path: any, func: any): HashManager;
     addHandler(h: any): void;
-    set(value: any): void;
+    set(value: any, fireOnChange?: boolean): Promise<void>;
     hashChange(): Promise<void>;
     /**
      *

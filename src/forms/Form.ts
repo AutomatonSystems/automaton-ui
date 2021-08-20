@@ -6,17 +6,55 @@ import { Toggle } from "./Toggle.js";
 import * as utils from "../utils.js";
 import UI from "../ui.js";
 /****** FORM COMPONENTS ******/
+
+interface FormTemplateJSON {
+	key?: string,
+	name?: string,
+	hint?: string,
+	placeholder?: string, 
+	default?: string,
+	disabled?: boolean,
+	type?: string | Function,
+	format?: string,
+
+	hidden?: Function,
+	redraw?: string | string[]
+
+	options?: any[] | Function,
+
+	style?: "INLINE" | "ROW",
+
+	children?: FormTemplate | FormTemplate[],
+
+	afterRender?: Function
+};
+
+type FormTemplate = FormTemplateJSON | string;
+
+interface FormStyle{ parent: string; wrap: string; label: string; value: string; };
+
 export class Form extends BasicElement {
 
-	static STYLE = {
+	static STYLE: Record<string, FormStyle> = {
 		ROW: { parent: 'table', wrap: 'tr', label: 'th', value: 'td' },
-		INLINE: { parent: null, wrap: 'span', label: 'label', value: 'span' }
+		INLINE: { parent: <string> null, wrap: 'span', label: 'label', value: 'span' }
 	};
 
-	static TRUE_STRINGS = new Set("true", "1", "yes", "t", "y");
+	static TRUE_STRINGS = new Set(["true", "1", "yes", "t", "y"]);
+	template: FormTemplate | FormTemplate[];
+	changeListeners: any[];
+	formStyle: FormStyle;
+	configuration: {
+		formatting: {
+			strings: {
+				trim: boolean;
+			};
+		};
+	};
 
+	value: any;
 
-	constructor(template) {
+	constructor(template: FormTemplate|FormTemplate[]) {
 		super();
 
 		this.template = template;
@@ -36,7 +74,7 @@ export class Form extends BasicElement {
 		this.value = {};
 	}
 
-	async build(json) {
+	async build(json: any) {
 		this.value = json;
 
 		this.changeListeners = [];
@@ -66,10 +104,10 @@ export class Form extends BasicElement {
 		return this._readValue(this, includeHidden);
 	}
 
-	_readValue(element, includeHidden = false){
-		let json = {};
+	_readValue(element: HTMLElement, includeHidden = false){
+		let json: any = {};
 
-		let inputs = element.querySelectorAll('[data-key]');
+		let inputs = <NodeListOf<HTMLInputElement>> element.querySelectorAll('[data-key]');
 		for (let input of inputs) {
 			// skip hidden inputs if required
 			if(!includeHidden && input.closest('[hidden]'))
@@ -77,7 +115,7 @@ export class Form extends BasicElement {
 			let parent = json;
 			// grab the correct place to store this value
 			let keys = input['dataset']['key'].split('.');
-			let key = keys.pop();
+			let key : string | number = keys.pop();
 			// initialize any nesting
 			for (let k of keys) {
 				if (Array.isArray(parent)) {
@@ -95,19 +133,21 @@ export class Form extends BasicElement {
 				parent = parent[k];
 			}
 			// read the value
-			let value = input[input['type'] == 'checkbox' ? 'checked' : 'value'];
-			if(input['type'] == 'text' || input.dataset.format == 'string'){
-				if(this.configuration.formatting.strings.trim)
-					value = value.trim();
-			}
-			if(input['type'] == 'number' || input.dataset.format == 'number'){
-				value = parseFloat(value);
-			}
-			if(input['type'] == 'datetime-local' || input.dataset.format == 'datetime'){
-				value = new Date(value);
-			}
-			if(input.dataset.format == 'boolean'){
-				value = TRUE_STRINGS.has(value?.toLowercase());
+			let value : string | number| boolean | Date = input[input['type'] == 'checkbox' ? 'checked' : 'value'];
+			if(typeof value == "string"){
+				if(input['type'] == 'text' || input.dataset.format == 'string'){
+					if(this.configuration.formatting.strings.trim)
+						value = value.trim();
+				}
+				if(input['type'] == 'number' || input.dataset.format == 'number'){
+					value = parseFloat(value);
+				}
+				if(input['type'] == 'datetime-local' || input.dataset.format == 'datetime'){
+					value = new Date(value);
+				}
+				if(input.dataset.format == 'boolean'){
+					value = Form.TRUE_STRINGS.has((value+"").toLowerCase());
+				}
 			}
 
 			// if the last step is an array - init it
@@ -139,32 +179,34 @@ export class Form extends BasicElement {
 		return json;
 	}
 
-	async jsonToHtml(templates, json, jsonKey = '', options = { style: this.formStyle }) {
+	async jsonToHtml(templates: FormTemplate | FormTemplate[], json: any, jsonKey = '', options = { style: this.formStyle }) {
 		let elements = [];
-		if (!Array.isArray(templates))
-			templates = [templates];
-		for (let template of templates) {
+		let templatesArray = Array.isArray(templates)?templates:[templates];
+		for (let template of templatesArray) {
+			let templateJson: FormTemplateJSON;
 			if (typeof template == "string") {
 				if (template.indexOf(":") == -1) {
-					template = {
+					templateJson = {
 						key: null,
 						type: template
 					};
 				}
 				else {
-					template = {
+					templateJson = {
 						key: template.split(':')[0],
 						type: template.split(':')[1]
 					};
 					if (json == null)
 						json = {};
 				}
+			}else{
+				templateJson = template;
 			}
 
 			// template value
-			let value = (template.key ? json[template.key] : json) ?? template.default;
+			let value = (templateJson.key ? json[templateJson.key] : json) ?? templateJson.default;
 			
-			elements.push(await this.oneItem(template, value, template.key ? ((jsonKey ? jsonKey + "." : '') + template.key) : jsonKey, options));
+			elements.push(await this.oneItem(templateJson, value, templateJson.key ? ((jsonKey ? jsonKey + "." : '') + templateJson.key) : jsonKey, options));
 		}
 
 		if (options.style?.parent) {
@@ -177,7 +219,7 @@ export class Form extends BasicElement {
 		}
 	}
 
-	_readJsonWithKey(json, key){
+	_readJsonWithKey(json: any, key: string){
 		try{
 			let keys = key.split('.');
 			for(let part of keys){
@@ -201,12 +243,12 @@ export class Form extends BasicElement {
 		}
 	}
 
-	async oneItem(template, itemValue, jsonKey, { style = Form.STYLE.ROW } = {}) {
+	async oneItem(template: FormTemplateJSON, itemValue: any, jsonKey: string, { style = Form.STYLE.ROW } = {}) {
 
 		let element = document.createElement(style.wrap);
 		element.dataset.element = jsonKey;
 
-		let render = async (elementValue)=>{
+		let render = async (elementValue: any)=>{
 
 			let label;
 			if (template.key) {
@@ -257,10 +299,12 @@ export class Form extends BasicElement {
 					case "select":
 					case 'list':
 						html += `<select data-key="${jsonKey}" data-format="${template.format}">`;
-						let options = template.options;
-						if (!Array.isArray(options))
-							options = await options(this.value);
-						html += options.map(v => `<option 
+						let parsedOptions: any[];
+						if (!Array.isArray(template.options))
+							parsedOptions = await template.options(this.value);
+						else
+							parsedOptions = template.options;
+						html += parsedOptions.map(v => `<option 
 								${(elementValue == (v.value ? v.value : v)) ? 'selected' : ''}
 								value="${v.value ? v.value : v}">${v.name ? v.name : v}</option>`).join('');
 						html += `</select>`;
@@ -297,7 +341,7 @@ export class Form extends BasicElement {
 						let button = new Button("Add", null, { icon: 'fa-plus' });
 
 
-						let createItem = async (itemValue) => {
+						let createItem = async (itemValue: any) => {
 
 							let item = document.createElement('span');
 							item.classList.add('item');
@@ -336,7 +380,7 @@ export class Form extends BasicElement {
 
 						break;
 					case 'datetime':{
-						let input = utils.htmlToElement(`<input data-key="${jsonKey}" type="datetime-local" placeholder="${template.placeholder ?? ''}"/>`);
+						let input = <HTMLInputElement> utils.htmlToElement(`<input data-key="${jsonKey}" type="datetime-local" placeholder="${template.placeholder ?? ''}"/>`);
 						input.value = elementValue ?? new Date().toISOString().substring(0, 16);
 						if(template.disabled)
 							input.setAttribute('disabled', '');
@@ -345,20 +389,22 @@ export class Form extends BasicElement {
 					}
 					case 'string':
 					default:{
-						let input = utils.htmlToElement(`<input data-key="${jsonKey}" type="text" placeholder="${template.placeholder ?? ''}"/>`);
+						let input = <HTMLInputElement> utils.htmlToElement(`<input data-key="${jsonKey}" type="text" placeholder="${template.placeholder ?? ''}"/>`);
 						input.value = elementValue ?? null;
 						if(template.disabled)
 							input.setAttribute('disabled', '');
 
 						// Provide autocomplete options for the input
 						if(template.options){
-							let options = template.options;
-							if (!Array.isArray(options))
-								options = await options(this.value);
+							let parsedOptions: any[];
+							if (!Array.isArray(template.options))
+								parsedOptions = await template.options(this.value);
+							else
+								parsedOptions = template.options;
 							let id = utils.uuid();
 							let list = UI.html(
 								`<datalist id="${id}">`
-								+ options.map(v => `<option 
+								+ parsedOptions.map(v => `<option 
 										${(elementValue == (v.value ? v.value : v)) ? 'selected' : ''}
 										value="${v.value ? v.value : v}">${v.name ? v.name : v}</option>`).join('')
 								+ '</datalist>');
@@ -375,6 +421,8 @@ export class Form extends BasicElement {
 			}else if (typeof template.type == 'function') {
 				let obj = template.type;
 				if(!!obj.prototype && !!obj.prototype.constructor.name){
+					// TODO figure out the typoescript safe way to do this...
+					// @ts-ignore
 					let input = new template.type(elementValue, jsonKey, element);
 					input.dataset['key'] = jsonKey;
 					wrapper.append(input);
@@ -401,7 +449,7 @@ export class Form extends BasicElement {
 		await render(itemValue);
 
 		if (template.hidden) {
-			this.changeListeners.push((json) => {
+			this.changeListeners.push((json: any) => {
 				element.hidden = template.hidden(json, element);
 			});
 		}
@@ -412,7 +460,7 @@ export class Form extends BasicElement {
 				// cache of the previous value
 				let lastValue = {};
 				// handle change events can filter them
-				let changeListener = async (fullJson) => {
+				let changeListener = async (fullJson: any) => {
 					
 					let newJsonValue = this._readJsonWithKey(fullJson, redraw);
 					let newValue = JSON.stringify(newJsonValue);
