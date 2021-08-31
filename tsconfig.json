@@ -2,7 +2,7 @@
 	"compileOnSave": true,
 	"compilerOptions": {
 		"declaration": true,
-		"outDir": "./dist",
+		"outDir": "./build",
 		"module": "esnext",
 		"moduleResolution": "node",
 		/*"allowSyntheticDefaultImports": true,*/
@@ -15,7 +15,8 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"paths": {},
-		"rootDir": "./src"
+		"rootDir": "./src",
+		"emitDeclarationOnly": true
 	},
 	"include": ["src/**/*.js","src/**/*.ts"],
 	"exclude": [],

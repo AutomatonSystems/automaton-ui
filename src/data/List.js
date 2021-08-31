@@ -7,7 +7,7 @@ let uuid = 0;
 
 /**
  * @callback itemElement
- * @param {Object} item
+ * @param {any} item
  * @returns {HTMLElement}
  */
 

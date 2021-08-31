@@ -4,6 +4,8 @@ import { BasicElement } from "../BasicElement.js";
 
 export class Button extends BasicElement {
 
+	listeners = [];
+
     /**
      *
      * @param {String|HTMLElement} content
@@ -15,33 +17,7 @@ export class Button extends BasicElement {
 
 		this.setAttribute("ui-button", '');
 
-		if(typeof callback == "string"){
-			// create link like behaviour (left click open; middle/ctrl+click new tab)
-			this.addEventListener('click', (e)=>{
-				// control key
-				if(e.ctrlKey){
-					window.open(callback);
-				}else{
-					// otherwise
-					location.href = callback;
-				}
-			});
-			this.addEventListener('auxclick', (e)=>{
-				// middle click
-				if(e.button == 1){
-					window.open(callback);
-				}
-			});
-			this.addEventListener('mousedown',(e)=>{
-				if(e.button == 1){
-					// on windows middlemouse down bring up the scroll widget; disable that
-					e.preventDefault();
-				}
-			})
-		}else{
-			// fire the provided event
-			this.addEventListener('click', callback);
-		}
+		this.setCallback(callback);
 
 		this.classList.add(style);
 		if (color)
@@ -63,5 +39,44 @@ export class Button extends BasicElement {
 		
 	}
 
+	setCallback(callback){
+		// remove old listeners
+		for(let l of this.listeners){
+			console.log(l);
+			this.removeEventListener(l[0], l[1]);
+		}
+		// create new listeners
+		if(typeof callback == "string"){
+			// create link like behaviour (left click open; middle/ctrl+click new tab)
+			this.listeners.push(['click', (e)=>{
+					// control key
+					if(e.ctrlKey){
+						window.open(callback);
+					}else{
+						// otherwise
+						location.href = callback;
+					}
+				}],
+				['auxclick', (e)=>{
+					// middle click
+					if(e.button == 1){
+						window.open(callback);
+					}
+				}],
+				['mousedown',(e)=>{
+					if(e.button == 1){
+						// on windows middlemouse down bring up the scroll widget; disable that
+						e.preventDefault();
+					}
+				}]
+			);
+		}else{
+			// fire the provided event
+			this.listeners.push(['click', callback]);
+		}
+		// attach listeners
+		for(let l of this.listeners)
+			this.addEventListener(l[0], l[1]);
+	}
 }
 customElements.define('ui-button', Button);

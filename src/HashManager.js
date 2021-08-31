@@ -173,12 +173,16 @@ export class HashManager extends BasicElement {
 	set(value, fireOnChange=false){
 		let hash = window.location.hash.substring(1);
 		let pairs = hash.split('|').filter(i=>i!='').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
-		let pair = pairs.find(i=>i[0]==this.key);
-		if(pair == null){
-			pair = [this.key,null];
-			pairs.push(pair);
+		if(value!==null){
+			let pair = pairs.find(i=>i[0]==this.key);
+			if(pair == null){
+				pair = [this.key,null];
+				pairs.push(pair);
+			}
+			pair[1] = value;
+		}else{
+			pairs = pairs.filter(i=>i[0]!=this.key);
 		}
-		pair[1] = value;
 
 		window.location.hash = pairs.map(p=>p[0]?p.join('='):p[1]).join('|');
 		if(fireOnChange)
