@@ -1,9 +1,22 @@
 import "./List.css";
-import {append} from "../utils.js";
+import {append, sleep} from "../utils.js";
 import { BasicElement } from "../BasicElement";
 
 let uuid = 0;
 
+type ItemElementFunction = (item: any) => HTMLElement | Promise<HTMLElement>;
+
+type valueFunction = (item:any) => string;
+
+type displayFunction = (item:any) => string | HTMLElement | HTMLElement[] | Promise<string | HTMLElement | HTMLElement[]>;
+
+type Attr = {
+	"id": number,
+	"name": string,
+	"width": string,
+	"value": valueFunction,
+	"displayFunc": displayFunction	
+}
 
 /**
  * @callback itemElement
@@ -33,8 +46,7 @@ let uuid = 0;
 export class List extends BasicElement{
 
 	// weakmap will ensure that we don't hold elements after they have fallen out of both the DOM and the data list
-	/** @type {WeakMap<Object,HTMLElement>} */
-	elementMap = new WeakMap();
+	elementMap = new WeakMap<any, HTMLElement>();
 
 	static ASC = true;
 	static DESC = false;
@@ -42,28 +54,32 @@ export class List extends BasicElement{
 	/** @type {boolean} indictes if the item display state is out of date */
 	dirty = true;
 
-	/** @type {{attr: Attr, asc: Boolean}|null} */
-	_sort = null;
+	_busy = false;
 
-	/** @type {Object.<String, Attr>} */
-	attrs = {};
+	_sort : {attr: Attr, asc: Boolean} = null;
+
+	attrs : Record<string, Attr>= {};
+
+	listBody: HTMLElement = null;
+
+
+	_data: any[] = null;
 
 	static ITEMS_COLUMNS_KEY = "--item-columns";
 	static ITEMS_PER_PAGE_KEY = "--items-per-page";
+	display: any[];
+	lookup: {};
+	_filterFunc: any;
+	_itemDisplayFunc: ItemElementFunction;
+	pageNumber: number;
 
-	/**
-	 * 
-	 * @param {itemElement} itemDisplay 
-	 * @param {{itemColumns?:number, itemsPerPage?: number}} options 
-	 */
-	constructor(itemDisplay, options = {}) {
+	constructor(itemDisplay: ItemElementFunction, options: {itemColumns?:number, itemsPerPage?: number} = {}) {
 		super();
 
 		this.setAttribute("ui-list", '');
 
 		this.innerHTML = this.listLayout;
-
-		this.listBody = /** @type {HTMLElement} */ (this.querySelector('.list'));
+		this.listBody = this.querySelector('.list');
 
 		this._sort = null;
 
@@ -84,7 +100,12 @@ export class List extends BasicElement{
 			this.itemsPerPage = options.itemsPerPage;
 	}
 
-	set itemColumns(value){
+	async notBusy(){
+		while(this._busy)
+			await sleep(10);
+	}
+
+	set itemColumns(value: number){
 		this.setCss(List.ITEMS_COLUMNS_KEY, value);
 	}
 
@@ -136,7 +157,7 @@ export class List extends BasicElement{
 	 * @param {*} displayFunc 
 	 * @param {*} width 
 	 */
-	addAttribute(name, valueFunc = (i)=>i[name], displayFunc = valueFunc, width = null) {
+	addAttribute(name: string, valueFunc: string|valueFunction = (i: any)=>i[name], displayFunc = valueFunc, width: string = null) {
 		this.attrs[name] = {
 			"id": uuid++,
 			"name": name,
@@ -148,14 +169,15 @@ export class List extends BasicElement{
 		return this;
 	}
 
-	_filtered(item) {
+	_filtered(item: any) {
 		return this._filterFunc == null || this._filterFunc(item);
 	}
 
 	filter(func=this._filterFunc){
 		this._filterFunc = func;
 		this.dirty = true;
-		this.page(0);
+		this.notBusy()
+			.then(()=>this.page(0));
 	}
 
 	/**
@@ -195,28 +217,7 @@ export class List extends BasicElement{
 		await this.page();
 	}
 
-	async getItemElement(item){
-		if(!this.elementMap.has(item)){
-			let ele = await this.renderItem(item);
-			if(typeof item == "string"){
-				// TODO support caching of string based item elements....
-				return ele;
-			}
-			this.elementMap.set(item, ele);
-		}
-		return this.elementMap.get(item);
-	}
-
-	async renderItem(item){
-		return await this._itemDisplayFunc(item);
-	}
-
-	/**
-	 * 
-	 * @param {Attr|String} attribute name of the attribute to sort on
-	 * @param {Boolean} asc ASC of DESC sort
-	 */
-	async sort(attribute = this._sort?.attr, asc = !this._sort?.asc) {
+	async sort(attribute: string|Attr = this._sort?.attr, asc = !this._sort?.asc) {
 		this.dirty = true;
 
 		let attr = (typeof attribute == 'string')?this.attrs[attribute]:attribute;
@@ -242,67 +243,89 @@ export class List extends BasicElement{
 	 * @param {Number} page ZERO-INDEXED page number
 	 */
 	async page(page = this.pageNumber) {
-
-		// rebuild the display list if dirty
-		if(this.dirty){
-			// grab raw data
-			this.display = [...this.data];
-			// filter
-			this.display = this.display.filter(i=>this._filtered(i));
-			// sort
-			if(this._sort){
-				this.display = this.display.sort((_a, _b) => {
-					let a = _a?this._sort.attr.value(_a):null;
-					let b = _b?this._sort.attr.value(_b):null;
-					if(a == b)
-						return 0;
-					let asc = (this._sort.asc ? 1 : -1);
-					if(b == null)
-						return asc;
-					if(a == null)
-						return -asc;
-					return asc*(''+a).localeCompare(''+b, "en", {sensitivity: 'base', ignorePunctuation: 'true', numeric: true});
-				});
+		// really basic queueing to render. This will stop double rendering, but might fail for triple etc
+		await this.notBusy();
+		this._busy = true;
+		try{
+			// rebuild the display list if dirty
+			if(this.dirty){
+				// grab raw data
+				this.display = [...this.data];
+				// filter
+				this.display = this.display.filter(i=>this._filtered(i));
+				// sort
+				if(this._sort){
+					this.display = this.display.sort((_a, _b) => {
+						let a = _a?this._sort.attr.value(_a):null;
+						let b = _b?this._sort.attr.value(_b):null;
+						if(a == b)
+							return 0;
+						let asc = (this._sort.asc ? 1 : -1);
+						if(b == null)
+							return asc;
+						if(a == null)
+							return -asc;
+						return asc*(''+a).localeCompare(''+b, "en", {sensitivity: 'base', ignorePunctuation: true, numeric: true});
+					});
+				}
+				this.dirty = false;
+				this.pageNumber = 0;
 			}
-			this.dirty = false;
-			this.pageNumber = 0;
-		}
-		
-		// compute paging numbers
-		let visibleCount = this.display.length;
-		let pages = Math.ceil(visibleCount / this.itemsPerPage);
-		let needsPaging = pages > 1;
-		this.pageNumber = isNaN(page)?0:Math.max(Math.min(page, pages-1), 0);
+			
+			// compute paging numbers
+			let visibleCount = this.display.length;
+			let pages = Math.ceil(visibleCount / this.itemsPerPage);
+			let needsPaging = pages > 1;
+			this.pageNumber = isNaN(page)?0:Math.max(Math.min(page, pages-1), 0);
 
-		// render the paging if needed
-		if (needsPaging) {
-			let paging = this.pagingMarkup(this.pageNumber, pages, visibleCount);
-			this.querySelector('.paging.top').innerHTML = paging;
-			this.querySelector('.paging.bottom').innerHTML = paging;
+			// render the paging if needed
+			if (needsPaging) {
+				let paging = this.pagingMarkup(this.pageNumber, pages, visibleCount);
+				this.querySelector('.paging.top').innerHTML = paging;
+				this.querySelector('.paging.bottom').innerHTML = paging;
 
-			// add auto paging callback 
-			BasicElement.castHtmlElements(...this.querySelectorAll('[data-page]')).forEach(ele => ele.addEventListener('click', () => {
-				this.page(parseInt(ele.dataset['page']));
-			}));
-		}else{
-			this.querySelector('.paging.top').innerHTML = "";
-			this.querySelector('.paging.bottom').innerHTML = "";
-		}
-
-		// finally actually add the items to the page
-		this.listBody.innerHTML = "";
-		for(let index = this.pageNumber*this.itemsPerPage; index < (this.pageNumber+1)*this.itemsPerPage && index < visibleCount; index++){
-			let item = this.display[index];
-			let ele = (await this.getItemElement(item));
-			if(ele instanceof BasicElement){
-				ele.attach(this.listBody);
+				// add auto paging callback 
+				BasicElement.castHtmlElements(...this.querySelectorAll('[data-page]')).forEach(ele => ele.addEventListener('click', () => {
+					this.page(parseInt(ele.dataset['page']));
+				}));
 			}else{
-				this.listBody.appendChild(ele);
+				this.querySelector('.paging.top').innerHTML = "";
+				this.querySelector('.paging.bottom').innerHTML = "";
 			}
+
+			// finally actually add the items to the page
+			this.listBody.innerHTML = "";
+			for(let index = this.pageNumber*this.itemsPerPage; index < (this.pageNumber+1)*this.itemsPerPage && index < visibleCount; index++){
+				let item = this.display[index];
+				let ele = (await this.getItemElement(item));
+				if(ele instanceof BasicElement){
+					ele.attach(this.listBody);
+				}else{
+					this.listBody.appendChild(ele);
+				}
+			}
+		}finally{
+			this._busy = false;
 		}
 	}
 
-	pagingMarkup(page, pages, visibleCount){
+	async getItemElement(item: any){
+		if(!this.elementMap.has(item)){
+			let ele = await this.renderItem(item);
+			if(typeof item == "string"){
+				// TODO support caching of string based item elements....
+				return ele;
+			}
+			this.elementMap.set(item, ele);
+		}
+		return this.elementMap.get(item);
+	}
+
+	async renderItem(item: any){
+		return await this._itemDisplayFunc(item);
+	}
+
+	pagingMarkup(page: number, pages: number, visibleCount: number){
 		let html = '';
 		let extraButtons = 1;
 		html += `${visibleCount} items`;
@@ -338,11 +361,7 @@ customElements.define('ui-list', List);
  */
 export class Table extends List{
 
-	/**
-	 * 
-	 * @param {{itemsPerPage?: number}} options 
-	 */
-	constructor(options={}) {
+	constructor(options: {itemsPerPage?: number} = {}) {
 		super(async (item)=>{
 			let tr = document.createElement('tr');
 			tr.dataset['tableId'] = item.__id;

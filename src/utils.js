@@ -55,7 +55,7 @@ export function castHtmlElements(...elements) {
 }
 
 /**
- * shuffle the contents of an array
+ * Fisher–Yates shuffle the contents of an array
  * 
  * @param {*[]} array 
  */
@@ -108,3 +108,17 @@ export async function dynamicallyLoadScript(url) {
 		document.head.appendChild(script);  
 	});
 }
+
+
+/**
+ * Check the element is totally visible in the viewport
+ * 
+ * @returns {Boolean}
+ */ 
+export function isTotallyInViewport(el){ 
+	var rect = el.getBoundingClientRect(); 
+	return rect.top >= 0 
+		&& rect.left >= 0
+		&& rect.bottom <= (window.innerHeight || document.documentElement.clientHeight)
+		&& rect.right <= (window.innerWidth || document.documentElement.clientWidth); 
+} 

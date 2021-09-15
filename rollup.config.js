@@ -11,7 +11,7 @@ export default [
 		input: 'src/ui.ts',
 		plugins: [
 			typescript({
-				"declaration": true,
+				"declaration": false,
 				outDir: "./dist",
 				tsconfig: './tsconfig.json'
 			}),

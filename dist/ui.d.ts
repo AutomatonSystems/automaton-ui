@@ -101,6 +101,7 @@ declare function downloadJson(filename: string, json: Object): void;
  * @returns {Promise}
  */
 declare function dynamicallyLoadScript(url: string): Promise<any>;
+declare function isTotallyInViewport(el: any): boolean;
 declare function sleep(time: any, value: any): Promise<any>;
 
 declare const utils_append: typeof append;
@@ -110,6 +111,7 @@ declare const utils_castHtmlElements: typeof castHtmlElements;
 declare const utils_shuffle: typeof shuffle;
 declare const utils_downloadJson: typeof downloadJson;
 declare const utils_dynamicallyLoadScript: typeof dynamicallyLoadScript;
+declare const utils_isTotallyInViewport: typeof isTotallyInViewport;
 declare const utils_sleep: typeof sleep;
 declare namespace utils {
   export {
@@ -120,6 +122,7 @@ declare namespace utils {
     utils_shuffle as shuffle,
     utils_downloadJson as downloadJson,
     utils_dynamicallyLoadScript as dynamicallyLoadScript,
+    utils_isTotallyInViewport as isTotallyInViewport,
     utils_sleep as sleep,
   };
 }
@@ -235,6 +238,14 @@ declare class ContextMenu extends BasicElement {
      */
     addBreak(): ContextMenu;
     clearMenuItems(): void;
+    #private;
+}
+
+declare class Toggle extends BasicElement {
+    constructor(v: any, changeCallback: any);
+    changeCallback: any;
+    set value(arg: any);
+    get value(): any;
     #private;
 }
 
@@ -545,6 +556,16 @@ declare class Json extends Code {
     #private;
 }
 
+declare type ItemElementFunction = (item: any) => HTMLElement | Promise<HTMLElement>;
+declare type valueFunction = (item: any) => string;
+declare type displayFunction = (item: any) => string | HTMLElement | HTMLElement[] | Promise<string | HTMLElement | HTMLElement[]>;
+declare type Attr = {
+    "id": number;
+    "name": string;
+    "width": string;
+    "value": valueFunction;
+    "displayFunc": displayFunction;
+};
 /**
  * @callback itemElement
  * @param {any} item
@@ -567,42 +588,36 @@ declare class Json extends Code {
  *  @property {attributeDisplayValue} value
  */
 declare class List extends BasicElement {
+    elementMap: WeakMap<any, HTMLElement>;
     static ASC: boolean;
     static DESC: boolean;
-    static ITEMS_COLUMNS_KEY: string;
-    static ITEMS_PER_PAGE_KEY: string;
-    /**
-     *
-     * @param {itemElement} itemDisplay
-     * @param {{itemColumns?:number, itemsPerPage?: number}} options
-     */
-    constructor(itemDisplay: itemElement, options?: {
-        itemColumns?: number;
-        itemsPerPage?: number;
-    });
-    /** @type {WeakMap<Object,HTMLElement>} */
-    elementMap: WeakMap<Object, HTMLElement>;
     /** @type {boolean} indictes if the item display state is out of date */
     dirty: boolean;
-    /** @type {{attr: Attr, asc: Boolean}|null} */
+    _busy: boolean;
     _sort: {
         attr: Attr;
-        asc: boolean;
-    } | null;
-    /** @type {Object.<String, Attr>} */
-    attrs: any;
+        asc: Boolean;
+    };
+    attrs: Record<string, Attr>;
     listBody: HTMLElement;
     _data: any[];
+    static ITEMS_COLUMNS_KEY: string;
+    static ITEMS_PER_PAGE_KEY: string;
     display: any[];
     lookup: {};
     _filterFunc: any;
-    _itemDisplayFunc: itemElement;
+    _itemDisplayFunc: ItemElementFunction;
     pageNumber: number;
-    set itemColumns(arg: any);
-    set itemsPerPage(arg: number);
+    constructor(itemDisplay: ItemElementFunction, options?: {
+        itemColumns?: number;
+        itemsPerPage?: number;
+    });
+    notBusy(): Promise<void>;
+    set itemColumns(value: number);
     get itemsPerPage(): number;
+    set itemsPerPage(value: number);
     get listLayout(): string;
-    set data(arg: any[]);
+    set data(data: any[]);
     get data(): any[];
     /**
      *
@@ -611,7 +626,7 @@ declare class List extends BasicElement {
      * @param {*} displayFunc
      * @param {*} width
      */
-    addAttribute(name: string, valueFunc?: any, displayFunc?: any, width?: any): List;
+    addAttribute(name: string, valueFunc?: string | valueFunction, displayFunc?: string | valueFunction, width?: string): this;
     _filtered(item: any): any;
     filter(func?: any): void;
     /**
@@ -619,42 +634,29 @@ declare class List extends BasicElement {
      */
     sortDisplay(): void;
     render(forceRedraw?: boolean): Promise<void>;
-    getItemElement(item: any): Promise<HTMLElement>;
-    renderItem(item: any): Promise<HTMLElement>;
-    /**
-     *
-     * @param {Attr|String} attribute name of the attribute to sort on
-     * @param {Boolean} asc ASC of DESC sort
-     */
-    sort(attribute?: Attr | string, asc?: boolean): Promise<void>;
+    sort(attribute?: string | Attr, asc?: boolean): Promise<void>;
     /**
      *
      * @param {Number} page ZERO-INDEXED page number
      */
     page(page?: number): Promise<void>;
-    pagingMarkup(page: any, pages: any, visibleCount: any): string;
-    #private;
+    getItemElement(item: any): Promise<HTMLElement>;
+    renderItem(item: any): Promise<HTMLElement>;
+    pagingMarkup(page: number, pages: number, visibleCount: number): string;
 }
 /**
  * Table is a special case of List with a more automatic layout
  */
 declare class Table extends List {
-    /**
-     *
-     * @param {{itemsPerPage?: number}} options
-     */
     constructor(options?: {
         itemsPerPage?: number;
     });
-    #private;
+    get listLayout(): string;
+    /**
+     * Display the sorting headers
+     */
+    sortDisplay(): void;
 }
-type itemElement = (item: any) => HTMLElement;
-type attributeValue = (item: Object) => number | string;
-type Attr = {
-    id: number;
-    name: string;
-    value: attributeValue;
-};
 
 declare class Splash extends BasicElement {
     constructor(content: any, { dismissable }?: {
@@ -712,14 +714,6 @@ declare class Toast extends BasicElement {
     constructor(message: any, { level }?: {
         level?: string;
     });
-    #private;
-}
-
-declare class Toggle extends BasicElement {
-    constructor(v: any, changeCallback: any);
-    changeCallback: any;
-    set value(arg: any);
-    get value(): any;
     #private;
 }
 

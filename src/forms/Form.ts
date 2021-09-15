@@ -2,7 +2,7 @@ import "./Form.css";
 
 import { BasicElement } from "../BasicElement.js";
 import { Button } from "./Button.js";
-import { Toggle } from "./Toggle.js";
+import "./Toggle.js";
 import * as utils from "../utils.js";
 import UI from "../ui.js";
 /****** FORM COMPONENTS ******/
