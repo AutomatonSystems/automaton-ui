@@ -55,7 +55,7 @@ function castHtmlElements(...elements) {
 }
 
 /**
- * shuffle the contents of an array
+ * Fisher–Yates shuffle the contents of an array
  * 
  * @param {*[]} array 
  */
@@ -110,7 +110,11 @@ async function dynamicallyLoadScript(url) {
 }
 
 
-// check the viewport is ele is in the viewport 
+/**
+ * Check the element is totally visible in the viewport
+ * 
+ * @returns {Boolean}
+ */ 
 function isTotallyInViewport(el){ 
 	var rect = el.getBoundingClientRect(); 
 	return rect.top >= 0 
@@ -1960,10 +1964,15 @@ class HashManager extends BasicElement {
 		window.addEventListener('hashchange', this.eventlistener);
 	}
 
+	static hashPairs(){
+		let hash = window.location.hash.substring(1);
+		return hash.replaceAll("%7C", "|").split('|').filter(i=>i!='').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
+	}
+
 	static read(pathlike){
 		let [path, type] = pathlike.split(':');
-		let hash = window.location.hash.substring(1);
-		let pairs = hash.split('|').filter(i=>i!='').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
+		
+		let pairs = HashManager.hashPairs();
 		let pair = pairs.find(i=>i[0]==path);
 
 		let value = pair?.[1];
@@ -1983,6 +1992,25 @@ class HashManager extends BasicElement {
 		}
 
 		return value;
+	}
+
+	static write(pathlike, value){
+		let [path, type] = pathlike.split(':');
+		let pairs = HashManager.hashPairs();
+		if(value!==null){
+			let pair = pairs.find(i=>i[0]==path);
+			if(pair == null){
+				pair = [path,null];
+				pairs.push(pair);
+			}
+			if(type == "json")
+				value = JSON.stringify(value);
+			pair[1] = value;
+		}else {
+			pairs = pairs.filter(i=>i[0]!=path);
+		}
+
+		window.location.hash = pairs.map(p=>p[0]?p.join('='):p[1]).join('|');
 	}
 
 	remove(){
@@ -2005,34 +2033,15 @@ class HashManager extends BasicElement {
 	}
 
 	set(value, fireOnChange=false){
-		let hash = window.location.hash.substring(1);
-		let pairs = hash.split('|').filter(i=>i!='').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
-		if(value!==null){
-			let pair = pairs.find(i=>i[0]==this.key);
-			if(pair == null){
-				pair = [this.key,null];
-				pairs.push(pair);
-			}
-			pair[1] = value;
-		}else {
-			pairs = pairs.filter(i=>i[0]!=this.key);
-		}
-
-		window.location.hash = pairs.map(p=>p[0]?p.join('='):p[1]).join('|');
+		HashManager.write(this.key, value);
 		if(fireOnChange)
 			return this.hashChange();
 	}
 
 	async hashChange() {
-		let hash = window.location.hash.substring(1);
-		let pairs = hash.split('|').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
+		let newHash = HashManager.read(this.key) ?? "";
 
-		let pair = pairs.find(i=>i[0]==this.key);
-		if(pair == null)
-			pair = [this.key,""];
-		let newHash = pair[1];
 		let oldHash = this.hash;
-		
 		this.hash = newHash;
 
 		if(this.hash == oldHash)
@@ -2330,64 +2339,69 @@ class List extends BasicElement {
      */
     page(page = this.pageNumber) {
         return __awaiter(this, void 0, void 0, function* () {
+            // really basic queueing to render. This will stop double rendering, but might fail for triple etc
             yield this.notBusy();
             this._busy = true;
-            // rebuild the display list if dirty
-            if (this.dirty) {
-                // grab raw data
-                this.display = [...this.data];
-                // filter
-                this.display = this.display.filter(i => this._filtered(i));
-                // sort
-                if (this._sort) {
-                    this.display = this.display.sort((_a, _b) => {
-                        let a = _a ? this._sort.attr.value(_a) : null;
-                        let b = _b ? this._sort.attr.value(_b) : null;
-                        if (a == b)
-                            return 0;
-                        let asc = (this._sort.asc ? 1 : -1);
-                        if (b == null)
-                            return asc;
-                        if (a == null)
-                            return -asc;
-                        return asc * ('' + a).localeCompare('' + b, "en", { sensitivity: 'base', ignorePunctuation: true, numeric: true });
-                    });
+            try {
+                // rebuild the display list if dirty
+                if (this.dirty) {
+                    // grab raw data
+                    this.display = [...this.data];
+                    // filter
+                    this.display = this.display.filter(i => this._filtered(i));
+                    // sort
+                    if (this._sort) {
+                        this.display = this.display.sort((_a, _b) => {
+                            let a = _a ? this._sort.attr.value(_a) : null;
+                            let b = _b ? this._sort.attr.value(_b) : null;
+                            if (a == b)
+                                return 0;
+                            let asc = (this._sort.asc ? 1 : -1);
+                            if (b == null)
+                                return asc;
+                            if (a == null)
+                                return -asc;
+                            return asc * ('' + a).localeCompare('' + b, "en", { sensitivity: 'base', ignorePunctuation: true, numeric: true });
+                        });
+                    }
+                    this.dirty = false;
+                    this.pageNumber = 0;
                 }
-                this.dirty = false;
-                this.pageNumber = 0;
-            }
-            // compute paging numbers
-            let visibleCount = this.display.length;
-            let pages = Math.ceil(visibleCount / this.itemsPerPage);
-            let needsPaging = pages > 1;
-            this.pageNumber = isNaN(page) ? 0 : Math.max(Math.min(page, pages - 1), 0);
-            // render the paging if needed
-            if (needsPaging) {
-                let paging = this.pagingMarkup(this.pageNumber, pages, visibleCount);
-                this.querySelector('.paging.top').innerHTML = paging;
-                this.querySelector('.paging.bottom').innerHTML = paging;
-                // add auto paging callback 
-                BasicElement.castHtmlElements(...this.querySelectorAll('[data-page]')).forEach(ele => ele.addEventListener('click', () => {
-                    this.page(parseInt(ele.dataset['page']));
-                }));
-            }
-            else {
-                this.querySelector('.paging.top').innerHTML = "";
-                this.querySelector('.paging.bottom').innerHTML = "";
-            }
-            // finally actually add the items to the page
-            this.listBody.innerHTML = "";
-            for (let index = this.pageNumber * this.itemsPerPage; index < (this.pageNumber + 1) * this.itemsPerPage && index < visibleCount; index++) {
-                let item = this.display[index];
-                let ele = (yield this.getItemElement(item));
-                if (ele instanceof BasicElement) {
-                    ele.attach(this.listBody);
+                // compute paging numbers
+                let visibleCount = this.display.length;
+                let pages = Math.ceil(visibleCount / this.itemsPerPage);
+                let needsPaging = pages > 1;
+                this.pageNumber = isNaN(page) ? 0 : Math.max(Math.min(page, pages - 1), 0);
+                // render the paging if needed
+                if (needsPaging) {
+                    let paging = this.pagingMarkup(this.pageNumber, pages, visibleCount);
+                    this.querySelector('.paging.top').innerHTML = paging;
+                    this.querySelector('.paging.bottom').innerHTML = paging;
+                    // add auto paging callback 
+                    BasicElement.castHtmlElements(...this.querySelectorAll('[data-page]')).forEach(ele => ele.addEventListener('click', () => {
+                        this.page(parseInt(ele.dataset['page']));
+                    }));
                 }
                 else {
-                    this.listBody.appendChild(ele);
+                    this.querySelector('.paging.top').innerHTML = "";
+                    this.querySelector('.paging.bottom').innerHTML = "";
+                }
+                // finally actually add the items to the page
+                this.listBody.innerHTML = "";
+                for (let index = this.pageNumber * this.itemsPerPage; index < (this.pageNumber + 1) * this.itemsPerPage && index < visibleCount; index++) {
+                    let item = this.display[index];
+                    let ele = (yield this.getItemElement(item));
+                    if (ele instanceof BasicElement) {
+                        ele.attach(this.listBody);
+                    }
+                    else {
+                        this.listBody.appendChild(ele);
+                    }
                 }
             }
-            this._busy = false;
+            finally {
+                this._busy = false;
+            }
         });
     }
     getItemElement(item) {

@@ -80,7 +80,7 @@ declare function htmlToElement(html: string, wrapper?: string): HTMLElement;
  */
 declare function castHtmlElements(...elements: Element[]): HTMLElement[];
 /**
- * shuffle the contents of an array
+ * Fisher–Yates shuffle the contents of an array
  *
  * @param {*[]} array
  */
@@ -101,6 +101,11 @@ declare function downloadJson(filename: string, json: Object): void;
  * @returns {Promise}
  */
 declare function dynamicallyLoadScript(url: string): Promise<any>;
+/**
+ * Check the element is totally visible in the viewport
+ *
+ * @returns {Boolean}
+ */
 declare function isTotallyInViewport(el: any): boolean;
 declare function sleep(time: any, value: any): Promise<any>;
 
@@ -529,7 +534,9 @@ declare class HashManager extends BasicElement {
         RANDOM: number;
     };
     static Handler: typeof HashHandler;
-    static read(pathlike: any): string;
+    static hashPairs(): any;
+    static read(pathlike: any): any;
+    static write(pathlike: any, value: any): void;
     constructor(key?: any);
     key: any;
     hash: any;
