@@ -132,7 +132,7 @@ export class HashManager extends BasicElement {
 	}
 
 	static read(pathlike){
-		let [path, type] = pathlike.split(':');
+		let [path, type] = pathlike?pathlike.split(':'):[null];
 		
 		let pairs = HashManager.hashPairs();
 		let pair = pairs.find(i=>i[0]==path);
@@ -157,7 +157,7 @@ export class HashManager extends BasicElement {
 	}
 
 	static write(pathlike, value){
-		let [path, type] = pathlike.split(':');
+		let [path, type] = pathlike?pathlike.split(':'):[null];
 		let pairs = HashManager.hashPairs();
 		if(value!==null){
 			let pair = pairs.find(i=>i[0]==path);
