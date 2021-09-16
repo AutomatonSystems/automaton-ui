@@ -1997,7 +1997,7 @@ class HashManager extends BasicElement {
 	static write(pathlike, value){
 		let [path, type] = pathlike?pathlike.split(':'):[null];
 		let pairs = HashManager.hashPairs();
-		if(value!==null){
+		if(value!==null && value!==""){
 			let pair = pairs.find(i=>i[0]==path);
 			if(pair == null){
 				pair = [path,null];
