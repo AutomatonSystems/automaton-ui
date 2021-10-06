@@ -1,4 +1,4 @@
-const sleep = (time, value)=>new Promise(r=>setTimeout(()=>r(value),time));
+const sleep = (time, value=null)=>new Promise(r=>setTimeout(()=>r(value),time));
 window['sleep'] = sleep;
 
 /**

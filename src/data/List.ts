@@ -6,16 +6,16 @@ let uuid = 0;
 
 type ItemElementFunction = (item: any) => HTMLElement | Promise<HTMLElement>;
 
-type valueFunction = (item:any) => string;
+type ValueFunction = (item:any) => string | number;
 
-type displayFunction = (item:any) => string | HTMLElement | HTMLElement[] | Promise<string | HTMLElement | HTMLElement[]>;
+type DisplayFunction = (item:any) => string | HTMLElement | HTMLElement[] | Promise<string | HTMLElement | HTMLElement[]>;
 
 type Attr = {
 	"id": number,
 	"name": string,
 	"width": string,
-	"value": valueFunction,
-	"displayFunc": displayFunction	
+	"value": ValueFunction,
+	"displayFunc": DisplayFunction	
 }
 
 /**
@@ -157,7 +157,7 @@ export class List extends BasicElement{
 	 * @param {*} displayFunc 
 	 * @param {*} width 
 	 */
-	addAttribute(name: string, valueFunc: string|valueFunction = (i: any)=>i[name], displayFunc = valueFunc, width: string = null) {
+	addAttribute(name: string, valueFunc: string|ValueFunction = (i: any)=>i[name], displayFunc: string | ValueFunction | DisplayFunction = valueFunc, width: string = null) {
 		this.attrs[name] = {
 			"id": uuid++,
 			"name": name,

@@ -107,7 +107,7 @@ declare function dynamicallyLoadScript(url: string): Promise<any>;
  * @returns {Boolean}
  */
 declare function isTotallyInViewport(el: any): boolean;
-declare function sleep(time: any, value: any): Promise<any>;
+declare function sleep(time: any, value?: any): Promise<any>;
 
 declare const utils_append: typeof append;
 declare const utils_uuid: typeof uuid;
@@ -564,14 +564,14 @@ declare class Json extends Code {
 }
 
 declare type ItemElementFunction = (item: any) => HTMLElement | Promise<HTMLElement>;
-declare type valueFunction = (item: any) => string;
-declare type displayFunction = (item: any) => string | HTMLElement | HTMLElement[] | Promise<string | HTMLElement | HTMLElement[]>;
+declare type ValueFunction = (item: any) => string | number;
+declare type DisplayFunction = (item: any) => string | HTMLElement | HTMLElement[] | Promise<string | HTMLElement | HTMLElement[]>;
 declare type Attr = {
     "id": number;
     "name": string;
     "width": string;
-    "value": valueFunction;
-    "displayFunc": displayFunction;
+    "value": ValueFunction;
+    "displayFunc": DisplayFunction;
 };
 /**
  * @callback itemElement
@@ -633,7 +633,7 @@ declare class List extends BasicElement {
      * @param {*} displayFunc
      * @param {*} width
      */
-    addAttribute(name: string, valueFunc?: string | valueFunction, displayFunc?: string | valueFunction, width?: string): this;
+    addAttribute(name: string, valueFunc?: string | ValueFunction, displayFunc?: string | ValueFunction | DisplayFunction, width?: string): this;
     _filtered(item: any): any;
     filter(func?: any): void;
     /**
@@ -862,7 +862,7 @@ declare const UI: {
     error: typeof error;
     html: typeof htmlToElement;
     uuid: typeof uuid;
-    sleep: (time: any, value: any) => Promise<any>;
+    sleep: (time: any, value?: any) => Promise<any>;
     utils: typeof utils;
     factory: typeof factory;
 };
