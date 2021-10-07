@@ -4,18 +4,18 @@ import { BasicElement } from "../BasicElement";
 
 let uuid = 0;
 
-type ItemElementFunction = (item: any) => HTMLElement | Promise<HTMLElement>;
+type ItemElementFunction<T> = (item: T) => HTMLElement | Promise<HTMLElement>;
 
-type ValueFunction = (item:any) => string | number;
+type ValueFunction<T> = (item:T) => string | number;
 
-type DisplayFunction = (item:any) => string | HTMLElement | HTMLElement[] | Promise<string | HTMLElement | HTMLElement[]>;
+type DisplayFunction<T> = (item:T) => string | HTMLElement | HTMLElement[] | Promise<string | HTMLElement | HTMLElement[]>;
 
-type Attr = {
+type Attr<T> = {
 	"id": number,
 	"name": string,
 	"width": string,
-	"value": ValueFunction,
-	"displayFunc": DisplayFunction	
+	"value": ValueFunction<T>,
+	"displayFunc": DisplayFunction<T>
 }
 
 /**
@@ -43,7 +43,7 @@ type Attr = {
  *  @property {attributeDisplayValue} value
  */
 
-export class List extends BasicElement{
+export class List<T> extends BasicElement{
 
 	// weakmap will ensure that we don't hold elements after they have fallen out of both the DOM and the data list
 	elementMap = new WeakMap<any, HTMLElement>();
@@ -56,9 +56,9 @@ export class List extends BasicElement{
 
 	_busy = false;
 
-	_sort : {attr: Attr, asc: Boolean} = null;
+	_sort : {attr: Attr<T>, asc: Boolean} = null;
 
-	attrs : Record<string, Attr>= {};
+	attrs : Record<string, Attr<T>>= {};
 
 	listBody: HTMLElement = null;
 
@@ -70,10 +70,10 @@ export class List extends BasicElement{
 	display: any[];
 	lookup: {};
 	_filterFunc: any;
-	_itemDisplayFunc: ItemElementFunction;
+	_itemDisplayFunc: ItemElementFunction<T>;
 	pageNumber: number;
 
-	constructor(itemDisplay: ItemElementFunction, options: {itemColumns?:number, itemsPerPage?: number} = {}) {
+	constructor(itemDisplay: ItemElementFunction<T>, options: {itemColumns?:number, itemsPerPage?: number} = {}) {
 		super();
 
 		this.setAttribute("ui-list", '');
@@ -157,13 +157,13 @@ export class List extends BasicElement{
 	 * @param {*} displayFunc 
 	 * @param {*} width 
 	 */
-	addAttribute(name: string, valueFunc: string|ValueFunction = (i: any)=>i[name], displayFunc: string | ValueFunction | DisplayFunction = valueFunc, width: string = null) {
+	addAttribute(name: string, valueFunc: string|ValueFunction<T> = (i: any)=>i[name], displayFunc: string | ValueFunction<T> | DisplayFunction<T> = valueFunc, width: string = null) {
 		this.attrs[name] = {
 			"id": uuid++,
 			"name": name,
 			"width": width,
-			"value": (typeof valueFunc == "string") ? i => i[valueFunc] : valueFunc,
-			"displayFunc": (typeof displayFunc == "string") ? i => i[displayFunc] : displayFunc
+			"value": (typeof valueFunc == "string") ? i => (<any>i)[valueFunc] : valueFunc,
+			"displayFunc": (typeof displayFunc == "string") ? i => (<any>i)[displayFunc] : displayFunc
 		};
 		this.dirty = true;
 		return this;
@@ -217,7 +217,7 @@ export class List extends BasicElement{
 		await this.page();
 	}
 
-	async sort(attribute: string|Attr = this._sort?.attr, asc = !this._sort?.asc) {
+	async sort(attribute: string|Attr<T> = this._sort?.attr, asc = !this._sort?.asc) {
 		this.dirty = true;
 
 		let attr = (typeof attribute == 'string')?this.attrs[attribute]:attribute;
@@ -359,12 +359,12 @@ customElements.define('ui-list', List);
 /**
  * Table is a special case of List with a more automatic layout
  */
-export class Table extends List{
+export class Table<T> extends List<T>{
 
 	constructor(options: {itemsPerPage?: number} = {}) {
 		super(async (item)=>{
 			let tr = document.createElement('tr');
-			tr.dataset['tableId'] = item.__id;
+			tr.dataset['tableId'] = (<any>item).__id;
 			// render item (possible hidden)
 			for (let header of Object.values(this.attrs)) {
 				let cell = document.createElement('td');

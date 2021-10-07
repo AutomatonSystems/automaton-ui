@@ -563,15 +563,15 @@ declare class Json extends Code {
     #private;
 }
 
-declare type ItemElementFunction = (item: any) => HTMLElement | Promise<HTMLElement>;
-declare type ValueFunction = (item: any) => string | number;
-declare type DisplayFunction = (item: any) => string | HTMLElement | HTMLElement[] | Promise<string | HTMLElement | HTMLElement[]>;
-declare type Attr = {
+declare type ItemElementFunction<T> = (item: T) => HTMLElement | Promise<HTMLElement>;
+declare type ValueFunction<T> = (item: T) => string | number;
+declare type DisplayFunction<T> = (item: T) => string | HTMLElement | HTMLElement[] | Promise<string | HTMLElement | HTMLElement[]>;
+declare type Attr<T> = {
     "id": number;
     "name": string;
     "width": string;
-    "value": ValueFunction;
-    "displayFunc": DisplayFunction;
+    "value": ValueFunction<T>;
+    "displayFunc": DisplayFunction<T>;
 };
 /**
  * @callback itemElement
@@ -594,7 +594,7 @@ declare type Attr = {
  *  @property {attributeValue} value
  *  @property {attributeDisplayValue} value
  */
-declare class List extends BasicElement {
+declare class List<T> extends BasicElement {
     elementMap: WeakMap<any, HTMLElement>;
     static ASC: boolean;
     static DESC: boolean;
@@ -602,10 +602,10 @@ declare class List extends BasicElement {
     dirty: boolean;
     _busy: boolean;
     _sort: {
-        attr: Attr;
+        attr: Attr<T>;
         asc: Boolean;
     };
-    attrs: Record<string, Attr>;
+    attrs: Record<string, Attr<T>>;
     listBody: HTMLElement;
     _data: any[];
     static ITEMS_COLUMNS_KEY: string;
@@ -613,9 +613,9 @@ declare class List extends BasicElement {
     display: any[];
     lookup: {};
     _filterFunc: any;
-    _itemDisplayFunc: ItemElementFunction;
+    _itemDisplayFunc: ItemElementFunction<T>;
     pageNumber: number;
-    constructor(itemDisplay: ItemElementFunction, options?: {
+    constructor(itemDisplay: ItemElementFunction<T>, options?: {
         itemColumns?: number;
         itemsPerPage?: number;
     });
@@ -633,7 +633,7 @@ declare class List extends BasicElement {
      * @param {*} displayFunc
      * @param {*} width
      */
-    addAttribute(name: string, valueFunc?: string | ValueFunction, displayFunc?: string | ValueFunction | DisplayFunction, width?: string): this;
+    addAttribute(name: string, valueFunc?: string | ValueFunction<T>, displayFunc?: string | ValueFunction<T> | DisplayFunction<T>, width?: string): this;
     _filtered(item: any): any;
     filter(func?: any): void;
     /**
@@ -641,7 +641,7 @@ declare class List extends BasicElement {
      */
     sortDisplay(): void;
     render(forceRedraw?: boolean): Promise<void>;
-    sort(attribute?: string | Attr, asc?: boolean): Promise<void>;
+    sort(attribute?: string | Attr<T>, asc?: boolean): Promise<void>;
     /**
      *
      * @param {Number} page ZERO-INDEXED page number
@@ -654,7 +654,7 @@ declare class List extends BasicElement {
 /**
  * Table is a special case of List with a more automatic layout
  */
-declare class Table extends List {
+declare class Table<T> extends List<T> {
     constructor(options?: {
         itemsPerPage?: number;
     });
