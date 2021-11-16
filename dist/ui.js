@@ -1994,7 +1994,7 @@ class HashManager extends BasicElement {
 		return value;
 	}
 
-	static write(pathlike, value){
+	static write(pathlike, value, passive=false){
 		let [path, type] = pathlike?pathlike.split(':'):[null];
 		let pairs = HashManager.hashPairs();
 		if(value!==null && value!==""){
@@ -2010,7 +2010,11 @@ class HashManager extends BasicElement {
 			pairs = pairs.filter(i=>i[0]!=path);
 		}
 
-		window.location.hash = pairs.map(p=>p[0]?p.join('='):p[1]).join('|');
+		if(passive){
+			history.replaceState(undefined, undefined, "#" + pairs.map(p=>p[0]?p.join('='):p[1]).join('|'));
+		}else {
+			window.location.hash = pairs.map(p=>p[0]?p.join('='):p[1]).join('|');
+		}
 	}
 
 	remove(){
@@ -2032,8 +2036,8 @@ class HashManager extends BasicElement {
 		this.handlers.push(h);
 	}
 
-	set(value, fireOnChange=false){
-		HashManager.write(this.key, value);
+	set(value, fireOnChange=false, noHistory=false){
+		HashManager.write(this.key, value, noHistory);
 		if(fireOnChange)
 			return this.hashChange();
 	}

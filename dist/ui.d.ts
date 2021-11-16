@@ -536,7 +536,7 @@ declare class HashManager extends BasicElement {
     static Handler: typeof HashHandler;
     static hashPairs(): any;
     static read(pathlike: any): any;
-    static write(pathlike: any, value: any): void;
+    static write(pathlike: any, value: any, passive?: boolean): void;
     constructor(key?: any);
     key: any;
     hash: any;
@@ -548,7 +548,7 @@ declare class HashManager extends BasicElement {
     get value(): any;
     handler(path: any, func: any): HashManager;
     addHandler(h: any): void;
-    set(value: any, fireOnChange?: boolean): Promise<void>;
+    set(value: any, fireOnChange?: boolean, noHistory?: boolean): Promise<void>;
     hashChange(): Promise<void>;
     /**
      *
