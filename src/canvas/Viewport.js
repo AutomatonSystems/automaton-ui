@@ -113,6 +113,22 @@ export class Viewport extends BasicElement{
 		this.panScreen(px, py);
 	}
 
+	getZoom(){
+		return this.#view.zoom;
+	}
+
+	getView(){
+		return {
+			x: this.#view.x,
+			y: this.#view.y,
+
+			zoom: this.#view.zoom,
+
+			width: this.#view.width,
+			height: this.#view.height
+		}
+	}
+
 	/**
 	 * 
 	 * @param {Number} rsx 

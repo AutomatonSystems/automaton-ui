@@ -776,6 +776,14 @@ declare class Viewport extends BasicElement {
      * @param {Number?} vy point to keep in the same position on screen
      */
     setZoom(vz: number, vx?: number | null, vy?: number | null): void;
+    getZoom(): number;
+    getView(): {
+        x: number;
+        y: number;
+        zoom: number;
+        width: number;
+        height: number;
+    };
     /**
      *
      * @param {Number} rsx
