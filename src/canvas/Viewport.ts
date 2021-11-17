@@ -1,36 +1,74 @@
 import "./Viewport.css";
 
 import { BasicElement } from "../BasicElement.js";
+
+type View = {
+	parent: HTMLElement
+	x: number
+	y: number
+	zoom: number
+
+	width: number
+	height: number
+}
+
+type GridLine = {
+	step: number
+	offset: number
+	color: string
+}
+
+type RenderableHTMLElement = HTMLElement & {
+	render?: (viewport: Viewport)=>{}
+	scalar?: number
+	x?: number
+	y?: number
+}
+
+type XY = [number, number];
+
 export class Viewport extends BasicElement{
 
-	#view = {
+	#view: View = {
 		parent: null,
 		// what position the top left corner maps to
 		x: 0, 
 		y: 0,
 		zoom: 1, // 1 pixel = 1 pixel
 
-		/** @type {Number} */
 		get width(){
-			return this.parent.element.width / this.zoom;
+			return this.parent.bounds.width / this.zoom;
 		},
 
-		/** @type {Number} */
 		get height(){
-			return this.parent.element.height / this.zoom;
+			return this.parent.bounds.height / this.zoom;
 		}
 	};
+	
+	// json of the last view rendered
+	#lastV: string;
 
-	attachments = [];
+	attachments: RenderableHTMLElement[] = [];
+	canvas: HTMLCanvasElement;
 
-	constructor({flipY=false}={}){
+	// grid that gets drawn on the canvas
+	grid: GridLine[] = [
+		{step: 1, offset: 1, color: "#7772"},
+		{step: 6, offset: 6, color: "#7772"},
+		{step: 12, offset: 0, color: "#7774"},
+		{step: Infinity, offset: 0, color: "#999"}
+	]
+
+	constructor(){
 		super();
 		this.#view.parent = this;
 		this.canvas = document.createElement('canvas');
 		this.append(this.canvas);
+		// size of one screen pixel (in worldspace pixels)
+		this.setCss("--pixel", this.#view.zoom);
 	}
 	
-	addAttachment(element, update = true){
+	addAttachment(element: RenderableHTMLElement, update = true){
 		this.attachments.push(element);
 		this.append(element);
 		if(update){
@@ -38,7 +76,7 @@ export class Viewport extends BasicElement{
 		}
 	}
 
-	removeAttachment(element, update = true){
+	removeAttachment(element: RenderableHTMLElement, update = true){
 		this.attachments = this.attachments.filter(e=>e!=element);
 		this.removeChild(element);
 		if(update){
@@ -47,24 +85,9 @@ export class Viewport extends BasicElement{
 	}
 
 	/**
-	 * @deprecated use setZoom instead
-	 * 
 	 * Move the view so vx,vy is in the center of the viewport
-	 * 
-	 * @param {Number} vx 
-	 * @param {Number} vy 
 	 */
-	center(vx,vy){
-		this.setCenter(vx, vy);
-	}
-
-	/**
-	 * Move the view so vx,vy is in the center of the viewport
-	 * 
-	 * @param {Number} vx 
-	 * @param {Number} vy 
-	 */
-	setCenter(vx,vy){
+	setCenter(vx: number, vy: number){
 		this.#view.x = vx - (this.#view.width/2);
 		this.#view.y = vy - (this.#view.height/2);
 	}
@@ -79,27 +102,14 @@ export class Viewport extends BasicElement{
 	}
 
 	/**
-	 * @deprecated use setZoom instead
 	 * 
 	 * Zoom on a point in screen space, keeping that point in the same place
 	 * 
-	 * @param {Number} vz target zoom level
-	 * @param {Number} vx point to keep in the same position on screen
-	 * @param {Number} vy point to keep in the same position on screen
+	 * @param {number} vz target zoom level
+	 * @param {number?} vx point to keep in the same position on screen
+	 * @param {number?} vy point to keep in the same position on screen
 	 */
-	zoom(vz, vx,vy){
-		this.setZoom(vz, vx, vy);
-	}
-
-	/**
-	 * 
-	 * Zoom on a point in screen space, keeping that point in the same place
-	 * 
-	 * @param {Number} vz target zoom level
-	 * @param {Number?} vx point to keep in the same position on screen
-	 * @param {Number?} vy point to keep in the same position on screen
-	 */
-	setZoom(vz, vx = null, vy = null){
+	setZoom(vz: number, vx:number = null, vy:number = null){
 		if(vx==null){
 			let vxy = this.getCenter();
 			vx = vxy.x;
@@ -107,6 +117,7 @@ export class Viewport extends BasicElement{
 		}
 		let s1 = this.toScreen(vx, vy);
 		this.#view.zoom = vz;
+		this.setCss("--pixel", 1 / this.#view.zoom);
 		let s2 = this.toScreen(vx, vy);
 		let px = s2.x-s1.x;
 		let py = s2.y-s1.y;
@@ -130,26 +141,18 @@ export class Viewport extends BasicElement{
 	}
 
 	/**
+	 * Pan the viewport by screen pixels
 	 * 
-	 * @param {Number} rsx 
-	 * @param {Number} rsy 
+	 * @param {number} sx 
+	 * @param {number} sy 
 	 */
-	pan(rsx, rsy){
-		this.panScreen(rsx, rsy);
+	panScreen(sx: number, sy: number){
+		this.#view.x += sx / this.#view.zoom;
+		this.#view.y += sy / this.#view.zoom;
 	}
 
 	/**
-	 * 
-	 * @param {Number} rsx 
-	 * @param {Number} rsy 
-	 */
-	panScreen(rsx, rsy){
-		this.#view.x += rsx / this.#view.zoom;
-		this.#view.y += rsy / this.#view.zoom;
-	}
-
-	/**
-	 * convert the element-relative screen cordinates to the location
+	 * convert the screen cordinates to the location
 	 * in the viewspace
 	 * 
 	 * @param {Number} sx 
@@ -157,12 +160,13 @@ export class Viewport extends BasicElement{
 	 * 
 	 * @returns {{x:number,y:number, out: boolean}}
 	 */
-	toView(sx,sy){
+	toView(sx: number, sy: number){
 		let v = this.#view;
-		let e = this.element;
+		let e = this.bounds;
 		let xy = {
 			x: (sx-e.x)/v.zoom + v.x,
 			y: (sy-e.y)/v.zoom + v.y,
+			out: false
 		};
 		xy.out = xy.x < v.x || xy.x > v.x + v.width 
 			|| xy.y < v.y || xy.y > v.y + v.height;
@@ -177,7 +181,7 @@ export class Viewport extends BasicElement{
 	 * 
 	 * @returns {{x:number,y:number}}
 	 */
-	toScreen(vx, vy){
+	toScreen(vx: number, vy: number){
 		let v = this.#view;
 		return {
 			x: (vx - v.x)*v.zoom,
@@ -185,30 +189,23 @@ export class Viewport extends BasicElement{
 		}
 	}
 
-	get element(){
+	get bounds(){
 		return this.getBoundingClientRect();
 	}
 
-	#lastV;
-
-	grid = [
-		{step: 1, offset: 1, color: "#7772"},
-		{step: 6, offset: 6, color: "#7772"},
-		{step: 12, offset: 0, color: "#7774"},
-		{step: Infinity, offset: 0, color: "#999"}
-	]
 
 	render(){
 		let v = this.#view;
 		let lv = JSON.stringify({x:v.x,y:v.y,w:v.width,h:v.height,z:v.zoom});
 		if(!(this.#lastV == null || this.#lastV != lv)){
 			this.#lastV = lv;
-			this.updateAttachments();
+			// disabiling this - only onchange
+			// this.updateAttachments();
 			return;
 		}
 		this.#lastV = lv;
 
-		let element = this.element;
+		let element = this.bounds;
 		if(this.canvas.width!=element.width || this.canvas.height!=element.height){
 			this.canvas.width=element.width;
 			this.canvas.height=element.height;
@@ -219,45 +216,47 @@ export class Viewport extends BasicElement{
 		context.resetTransform();
 		context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-		// set correct position
-		let xOff = -v.x * v.zoom;
-		let yOff = -v.y * v.zoom;
+		if(this.grid.length){
+			// set correct position
+			let xOff = -v.x * v.zoom;
+			let yOff = -v.y * v.zoom;
 
-		let xmin = 0;
-		let xmax = v.width * v.zoom;
+			let xmin = 0;
+			let xmax = v.width * v.zoom;
 
-		let ymin = 0;
-		let ymax = v.height * v.zoom;
+			let ymin = 0;
+			let ymax = v.height * v.zoom;
 
-		context.lineWidth = 1;
-		// grid
-		for(let grid of this.grid){
-			if(v.zoom*grid.step < 10){
-				continue;
+			context.lineWidth = 1;
+			// grid
+			for(let grid of this.grid){
+				if(v.zoom*grid.step < 10){
+					continue;
+				}
+				context.beginPath();
+				context.strokeStyle = grid.color;
+				// TODO sort this out!
+				for(let offset = grid.offset??0; offset < 1000*grid.step; offset+=grid.step){
+					let offStep = offset * v.zoom;
+					if(offStep+yOff > ymin && offStep+yOff < ymax){
+						context.moveTo(xmin, offStep + yOff);
+						context.lineTo(xmax, offStep + yOff);
+					}
+					if(-offStep+yOff > ymin && -offStep+yOff < ymax){
+						context.moveTo(xmin, -offStep + yOff);
+						context.lineTo(xmax, -offStep + yOff);
+					}
+					if(offStep+xOff > xmin && offStep+xOff < xmax){
+						context.moveTo(offStep + xOff, ymin);
+						context.lineTo(offStep + xOff, ymax);
+					}
+					if(-offStep+xOff > xmin && -offStep+xOff < xmax){
+						context.moveTo(-offStep + xOff, ymin);
+						context.lineTo(-offStep + xOff, ymax);
+					}
+				}
+				context.stroke();
 			}
-			context.beginPath();
-			context.strokeStyle = grid.color;
-			// TODO sort this out!
-			for(let offset = grid.offset??0; offset < 1000*grid.step; offset+=grid.step){
-				let offStep = offset * v.zoom;
-				if(offStep+yOff > ymin && offStep+yOff < ymax){
-					context.moveTo(xmin, offStep + yOff);
-					context.lineTo(xmax, offStep + yOff);
-				}
-				if(-offStep+yOff > ymin && -offStep+yOff < ymax){
-					context.moveTo(xmin, -offStep + yOff);
-					context.lineTo(xmax, -offStep + yOff);
-				}
-				if(offStep+xOff > xmin && offStep+xOff < xmax){
-					context.moveTo(offStep + xOff, ymin);
-					context.lineTo(offStep + xOff, ymax);
-				}
-				if(-offStep+xOff > xmin && -offStep+xOff < xmax){
-					context.moveTo(-offStep + xOff, ymin);
-					context.lineTo(-offStep + xOff, ymax);
-				}
-			}
-			context.stroke();
 		}
 
 		this.updateAttachments();
@@ -287,7 +286,7 @@ export class Viewport extends BasicElement{
 
 		let lmouse = false;
 		let rmouse = false;
-		let drag = null;
+		let drag: XY = null;
 
 		this.addEventListener('contextmenu', (e)=>{
 			e.preventDefault();
@@ -301,6 +300,8 @@ export class Viewport extends BasicElement{
 			this.setZoom(zoom, v.x, v.y);
 			this.render();
 		});
+
+		// TODO the events here are document scoped - they should check if they are actually viewport based
 		document.addEventListener('mousedown', (e)=>{
 			if(e.button==MIDDLE_MOUSE){
 				drag = [e.x, e.y];
@@ -316,7 +317,7 @@ export class Viewport extends BasicElement{
 		});
 		document.addEventListener('mousemove', (e)=>{
 			if(drag){
-				let ndrag = [e.x, e.y];
+				let ndrag:XY = [e.x, e.y];
 				this.panScreen(drag[0]-ndrag[0],drag[1]-ndrag[1]);
 				drag = ndrag;
 				this.render();
@@ -332,7 +333,7 @@ export class Viewport extends BasicElement{
 		document.addEventListener('mouseup', (e)=>{
 			
 			if(e.button==MIDDLE_MOUSE){
-				let ndrag = [e.x, e.y];
+				let ndrag: XY = [e.x, e.y];
 				this.panScreen(drag[0]-ndrag[0],drag[1]-ndrag[1]);
 				drag = null;
 				this.render();
