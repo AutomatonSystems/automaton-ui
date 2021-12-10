@@ -2,7 +2,7 @@
 	"compileOnSave": true,
 	"compilerOptions": {
 		"declaration": true,
-		"outDir": "./build",
+		"outDir": "./dist",
 		"module": "esnext",
 		"moduleResolution": "node",
 		/*"allowSyntheticDefaultImports": true,*/
@@ -10,13 +10,12 @@
 		"checkJs": false,
 		"noImplicitAny": true,
 		/*"noImplicitOverride": true,*/
-		"target": "es2015",
+		"target": "esnext",
 		"newLine": "lf",
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"paths": {},
-		"rootDir": "./src",
-		"emitDeclarationOnly": true
+		"rootDir": "./src"
 	},
 	"include": ["src/**/*.js","src/**/*.ts"],
 	"exclude": [],

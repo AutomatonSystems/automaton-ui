@@ -1,5 +1,5 @@
 import "./List.css";
-import {append, sleep} from "../utils.js";
+import {append, castHtmlElements, sleep} from "../utils.js";
 import { BasicElement } from "../BasicElement";
 
 let uuid = 0;
@@ -285,7 +285,7 @@ export class List<T> extends BasicElement{
 				this.querySelector('.paging.bottom').innerHTML = paging;
 
 				// add auto paging callback 
-				BasicElement.castHtmlElements(...this.querySelectorAll('[data-page]')).forEach(ele => ele.addEventListener('click', () => {
+				castHtmlElements(...this.querySelectorAll('[data-page]')).forEach(ele => ele.addEventListener('click', () => {
 					this.page(parseInt(ele.dataset['page']));
 				}));
 			}else{

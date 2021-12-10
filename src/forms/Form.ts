@@ -29,7 +29,7 @@ interface FormTemplateJSON {
 	afterRender?: Function
 };
 
-type FormTemplate = FormTemplateJSON | string;
+export type FormTemplate = FormTemplateJSON | string;
 
 interface FormStyle{ parent: string; wrap: string; label: string; value: string; };
 
