@@ -1,5 +1,5 @@
 export declare const sleep: (time: number, value?: any) => Promise<unknown>;
-export declare type Appendable = Node | string | number | Appendable[];
+export declare type Appendable = Node | string | number | boolean | Appendable[];
 /**
  * Add items onto a element
  *

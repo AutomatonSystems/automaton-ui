@@ -14,7 +14,7 @@ function append(element, content) {
         for (let a of content)
             append(element, a);
     }
-    else if (typeof content == 'string' || typeof content == 'number') {
+    else if (typeof content == 'string' || typeof content == 'number' || typeof content == 'boolean') {
         element.innerHTML = '' + content;
     }
     else {

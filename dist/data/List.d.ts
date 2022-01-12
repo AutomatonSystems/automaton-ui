@@ -1,8 +1,10 @@
 import "./List.css";
+import { Appendable } from "../utils.js";
 import { BasicElement } from "../BasicElement";
 declare type ItemElementFunction<T> = (item: T) => HTMLElement | Promise<HTMLElement>;
-declare type ValueFunction<T> = (item: T) => string | number;
-declare type DisplayFunction<T> = (item: T) => string | HTMLElement | HTMLElement[] | Promise<string | HTMLElement | HTMLElement[]>;
+declare type ValueElement = string | number | boolean;
+declare type ValueFunction<T> = (item: T) => ValueElement;
+declare type DisplayFunction<T> = (item: T) => Appendable | Promise<Appendable>;
 declare type Attr<T> = {
     "id": number;
     "name": string;
