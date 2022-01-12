@@ -12,7 +12,7 @@ import { Toast } from "./feedback/Toast.js";
  * 
  * @returns {Promise<*>} returns the response from the user (the populated form json)
  */
-export async function popupForm(template: FormTemplate, {
+export async function popupForm(template: FormTemplate|FormTemplate[], {
 		value = {},
 		title = '',
 		submitText = "Submit",

@@ -15,7 +15,7 @@ function append(element, content) {
             append(element, a);
     }
     else if (typeof content == 'string' || typeof content == 'number' || typeof content == 'boolean') {
-        element.innerHTML = '' + content;
+        element.appendChild(document.createTextNode('' + content));
     }
     else {
         element.appendChild(content);

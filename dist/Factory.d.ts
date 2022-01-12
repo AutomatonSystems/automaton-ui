@@ -6,7 +6,7 @@ import { Form, FormTemplate } from "./forms/Form.js";
  *
  * @returns {Promise<*>} returns the response from the user (the populated form json)
  */
-export declare function popupForm(template: FormTemplate, { value, title, submitText, wrapper, dismissable }?: {
+export declare function popupForm(template: FormTemplate | FormTemplate[], { value, title, submitText, wrapper, dismissable }?: {
     value?: {};
     title?: string;
     submitText?: string;
