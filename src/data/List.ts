@@ -1,14 +1,15 @@
 import "./List.css";
-import {append, castHtmlElements, sleep} from "../utils.js";
+import {append, Appendable, castHtmlElements, sleep} from "../utils.js";
 import { BasicElement } from "../BasicElement";
 
 let uuid = 0;
 
 type ItemElementFunction<T> = (item: T) => HTMLElement | Promise<HTMLElement>;
 
-type ValueFunction<T> = (item:T) => string | number;
+type ValueElement =  string | number | boolean;
+type ValueFunction<T> = (item:T) => ValueElement;
 
-type DisplayFunction<T> = (item:T) => string | HTMLElement | HTMLElement[] | Promise<string | HTMLElement | HTMLElement[]>;
+type DisplayFunction<T> = (item:T) => Appendable | Promise<Appendable>;
 
 type Attr<T> = {
 	"id": number,

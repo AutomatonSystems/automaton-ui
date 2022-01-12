@@ -3,7 +3,7 @@ export const sleep = (time: number, value?: any)=>new Promise(r=>setTimeout(()=>
 // @ts-ignore
 window['sleep'] = sleep;
 
-export type Appendable = Node|string|number|Appendable[]
+export type Appendable = Node|string|number|boolean|Appendable[]
 
 /**
  * Add items onto a element
@@ -17,7 +17,7 @@ export function append(element: HTMLElement, content: Appendable){
 	if(Array.isArray(content)){
 		for(let a of content)
 			append(element, a);
-	}else if(typeof content == 'string' || typeof content == 'number'){
+	}else if(typeof content == 'string' || typeof content == 'number' || typeof content == 'boolean'){
 		element.innerHTML = ''+content;
 	}else{
 		element.appendChild(content);
