@@ -45,6 +45,9 @@
 						new UI.Toast("Goodbye");
 					});
 					menu.for(document.querySelector('ui-panel'));
+
+					document.body.append(new UI.Panel("<h1>innerHTML</h1>"));
+					document.body.append(new UI.Panel(["<h1>innerHTML</h1>", new UI.Badge("Boop")]));
 				</script>
 
 				<ui-splash hidden>

@@ -15,7 +15,10 @@ function append(element, content) {
             append(element, a);
     }
     else if (typeof content == 'string' || typeof content == 'number' || typeof content == 'boolean') {
-        element.appendChild(document.createTextNode('' + content));
+        let d = document.createElement('div');
+        d.innerHTML = '' + content;
+        for (let node of d.childNodes)
+            element.appendChild(node);
     }
     else {
         element.appendChild(content);
