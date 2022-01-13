@@ -20,7 +20,8 @@ export function append(element: HTMLElement, content: Appendable){
 	}else if(typeof content == 'string' || typeof content == 'number' || typeof content == 'boolean'){
 		let d = document.createElement('div');
 		d.innerHTML = ''+content;
-		for(let node of d.childNodes)
+		let nodes = [...d.childNodes];
+		for(let node of nodes)
 			element.appendChild(node);
 	}else{
 		element.appendChild(content);
