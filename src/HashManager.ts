@@ -8,7 +8,9 @@ type HashVariableMapperFunction = {
 	set: (obj: any, value: any)=>void;
 }
 
-type HashChangeHandler = (value: string|number|boolean|object)=> false | HTMLElement | [HTMLElement, number]
+type SlideProperty = number | [number, number];
+type HashResponse = false | HTMLElement | [HTMLElement, SlideProperty];
+type HashChangeHandler = (value: string|number|boolean|object)=> HashResponse | Promise<HashResponse>;
 
 export class HashHandler{
 
@@ -63,7 +65,7 @@ export class HashHandler{
 		
 	}
 
-	async handle(path: string, oldPath: string):Promise<HTMLElement|[HTMLElement,number]|false>{
+	async handle(path: string, oldPath: string):Promise<HashResponse>{
 
 		let parts = path.match(this.path);
 		// if no match or it didn't match the whole string
@@ -235,12 +237,7 @@ export class HashManager extends BasicElement {
 
 	}
 
-	/**
-	 * 
-	 * @param {*} body 
-	 * @param {Number|[Number,Number]} direction 
-	 */
-	async swapContent(body:HTMLElement, direction = HashManager.DIRECTION.RIGHT) {
+	async swapContent(body:HTMLElement, direction: SlideProperty = HashManager.DIRECTION.RIGHT) {
 		let content = document.createElement('content');
 
 		append(content, body);

@@ -4,7 +4,9 @@ declare type HashVariableMapperFunction = {
     name: string;
     set: (obj: any, value: any) => void;
 };
-declare type HashChangeHandler = (value: string | number | boolean | object) => false | HTMLElement | [HTMLElement, number];
+declare type SlideProperty = number | [number, number];
+declare type HashResponse = false | HTMLElement | [HTMLElement, SlideProperty];
+declare type HashChangeHandler = (value: string | number | boolean | object) => HashResponse | Promise<HashResponse>;
 export declare class HashHandler {
     /** @type {RegExp}*/
     path: RegExp;
@@ -19,7 +21,7 @@ export declare class HashHandler {
      * @returns {{name: String, set: Function}}
      */
     static v(input: string): HashVariableMapperFunction;
-    handle(path: string, oldPath: string): Promise<HTMLElement | [HTMLElement, number] | false>;
+    handle(path: string, oldPath: string): Promise<HashResponse>;
 }
 /**
  * @example
@@ -57,11 +59,6 @@ export declare class HashManager extends BasicElement {
     addHandler(h: HashHandler): void;
     set(value: any, fireOnChange?: boolean, noHistory?: boolean): Promise<void>;
     hashChange(): Promise<void>;
-    /**
-     *
-     * @param {*} body
-     * @param {Number|[Number,Number]} direction
-     */
-    swapContent(body: HTMLElement, direction?: number): Promise<HTMLElement>;
+    swapContent(body: HTMLElement, direction?: SlideProperty): Promise<HTMLElement>;
 }
 export {};

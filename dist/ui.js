@@ -1732,11 +1732,6 @@ class HashManager extends BasicElement {
             }
         }
     }
-    /**
-     *
-     * @param {*} body
-     * @param {Number|[Number,Number]} direction
-     */
     async swapContent(body, direction = HashManager.DIRECTION.RIGHT) {
         let content = document.createElement('content');
         append(content, body);
