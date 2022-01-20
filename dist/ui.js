@@ -1640,10 +1640,13 @@ class HashManager extends BasicElement {
         this.eventlistener = () => this.hashChange();
         window.addEventListener('hashchange', this.eventlistener);
     }
-    static read(pathlike) {
-        let [path, type] = pathlike.split(':');
+    static hashPairs() {
         let hash = window.location.hash.substring(1);
-        let pairs = hash.split('|').filter(i => i != '').map(pair => pair.includes('=') ? pair.split('=', 2) : [null, pair]);
+        return hash.replaceAll("%7C", "|").split('|').filter(i => i != '').map(pair => pair.includes('=') ? pair.split('=', 2) : [null, pair]);
+    }
+    static read(pathlike) {
+        let [path, type] = pathlike ? pathlike.split(':') : [null];
+        let pairs = HashManager.hashPairs();
         let pair = pairs.find(i => i[0] == path);
         let value = pair?.[1];
         if (value) {
@@ -1661,6 +1664,29 @@ class HashManager extends BasicElement {
         }
         return value;
     }
+    static write(pathlike, value, passive = false) {
+        let [path, type] = pathlike ? pathlike.split(':') : [null];
+        let pairs = HashManager.hashPairs();
+        if (value !== null && value !== "") {
+            let pair = pairs.find(i => i[0] == path);
+            if (pair == null) {
+                pair = [path, null];
+                pairs.push(pair);
+            }
+            if (type == "json")
+                value = JSON.stringify(value);
+            pair[1] = value;
+        }
+        else {
+            pairs = pairs.filter(i => i[0] != path);
+        }
+        if (passive) {
+            history.replaceState(undefined, undefined, "#" + pairs.map(p => p[0] ? p.join('=') : p[1]).join('|'));
+        }
+        else {
+            window.location.hash = pairs.map(p => p[0] ? p.join('=') : p[1]).join('|');
+        }
+    }
     remove() {
         super.remove();
         window.removeEventListener('hashchange', this.eventlistener);
@@ -1676,16 +1702,10 @@ class HashManager extends BasicElement {
     addHandler(h) {
         this.handlers.push(h);
     }
-    set(value) {
-        let hash = window.location.hash.substring(1);
-        let pairs = hash.split('|').filter(i => i != '').map(pair => pair.includes('=') ? pair.split('=', 2) : [null, pair]);
-        let pair = pairs.find(i => i[0] == this.key);
-        if (pair == null) {
-            pair = [this.key, null];
-            pairs.push(pair);
-        }
-        pair[1] = value;
-        window.location.hash = pairs.map(p => p[0] ? p.join('=') : p[1]).join('|');
+    set(value, fireOnChange = false, noHistory = false) {
+        HashManager.write(this.key, value, noHistory);
+        if (fireOnChange)
+            return this.hashChange();
     }
     async hashChange() {
         let hash = window.location.hash.substring(1);

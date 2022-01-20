@@ -48,12 +48,14 @@ export declare class HashManager extends BasicElement {
     };
     static Handler: typeof HashHandler;
     constructor(key?: string);
+    static hashPairs(): string[][];
     static read(pathlike: string): any;
+    static write(pathlike: string, value: any, passive?: boolean): void;
     remove(): this;
     get value(): string;
     handler(path: string, func: HashChangeHandler): this;
     addHandler(h: HashHandler): void;
-    set(value: any): void;
+    set(value: any, fireOnChange?: boolean, noHistory?: boolean): Promise<void>;
     hashChange(): Promise<void>;
     /**
      *
