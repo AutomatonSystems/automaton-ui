@@ -23,6 +23,17 @@ export class BasicElement extends HTMLElement {
 	}
 
 	/**
+	 * 
+	 * Replace the current content of this element with the provided content
+	 * 
+	 * @param content 
+	 */
+	setContent(...content: Appendable[]){
+		this.innerHTML = "";
+		utils.append(this, content);
+	}
+
+	/**
 	 * Starts a interval timer that will stop when this element is no longer on the DOM
 	 * 
 	 * @param {*} callback 
@@ -114,14 +125,14 @@ export class BasicElement extends HTMLElement {
 		return this;
 	}
 
-	remove() {
+	override remove() {
 		this.self.parentElement?.removeChild(this.self);
 		return this;
 	}
 
-    /**
-     * Walk up dom tree looking for a closable element
-     */
+	/**
+	 * Walk up dom tree looking for a closable element
+	 */
 	close() {
 		let ele = <BasicElement|HTMLElement> this.parentElement;
 		while (!('close' in ele)) {
@@ -149,7 +160,7 @@ export class BasicElement extends HTMLElement {
 	 * 
 	 * @returns {HTMLElement}
 	 */
-	querySelector(string: string): HTMLElement {
+	override querySelector(string: string): HTMLElement {
 		// ???
 		return super.querySelector(string);
 	}
@@ -160,7 +171,7 @@ export class BasicElement extends HTMLElement {
 	 * 	
 	 * @returns {NodeList<HTMLElement>}
 	 */
-	querySelectorAll(string: string): NodeListOf<HTMLElement>{
+	 override querySelectorAll(string: string): NodeListOf<HTMLElement>{
 		// ???
 		return super.querySelectorAll(string);
 	}

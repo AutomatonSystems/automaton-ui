@@ -1,8 +1,11 @@
 import "./Card.css";
 import { BasicElement } from "../BasicElement.js";
-import { append, Appendable } from "../utils.js";
+import { append, Appendable} from "../utils.js";
 
 export class Card extends BasicElement {
+
+	cardInner: HTMLElement;
+
 	constructor(content?: Appendable) {
 		super();
 
@@ -10,12 +13,14 @@ export class Card extends BasicElement {
 
 		let con = content || this.innerHTML;
 		this.innerHTML = `<div class="card"></div>`;
+		this.cardInner = this.querySelector('.card');
 		this.setContent(con);
 
 	}
 
-	setContent(content?: Appendable) {
-		append(this.querySelector('.card'), content);
+	override setContent(content?: Appendable) {
+		this.cardInner.innerHTML = "";
+		append(this.cardInner, content);
 	}
 
 	async flip() {

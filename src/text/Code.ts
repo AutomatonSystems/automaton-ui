@@ -17,7 +17,7 @@ export class Code extends BasicElement {
 		return content;
 	}
 
-	setContent(content: string){
+	override setContent(content: string){
 		content = this.preprocess(content);
 		// send the stuff off to a webworker to be prettified
 		let worker = new CodeWorker();

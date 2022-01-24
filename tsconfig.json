@@ -9,7 +9,7 @@
 		"allowJs": true,
 		"checkJs": false,
 		"noImplicitAny": true,
-		/*"noImplicitOverride": true,*/
+		"noImplicitOverride": true,
 		"target": "esnext",
 		"newLine": "lf",
 		"skipLibCheck": true,
