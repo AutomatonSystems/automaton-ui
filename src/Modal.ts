@@ -19,14 +19,11 @@ export class Modal extends Splash {
 		this.appendChild(panel);
 	}
 
-	/**
-	 * @type {Panel}
-	 */
 	get panel(): Panel{
 		return <Panel>this.querySelector("ui-panel");
 	}
 
-	close() {
+	override close() {
 		this.self.remove();
 		return this;
 	}

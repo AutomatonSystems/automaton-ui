@@ -132,6 +132,16 @@ class BasicElement extends HTMLElement {
         this.intervals = [];
     }
     /**
+     *
+     * Replace the current content of this element with the provided content
+     *
+     * @param content
+     */
+    setContent(...content) {
+        this.innerHTML = "";
+        append(this, content);
+    }
+    /**
      * Starts a interval timer that will stop when this element is no longer on the DOM
      *
      * @param {*} callback
@@ -271,8 +281,18 @@ class BasicElement extends HTMLElement {
      * @param type a category of thing that is being dragged - eg a 'item', used to filter dropzones
      * @param data
      */
-    makeDraggable(type = 'element', data = null) {
-        this.draggable = true;
+    makeDraggable(type = 'element', data = null, handle = null) {
+        if (handle == null) {
+            this.draggable = true;
+        }
+        else {
+            handle.addEventListener('mousedown', () => {
+                this.draggable = true;
+            }, true);
+            this.addEventListener('dragend', () => {
+                this.draggable = false;
+            }, true);
+        }
         // by default the data to send is just the element itself
         type = type.toLowerCase();
         if (data == null)
@@ -418,6 +438,14 @@ class Toggle extends BasicElement {
     }
 }
 customElements.define('ui-toggle', Toggle);
+
+class DragHandle extends BasicElement {
+    constructor() {
+        super();
+        this.classList.add("fa", "fa-grip-horizontal");
+    }
+}
+customElements.define('ui-drag', DragHandle);
 
 class Form extends BasicElement {
     static STYLE = {
@@ -682,7 +710,11 @@ class Form extends BasicElement {
                     case 'array':
                         // the element repeats multiple times
                         jsonKey = jsonKey + "[]";
-                        let tStyle = template.style ?? 'INLINE';
+                        let inputConfig = template;
+                        let tStyle = inputConfig.style ?? 'INLINE';
+                        let config = inputConfig.config ?? {
+                            sortable: false
+                        };
                         let substyle = Form.STYLE[tStyle];
                         let contain = document.createElement('div');
                         contain.classList.add('array');
@@ -690,9 +722,8 @@ class Form extends BasicElement {
                         // add button
                         let button = new Button("Add", null, { icon: 'fa-plus' });
                         let createItem = async (itemValue) => {
-                            let item = document.createElement('span');
-                            item.classList.add('item');
-                            item.append(...await this.jsonToHtml(template.children, itemValue, jsonKey, { style: substyle }));
+                            let item = new BasicElement(null, { clazz: 'item' });
+                            item.append(...await this.jsonToHtml(inputConfig.children, itemValue, jsonKey, { style: substyle }));
                             item.append(new Button("", () => {
                                 item.remove();
                                 this.onChange();
@@ -701,10 +732,23 @@ class Form extends BasicElement {
                             for (let input of inputs) {
                                 input.addEventListener('change', this.onChange);
                             }
+                            if (config.sortable) {
+                                let handle = new DragHandle();
+                                item.prepend(handle);
+                                item.makeDraggable(jsonKey, null, handle);
+                                item.onDrop(jsonKey, (draggedItem) => {
+                                    // Work out if we are moving up or down the list
+                                    let siblings = [...contain.childNodes];
+                                    let indexA = siblings.indexOf(item);
+                                    let indexB = siblings.indexOf(draggedItem);
+                                    // and move as appropriate
+                                    item.insertAdjacentElement(indexA < indexB ? 'beforebegin' : 'afterend', draggedItem);
+                                });
+                            }
                             contain.append(item);
                         };
                         button.addEventListener('click', async () => {
-                            let item = await createItem(Array.isArray(template.children) ? {} : null);
+                            let item = await createItem(Array.isArray(inputConfig.children) ? {} : null);
                             this.onChange();
                             return item;
                         });
@@ -873,9 +917,6 @@ class Modal extends Splash {
         panel.self = this;
         this.appendChild(panel);
     }
-    /**
-     * @type {Panel}
-     */
     get panel() {
         return this.querySelector("ui-panel");
     }
@@ -1004,15 +1045,18 @@ class Cancel extends BasicElement {
 customElements.define('ui-cancel', Cancel);
 
 class Card extends BasicElement {
+    cardInner;
     constructor(content) {
         super();
         this.setAttribute("ui-card", '');
         let con = content || this.innerHTML;
         this.innerHTML = `<div class="card"></div>`;
+        this.cardInner = this.querySelector('.card');
         this.setContent(con);
     }
     setContent(content) {
-        append(this.querySelector('.card'), content);
+        this.cardInner.innerHTML = "";
+        append(this.cardInner, content);
     }
     async flip() {
         this.flipped = !this.flipped;

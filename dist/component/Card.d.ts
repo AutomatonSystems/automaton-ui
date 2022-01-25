@@ -2,6 +2,7 @@ import "./Card.css";
 import { BasicElement } from "../BasicElement.js";
 import { Appendable } from "../utils.js";
 export declare class Card extends BasicElement {
+    cardInner: HTMLElement;
     constructor(content?: Appendable);
     setContent(content?: Appendable): void;
     flip(): Promise<unknown>;

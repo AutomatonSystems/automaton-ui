@@ -8,6 +8,13 @@ export declare class BasicElement extends HTMLElement {
         clazz?: string;
     });
     /**
+     *
+     * Replace the current content of this element with the provided content
+     *
+     * @param content
+     */
+    setContent(...content: Appendable[]): void;
+    /**
      * Starts a interval timer that will stop when this element is no longer on the DOM
      *
      * @param {*} callback
@@ -15,7 +22,7 @@ export declare class BasicElement extends HTMLElement {
      *
      * @returns {Number} interval id.
      */
-    setInterval(callback: () => {}, time: number): NodeJS.Timeout;
+    setInterval(callback: () => {}, time: number): NodeJS.Timer;
     /**
      *
      * @param {String} variable
@@ -68,7 +75,7 @@ export declare class BasicElement extends HTMLElement {
      * @param type a category of thing that is being dragged - eg a 'item', used to filter dropzones
      * @param data
      */
-    makeDraggable(type?: string, data?: any): void;
+    makeDraggable(type?: string, data?: any, handle?: HTMLElement): void;
     onDragOver(type: string, behaviour: (data: any, event: DragEvent, element: BasicElement) => void): void;
     onDrop(type: string, behaviour: (data: any, event: DragEvent, element: BasicElement) => void): void;
 }

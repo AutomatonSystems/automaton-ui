@@ -37,7 +37,7 @@ export declare class HashManager extends BasicElement {
     key: string;
     hash: string;
     depth: number;
-    eventlistener: () => Promise<void>;
+    eventlistener: () => void;
     handlers: HashHandler[];
     position: number[];
     static DIRECTION: {

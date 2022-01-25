@@ -46,12 +46,13 @@
 					});
 					menu.for(document.querySelector('ui-panel'));
 
-					debugger;
-					document.body.append(new UI.Panel(`
-					<h1>innerHTML</h1>
-					<h2>innerHTML2</h2>
+					let target = document.body.querySelector('content');
+
+					target.append(new UI.Panel(`
+						<h1>innerHTML</h1>
+						<h2>innerHTML2</h2>
 					`));
-					document.body.append(new UI.Panel(["<h1>innerHTML</h1>", new UI.Badge("Boop")]));
+					target.append(new UI.Panel(["<h1>innerHTML</h1>", new UI.Badge("Boop")]));
 				</script>
 
 				<ui-splash hidden>
@@ -167,12 +168,18 @@
 						{
 							"key": "tricks",
 							"type": "array",
+							"config": {
+								"sortable": true
+							},
 							"children": "string"
 						},
 						{
 							"key": "awards",
 							"type": "array",
 							"style": "ROW",
+							"config": {
+								"sortable": true
+							},
 							"children": [
 								"award:string",
 								{
@@ -219,33 +226,70 @@
 
 					//document.querySelector('#pet-button').click();
 				</script>
+
+
+				<script type="module">
+					import UI from "automaton-ui";
+
+					let json = {
+						name: "Jim",
+						type: 4
+					};
+
+					let form = new UI.Form2(
+						{
+							"test": UI.NumberInput,
+							"name": [UI.StringInput, {}],
+							"type": [UI.NumberInput, {
+								name: "Type Number",
+								color: 'red'
+							}],
+							"light": {
+								"color": UI.StringInput,
+								"radius": UI.NumberInput
+							}
+						},
+						json
+					);
+
+					let display = new UI.Json(form.value);
+					document.body.append(display);
+
+					form.addEventListener('change', ()=>{
+						display.setContent(json);
+					});
+
+					document.body.append(form);
+				</script>
+
+				<script type="module">
+					import Explorer from "./Explore.js";
+
+					import {HashManager, Toggle, Panel} from "/dist/ui.js";
+					import {list, table} from "./ExampleList.js";
+
+					
+					let hash = new HashManager();
+					hash.handler('{type}', ({type})=>{
+						switch(type){
+							case 'table':
+								return [table, HashManager.DIRECTION.RIGHT];
+							case 'list':
+							default:
+								return [list, HashManager.DIRECTION.LEFT];
+						}
+					});
+					hash.hashChange();
+					hash.style="width: 600px; height: 700px";
+
+					document.querySelector('content').append(new Panel([new Toggle(hash.value=='table', (value)=>{hash.set(value?'table':'list')}),
+					hash
+					], {clazz: 'pokemon'}));
+
+					document.querySelector('content').append(Explorer);
+					
+				</script>
 			</content>
 		</main>
-
-		<script type="module">
-			import "./Explore.js";
-
-			import {HashManager, Toggle, Panel} from "/dist/ui.js";
-			import {list, table} from "./ExampleList.js";
-
-			
-			let hash = new HashManager();
-			hash.handler('{type}', ({type})=>{
-				switch(type){
-					case 'table':
-						return [table, HashManager.DIRECTION.RIGHT];
-					case 'list':
-					default:
-						return [list, HashManager.DIRECTION.LEFT];
-				}
-			});
-			hash.hashChange();
-			hash.style="width: 600px; height: 700px";
-
-			document.querySelector('content').append(new Panel([new Toggle(hash.value=='table', (value)=>{hash.set(value?'table':'list')}),
-			hash
-			], {clazz: 'pokemon'}));
-			
-		</script>
 	</body>
 </html>

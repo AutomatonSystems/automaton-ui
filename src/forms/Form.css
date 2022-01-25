@@ -35,6 +35,9 @@ ui-form .item{
 	padding: 5px;
 	padding-right: 30px;
 	margin: 5px;
+
+	display: flex;
+	align-items: center;
 }
 
 ui-form .item > ui-button{

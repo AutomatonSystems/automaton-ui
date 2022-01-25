@@ -379,7 +379,7 @@ export class Table<T> extends List<T>{
 		this.setAttribute("ui-table", '');
 	}
 
-	get listLayout(){
+	override get listLayout(){
 		return `<table>
 <thead>
 	<!-- pagination -->
@@ -400,7 +400,7 @@ export class Table<T> extends List<T>{
 	/**
 	 * Display the sorting headers
 	 */
-	sortDisplay(){
+	override sortDisplay(){
 		let header = this.querySelector('thead tr.headers');
 		let headers =  Object.values(this.attrs);
 		let html = '';

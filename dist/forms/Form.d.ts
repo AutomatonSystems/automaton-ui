@@ -18,7 +18,14 @@ interface FormTemplateJSON {
     children?: FormTemplate | FormTemplate[];
     afterRender?: Function;
 }
-export declare type FormTemplate = FormTemplateJSON | string;
+interface FormArrayTemplate extends FormTemplateJSON {
+    type: "array";
+    config?: FormArrayConfig;
+}
+interface FormArrayConfig {
+    sortable: boolean;
+}
+export declare type FormTemplate = FormArrayTemplate | FormTemplateJSON | string;
 interface FormStyle {
     parent: string;
     wrap: string;

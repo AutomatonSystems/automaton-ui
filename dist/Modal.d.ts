@@ -10,9 +10,6 @@ export declare class Modal extends Splash {
         header?: boolean;
         footer?: boolean;
     });
-    /**
-     * @type {Panel}
-     */
     get panel(): Panel;
     close(): this;
 }

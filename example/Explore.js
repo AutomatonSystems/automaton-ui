@@ -22,7 +22,7 @@ Map.handler('{x},{y}', (hash)=>{
 	]), [x,y]];
 });
 
-Map.attach();
-
 Map.set("0,0");
 Map.hashChange();
+
+export default Map;

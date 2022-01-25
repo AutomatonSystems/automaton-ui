@@ -5,6 +5,8 @@ import { Button } from "./Button.js";
 import "./Toggle.js";
 import * as utils from "../utils.js";
 import UI from "../ui.js";
+import { htmlToElement } from "../utils.js";
+import { DragHandle } from "../component/DragHandle";
 /****** FORM COMPONENTS ******/
 
 interface FormTemplateJSON {
@@ -29,7 +31,16 @@ interface FormTemplateJSON {
 	afterRender?: Function
 };
 
-export type FormTemplate = FormTemplateJSON | string;
+interface FormArrayTemplate extends FormTemplateJSON{
+	type: "array"
+	config?: FormArrayConfig
+}
+
+interface FormArrayConfig {
+	sortable: boolean
+}
+
+export type FormTemplate = FormArrayTemplate | FormTemplateJSON | string;
 
 interface FormStyle{ parent: string; wrap: string; label: string; value: string; };
 
@@ -330,7 +341,13 @@ export class Form extends BasicElement {
 						// the element repeats multiple times
 						jsonKey = jsonKey + "[]";
 
-						let tStyle = template.style ?? 'INLINE';
+						let inputConfig: FormArrayTemplate = <FormArrayTemplate> template;
+
+						let tStyle = inputConfig.style ?? 'INLINE';
+
+						let config: FormArrayConfig = inputConfig.config ?? {
+							sortable: false
+						};
 
 						let substyle = Form.STYLE[tStyle];
 
@@ -343,10 +360,9 @@ export class Form extends BasicElement {
 
 						let createItem = async (itemValue: any) => {
 
-							let item = document.createElement('span');
-							item.classList.add('item');
+							let item = new BasicElement(null, {clazz: 'item'});
 
-							item.append(...await this.jsonToHtml(template.children, itemValue, jsonKey, { style: substyle }));
+							item.append(...await this.jsonToHtml(inputConfig.children, itemValue, jsonKey, { style: substyle }));
 
 							item.append(new Button("", () => {
 								item.remove();
@@ -358,11 +374,26 @@ export class Form extends BasicElement {
 								input.addEventListener('change', this.onChange);
 							}
 
+							if(config.sortable){
+								let handle = new DragHandle();
+								item.prepend(handle);
+
+								item.makeDraggable(jsonKey, null, handle);
+								item.onDrop(jsonKey, (draggedItem: HTMLElement)=>{
+									// Work out if we are moving up or down the list
+									let siblings = [...contain.childNodes];
+									let indexA = siblings.indexOf(item);
+									let indexB = siblings.indexOf(draggedItem);
+									// and move as appropriate
+									item.insertAdjacentElement(indexA < indexB?'beforebegin':'afterend', draggedItem);
+								});
+							}
+
 							contain.append(item);
 
 						};
 						button.addEventListener('click', async () => {
-							let item = await createItem(Array.isArray(template.children)?{}:null)
+							let item = await createItem(Array.isArray(inputConfig.children)?{}:null)
 							this.onChange();
 							return item;
 						});
@@ -371,7 +402,6 @@ export class Form extends BasicElement {
 							for(let j of elementValue){
 								await createItem(j);
 							}
-
 						}
 
 						wrapper.append(contain);

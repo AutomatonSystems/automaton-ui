@@ -100,7 +100,7 @@ export class HashManager extends BasicElement {
 	hash:string = null;
 	depth = 0;
 
-	eventlistener;
+	eventlistener: ()=>void;
 
 	handlers: HashHandler[] = [];
 
@@ -182,7 +182,7 @@ export class HashManager extends BasicElement {
 		}
 	}
 
-	remove(){
+	override remove(){
 		super.remove();
 		window.removeEventListener('hashchange', this.eventlistener);
 		return this;

@@ -190,8 +190,17 @@ export class BasicElement extends HTMLElement {
 	 * @param type a category of thing that is being dragged - eg a 'item', used to filter dropzones
 	 * @param data 
 	 */
-	makeDraggable(type: string ='element', data: any = null){
-		this.draggable = true;
+	makeDraggable(type: string ='element', data: any = null, handle: HTMLElement = null){
+		if(handle == null){
+			this.draggable = true;
+		}else{
+			handle.addEventListener('mousedown', ()=>{
+				this.draggable = true;
+			}, true);
+			this.addEventListener('dragend', ()=>{
+				this.draggable = false;
+			}, true);
+		}
 
 		// by default the data to send is just the element itself
 		type = type.toLowerCase();
