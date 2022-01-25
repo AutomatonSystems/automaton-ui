@@ -41,7 +41,7 @@ export class BasicElement extends HTMLElement {
 	 * 
 	 * @returns {Number} interval id.
 	 */
-	setInterval(callback: ()=>{}, time: number){
+	setInterval(callback: ()=>{}, time: number): number{
 		let id = setInterval(()=>{
 			if(!document.body.contains(this)){
 				this.intervals.forEach(i=>clearInterval(i));
@@ -50,7 +50,7 @@ export class BasicElement extends HTMLElement {
 			}
 		}, time);
 		this.intervals.push(id);
-		return id;
+		return <number><unknown> id;
 	}
 
     /**

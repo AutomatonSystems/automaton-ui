@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Appendable } from './utils.js';
 export declare class BasicElement extends HTMLElement {
     #private;
@@ -22,7 +21,7 @@ export declare class BasicElement extends HTMLElement {
      *
      * @returns {Number} interval id.
      */
-    setInterval(callback: () => {}, time: number): NodeJS.Timeout;
+    setInterval(callback: () => {}, time: number): number;
     /**
      *
      * @param {String} variable
