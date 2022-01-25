@@ -71,5 +71,6 @@ export class Button extends BasicElement {
 		}
 	}
 
+	// TODO reinstate setCallback
 }
 customElements.define('ui-button', Button);

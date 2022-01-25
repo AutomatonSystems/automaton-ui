@@ -22,7 +22,7 @@ export declare class BasicElement extends HTMLElement {
      *
      * @returns {Number} interval id.
      */
-    setInterval(callback: () => {}, time: number): NodeJS.Timer;
+    setInterval(callback: () => {}, time: number): NodeJS.Timeout;
     /**
      *
      * @param {String} variable

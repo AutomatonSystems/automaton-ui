@@ -41,8 +41,8 @@ export class Panel extends BasicElement {
 		}
 	}
 
-	get content(){
-		return this.querySelector('content');
+	get content(): HTMLElement {
+		return this.querySelector('content') ?? this;
 	}
 
 	override append(...elements: Appendable[]) {

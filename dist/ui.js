@@ -883,7 +883,7 @@ class Panel extends BasicElement {
         }
     }
     get content() {
-        return this.querySelector('content');
+        return this.querySelector('content') ?? this;
     }
     append(...elements) {
         append(this.content, elements);
