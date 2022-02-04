@@ -1,7 +1,8 @@
+import { Draggable } from './Mixins.js';
 import {append, sleep} from './utils.js';
 import { Appendable } from './utils.js';
 
-export class BasicElement extends HTMLElement {
+export class BasicElement extends Draggable(HTMLElement) {
 	self: BasicElement;
 	intervals: any[];
 

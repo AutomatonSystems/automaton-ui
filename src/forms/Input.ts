@@ -4,6 +4,7 @@ import "./Input.css";
 
 type AbstractInputOptions = {
 	callback?: Function
+	class?: string|string[]
 	size?:number
 	color?:string
 	placeholder?:string
@@ -26,6 +27,14 @@ export class AbstractInput extends BasicElement{
 		this.key = key;
 
 		this.setAttribute("ui-input", '');
+
+		if(options.class){
+			if(Array.isArray(options.class)){
+				this.classList.add(...options.class);
+			}else{
+				this.classList.add(options.class);
+			}
+		}
 	}
 
 	get value(){
@@ -60,6 +69,14 @@ export class AbstractHTMLInput extends HTMLInputElement{
 		super();
 
 		this.setAttribute("ui-input", '');
+
+		if(options.class){
+			if(Array.isArray(options.class)){
+				this.classList.add(...options.class);
+			}else{
+				this.classList.add(options.class);
+			}
+		}
 	}
 
 	/**
@@ -94,8 +111,9 @@ export class StringInput extends AbstractHTMLInput{
 		if(options?.color)
 			this.style.setProperty('--color', options?.color);
 
-		if(options?.placeholder)
+		if(options?.placeholder){
 			this.setAttribute('placeholder', options?.placeholder);
+		}
 
 		this.addEventListener('change', ()=>{
 			let value = this.value;

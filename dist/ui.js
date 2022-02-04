@@ -117,7 +117,125 @@ var utils = /*#__PURE__*/Object.freeze({
     dynamicallyLoadScript: dynamicallyLoadScript
 });
 
-class BasicElement extends HTMLElement {
+function Readyable(Base) {
+    return class extends Base {
+        #ready = false;
+        constructor(...args) {
+            super(...args);
+        }
+        get ready() {
+            return this.#ready;
+        }
+        set ready(bool) {
+            this.#ready = bool;
+        }
+        async isReady() {
+            while (!this.ready)
+                await sleep(10);
+        }
+    };
+}
+function Draggable(Base) {
+    return class Draggable extends Base {
+        #dropTypeSet = new Set();
+        droppable = false;
+        dragdata = {};
+        constructor(...args) {
+            super(...args);
+        }
+        /**
+         *
+         * Make the element draggable
+         *
+         * @param type a category of thing that is being dragged - eg a 'item', used to filter dropzones
+         * @param data
+         */
+        makeDraggable(type = 'element', data = null, handle = null) {
+            if (handle == null) {
+                this.draggable = true;
+            }
+            else {
+                handle.addEventListener('mousedown', () => {
+                    this.draggable = true;
+                }, true);
+                this.addEventListener('dragend', () => {
+                    this.draggable = false;
+                }, true);
+            }
+            // by default the data to send is just the element itself
+            type = type.toLowerCase();
+            if (data == null)
+                data = this;
+            this.dragdata[type] = data;
+            // add the event listener
+            this.addEventListener('dragstart', (event) => {
+                // setup a unique drag ID
+                if (this.dataset['drag'] == null) {
+                    let id = "D_" + Math.floor(1_000_000 * Math.random()).toString(16);
+                    // TODO collision detection
+                    this.dataset['drag'] = id;
+                }
+                // pass the drag ID as info
+                let selector = `[data-drag="${this.dataset['drag']}"]`;
+                event.dataTransfer.setData(type, selector);
+            });
+        }
+        #makeDroppable() {
+            this.droppable = true;
+            let handler = (event) => {
+                let types = event.dataTransfer.types;
+                for (let type of this.#dropTypeSet) {
+                    if (types.includes(type)) {
+                        event.preventDefault();
+                        return;
+                    }
+                }
+            };
+            this.addEventListener('dragenter', handler);
+            this.addEventListener('dragover', handler);
+        }
+        onDragOver(type, behaviour) {
+            type = type.toLowerCase();
+            if (!this.droppable)
+                this.#makeDroppable();
+            this.#dropTypeSet.add(type);
+            this.addEventListener('dragover', (event) => {
+                let datakey = event.dataTransfer.getData(type);
+                if (datakey == "")
+                    return;
+                if (datakey.startsWith('[data-drag')) {
+                    let draggedElement = document.querySelector(datakey);
+                    let data = draggedElement.dragdata[type];
+                    behaviour(data, event, draggedElement);
+                }
+            });
+        }
+        onDrop(type, behaviour) {
+            type = type.toLowerCase();
+            if (!this.droppable)
+                this.#makeDroppable();
+            this.#dropTypeSet.add(type);
+            this.addEventListener('drop', (event) => {
+                let datakey = event.dataTransfer.getData(type);
+                if (datakey == "")
+                    return;
+                if (datakey.startsWith('[data-drag')) {
+                    let draggedElement = document.querySelector(datakey);
+                    let data = draggedElement.dragdata[type];
+                    behaviour(data, event, draggedElement);
+                }
+            });
+        }
+    };
+}
+
+var mixin = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    Readyable: Readyable,
+    Draggable: Draggable
+});
+
+class BasicElement extends Draggable(HTMLElement) {
     self;
     intervals;
     constructor(content, { clazz = '' } = {}) {
@@ -269,93 +387,6 @@ class BasicElement extends HTMLElement {
     querySelectorAll(string) {
         // ???
         return super.querySelectorAll(string);
-    }
-    /****** DROP LOGIC - TODO move to a behaviour class ********/
-    #dropTypeSet = new Set();
-    droppable = false;
-    dragdata = {};
-    /**
-     *
-     * Make the element draggable
-     *
-     * @param type a category of thing that is being dragged - eg a 'item', used to filter dropzones
-     * @param data
-     */
-    makeDraggable(type = 'element', data = null, handle = null) {
-        if (handle == null) {
-            this.draggable = true;
-        }
-        else {
-            handle.addEventListener('mousedown', () => {
-                this.draggable = true;
-            }, true);
-            this.addEventListener('dragend', () => {
-                this.draggable = false;
-            }, true);
-        }
-        // by default the data to send is just the element itself
-        type = type.toLowerCase();
-        if (data == null)
-            data = this;
-        this.dragdata[type] = data;
-        // add the event listener
-        this.addEventListener('dragstart', (event) => {
-            // setup a unique drag ID
-            if (this.dataset['drag'] == null) {
-                let id = "D_" + Math.floor(1_000_000 * Math.random()).toString(16);
-                // TODO collision detection
-                this.dataset['drag'] = id;
-            }
-            // pass the drag ID as info
-            let selector = `[data-drag="${this.dataset['drag']}"]`;
-            event.dataTransfer.setData(type, selector);
-        });
-    }
-    #makeDroppable() {
-        this.droppable = true;
-        let handler = (event) => {
-            let types = event.dataTransfer.types;
-            for (let type of this.#dropTypeSet) {
-                if (types.includes(type)) {
-                    event.preventDefault();
-                    return;
-                }
-            }
-        };
-        this.addEventListener('dragenter', handler);
-        this.addEventListener('dragover', handler);
-    }
-    onDragOver(type, behaviour) {
-        type = type.toLowerCase();
-        if (!this.droppable)
-            this.#makeDroppable();
-        this.#dropTypeSet.add(type);
-        this.addEventListener('dragover', (event) => {
-            let datakey = event.dataTransfer.getData(type);
-            if (datakey == "")
-                return;
-            if (datakey.startsWith('[data-drag')) {
-                let draggedElement = document.querySelector(datakey);
-                let data = draggedElement.dragdata[type];
-                behaviour(data, event, draggedElement);
-            }
-        });
-    }
-    onDrop(type, behaviour) {
-        type = type.toLowerCase();
-        if (!this.droppable)
-            this.#makeDroppable();
-        this.#dropTypeSet.add(type);
-        this.addEventListener('drop', (event) => {
-            let datakey = event.dataTransfer.getData(type);
-            if (datakey == "")
-                return;
-            if (datakey.startsWith('[data-drag')) {
-                let draggedElement = document.querySelector(datakey);
-                let data = draggedElement.dragdata[type];
-                behaviour(data, event, draggedElement);
-            }
-        });
     }
 }
 customElements.define('ui-basic', BasicElement);
@@ -723,15 +754,6 @@ class Form extends BasicElement {
                         let button = new Button("Add", null, { icon: 'fa-plus' });
                         let createItem = async (itemValue) => {
                             let item = new BasicElement(null, { clazz: 'item' });
-                            item.append(...await this.jsonToHtml(inputConfig.children, itemValue, jsonKey, { style: substyle }));
-                            item.append(new Button("", () => {
-                                item.remove();
-                                this.onChange();
-                            }, { icon: 'fa-trash', style: "text", color: "error-color" }));
-                            let inputs = item.querySelectorAll('[data-key]');
-                            for (let input of inputs) {
-                                input.addEventListener('change', this.onChange);
-                            }
                             if (config.sortable) {
                                 let handle = new DragHandle();
                                 item.prepend(handle);
@@ -744,6 +766,15 @@ class Form extends BasicElement {
                                     // and move as appropriate
                                     item.insertAdjacentElement(indexA < indexB ? 'beforebegin' : 'afterend', draggedItem);
                                 });
+                            }
+                            item.append(...await this.jsonToHtml(inputConfig.children, itemValue, jsonKey, { style: substyle }));
+                            item.append(new Button("", () => {
+                                item.remove();
+                                this.onChange();
+                            }, { icon: 'fa-trash', style: "text", color: "error-color" }));
+                            let inputs = item.querySelectorAll('[data-key]');
+                            for (let input of inputs) {
+                                input.addEventListener('change', this.onChange);
                             }
                             contain.append(item);
                         };
@@ -1302,6 +1333,14 @@ class AbstractInput extends BasicElement {
         this.obj = obj;
         this.key = key;
         this.setAttribute("ui-input", '');
+        if (options.class) {
+            if (Array.isArray(options.class)) {
+                this.classList.add(...options.class);
+            }
+            else {
+                this.classList.add(options.class);
+            }
+        }
     }
     get value() {
         return Reflect.get(this.obj, this.key);
@@ -1329,6 +1368,14 @@ class AbstractHTMLInput extends HTMLInputElement {
     constructor(obj, key, options) {
         super();
         this.setAttribute("ui-input", '');
+        if (options.class) {
+            if (Array.isArray(options.class)) {
+                this.classList.add(...options.class);
+            }
+            else {
+                this.classList.add(options.class);
+            }
+        }
     }
     /**
      *
@@ -1355,8 +1402,9 @@ class StringInput extends AbstractHTMLInput {
             this.style.width = (options?.size * 24) + "px";
         if (options?.color)
             this.style.setProperty('--color', options?.color);
-        if (options?.placeholder)
+        if (options?.placeholder) {
             this.setAttribute('placeholder', options?.placeholder);
+        }
         this.addEventListener('change', () => {
             let value = this.value;
             Reflect.set(obj, key, value);
@@ -1859,27 +1907,6 @@ class Json extends Code {
 customElements.define('ui-json', Json);
 
 let uuid = 0;
-/**
- * @callback itemElement
- * @param {any} item
- * @returns {HTMLElement}
- */
-/**
- * @callback attributeValue
- * @param {Object} item
- * @returns {Number|String}
- */
-/**
- * @callback attributeDisplayValue
- * @param {Object} item
- * @returns {String}
- */
-/** @typedef {Object} Attr
- *  @property {Number} id
- * 	@property {String} name
- *  @property {attributeValue} value
- *  @property {attributeDisplayValue} value
- */
 class List extends BasicElement {
     // weakmap will ensure that we don't hold elements after they have fallen out of both the DOM and the data list
     elementMap = new WeakMap();
@@ -1896,6 +1923,9 @@ class List extends BasicElement {
     static ITEMS_PER_PAGE_KEY = "--items-per-page";
     display;
     lookup;
+    // internal filters
+    #filters = [];
+    // extenally provided filtering
     _filterFunc;
     _itemDisplayFunc;
     pageNumber;
@@ -1934,7 +1964,8 @@ class List extends BasicElement {
         return `
 	<!-- pagination -->
 	<header>
-		<span><span class="sort"></span></span>
+		<span class="sort"></span>
+		<span class="filter"></span>
 		<ui-spacer></ui-spacer>
 		<span class="paging top"></span>
 	</header>
@@ -1950,10 +1981,6 @@ class List extends BasicElement {
     }
     set data(data) {
         this._data = data;
-        for (let item of this._data) {
-            if (item.__id == null)
-                item.__id = item.id ? item.id : ('' + uuid++);
-        }
         this.dirty = true;
     }
     get data() {
@@ -1972,13 +1999,60 @@ class List extends BasicElement {
             "name": name,
             "width": width,
             "value": (typeof valueFunc == "string") ? i => i[valueFunc] : valueFunc,
-            "displayFunc": (typeof displayFunc == "string") ? i => i[displayFunc] : displayFunc
+            "displayFunc": (typeof displayFunc == "string") ? i => i[displayFunc] : displayFunc,
+            sortable: valueFunc != null
         };
         this.dirty = true;
         return this;
     }
+    addAttr(name, options) {
+        let valueFunc = options.value ?? name;
+        let displayFunc = options.render ?? valueFunc;
+        let attr = {
+            id: uuid++,
+            name: name,
+            width: options.display?.width,
+            // @ts-ignore
+            value: typeof valueFunc === "string" ? (i) => i[valueFunc] : valueFunc,
+            // @ts-ignore
+            displayFunc: typeof displayFunc === "string" ? (i) => i[displayFunc] : displayFunc,
+            sortable: valueFunc != null && (options.display?.sortable ?? true),
+        };
+        this.attrs[name] = attr;
+        if (valueFunc != null && (options.display?.filterable ?? false)) {
+            this.addFilter({
+                attr: [name],
+                value: ''
+            });
+        }
+        this.dirty = true;
+        return this;
+    }
+    getFilters() {
+        return this.#filters;
+    }
+    addFilter(filter) {
+        this.#filters.push(filter);
+        return this;
+    }
+    #internalFilter(item) {
+        filters: for (let filter of this.#filters) {
+            if (filter.value) {
+                for (let attr of filter.attr) {
+                    let value = ('' + this.attrs[attr]?.value(item)).toLowerCase();
+                    if (value.toLowerCase().includes(filter.value)) {
+                        // we've passed this filter
+                        continue filters;
+                    }
+                }
+                // we failed this filter
+                return false;
+            }
+        }
+        return true;
+    }
     _filtered(item) {
-        return this._filterFunc == null || this._filterFunc(item);
+        return this.#internalFilter(item) && (this._filterFunc == null || this._filterFunc(item));
     }
     filter(func = this._filterFunc) {
         this._filterFunc = func;
@@ -2002,7 +2076,23 @@ class List extends BasicElement {
         };
         wrapper.innerHTML = "";
         wrapper.appendChild(select);
-        if (Object.values(this.attrs).length == 0)
+        if (Object.values(this.attrs).length == 0 || this.data.length == 0)
+            wrapper.style.display = "none";
+    }
+    filterDisplay() {
+        let wrapper = this.querySelector('.filter');
+        if (!wrapper.hasChildNodes()) {
+            for (let filter of this.#filters) {
+                wrapper.append(new StringInput(filter, 'value', {
+                    placeholder: 'Search',
+                    callback: async (newValue) => {
+                        this.dirty = true;
+                        await this.page();
+                    }
+                }));
+            }
+        }
+        if (Object.values(this.attrs).length == 0 || this.data.length == 0)
             wrapper.style.display = "none";
     }
     async render(forceRedraw = false) {
@@ -2010,8 +2100,10 @@ class List extends BasicElement {
         if (forceRedraw) {
             this.dirty = true;
         }
-        //render headers
+        // render headers
         this.sortDisplay();
+        // render filters
+        this.filterDisplay();
         // setup paging
         await this.page();
     }
@@ -2067,7 +2159,7 @@ class List extends BasicElement {
             }
             // compute paging numbers
             let visibleCount = this.display.length;
-            let pages = Math.ceil(visibleCount / this.itemsPerPage);
+            let pages = this.itemsPerPage < Infinity ? Math.ceil(visibleCount / this.itemsPerPage) : 1;
             let needsPaging = pages > 1;
             this.pageNumber = isNaN(page) ? 0 : Math.max(Math.min(page, pages - 1), 0);
             // render the paging if needed
@@ -2086,7 +2178,8 @@ class List extends BasicElement {
             }
             // finally actually add the items to the page
             this.listBody.innerHTML = "";
-            for (let index = this.pageNumber * this.itemsPerPage; index < (this.pageNumber + 1) * this.itemsPerPage && index < visibleCount; index++) {
+            let start = this.itemsPerPage == Infinity ? 0 : this.pageNumber * this.itemsPerPage;
+            for (let index = start; index < (this.pageNumber + 1) * this.itemsPerPage && index < visibleCount; index++) {
                 let item = this.display[index];
                 let ele = (await this.getItemElement(item));
                 if (ele instanceof BasicElement) {
@@ -2145,6 +2238,7 @@ class List extends BasicElement {
     }
 }
 customElements.define('ui-list', List);
+
 /**
  * Table is a special case of List with a more automatic layout
  */
@@ -2152,7 +2246,6 @@ class Table extends List {
     constructor(options = {}) {
         super(async (item) => {
             let tr = document.createElement('tr');
-            tr.dataset['tableId'] = item.__id;
             // render item (possible hidden)
             for (let header of Object.values(this.attrs)) {
                 let cell = document.createElement('td');
@@ -2169,9 +2262,10 @@ class Table extends List {
 <thead>
 	<!-- pagination -->
 	<tr><td class="paging top" colspan="100"></td></tr>
-
+	<!-- headers -->
 	<tr class="headers"></tr>
 	<!-- filters -->
+	<tr class="filter"></tr>
 </thead>
 <tbody class="list">
 </tbody>
@@ -2203,6 +2297,30 @@ class Table extends List {
         // highlight the sorted header
         if (this._sort)
             this.querySelector(`thead tr.headers th[data-table-id='${this._sort.attr.id}']`).classList.add(this._sort.asc ? 'asc' : 'desc');
+    }
+    /**
+     * Display the sorting headers
+     */
+    filterDisplay() {
+        let filterRow = this.querySelector('.filter');
+        if (!filterRow.hasChildNodes()) {
+            let headers = Object.values(this.attrs);
+            let filters = this.getFilters();
+            for (let header of headers) {
+                let cell = htmlToElement('<td></td>', 'tr');
+                let filter = filters.find(f => f.attr.includes(header.name));
+                if (filter) {
+                    cell.append(new StringInput(filter, 'value', {
+                        placeholder: 'Search',
+                        callback: async (newValue) => {
+                            this.dirty = true;
+                            await this.page();
+                        }
+                    }));
+                }
+                filterRow.append(cell);
+            }
+        }
     }
 }
 customElements.define('ui-table', Table);
@@ -2537,11 +2655,12 @@ const UI = {
     uuid: uuid$1,
     sleep: sleep,
     utils,
-    factory
+    factory,
+    mixin
 };
 // @ts-ignore
 window["UI"] = UI;
 let createElement = htmlToElement;
 
-export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Grid, HashManager, InputLabel, Json, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, UI as default, factory, utils };
+export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Grid, HashManager, InputLabel, Json, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, UI as default, factory, mixin, utils };
 //# sourceMappingURL=ui.js.map

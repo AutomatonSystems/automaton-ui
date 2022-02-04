@@ -1,0 +1,27 @@
+
+[ui-table] > table{
+	border-collapse: collapse;
+	width:100%
+}
+
+[ui-table] > table > * > tr > *{
+	padding:  5px;
+}
+
+[ui-table] > table > thead > tr > th{
+	position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+[ui-table] > table > thead > tr > th[data-sort]{
+	cursor: pointer;
+}
+
+[ui-table] > table > tbody > tr:nth-child(2n + 0){
+	background-color: #eee;
+}
+
+[ui-table] > table > tbody > tr:nth-child(2n + 1){
+	background-color: #f6f6f6;
+}

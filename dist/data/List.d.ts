@@ -11,6 +11,7 @@ declare type Attr<T> = {
     "width": string;
     "value": ValueFunction<T>;
     "displayFunc": DisplayFunction<T>;
+    sortable: boolean;
 };
 /**
  * @callback itemElement
@@ -33,7 +34,25 @@ declare type Attr<T> = {
  *  @property {attributeValue} value
  *  @property {attributeDisplayValue} value
  */
+declare type ListOptions = {
+    itemColumns?: number;
+    itemsPerPage?: number;
+};
+declare type Filter = {
+    attr: string[];
+    value: string;
+};
+declare type AttrOptions<T> = {
+    value?: string | ValueFunction<T>;
+    render?: string | DisplayFunction<T>;
+    display?: {
+        width?: string;
+        sortable?: boolean;
+        filterable?: boolean;
+    };
+};
 export declare class List<T> extends BasicElement {
+    #private;
     elementMap: WeakMap<any, HTMLElement>;
     static ASC: boolean;
     static DESC: boolean;
@@ -54,10 +73,7 @@ export declare class List<T> extends BasicElement {
     _filterFunc: any;
     _itemDisplayFunc: ItemElementFunction<T>;
     pageNumber: number;
-    constructor(itemDisplay: ItemElementFunction<T>, options?: {
-        itemColumns?: number;
-        itemsPerPage?: number;
-    });
+    constructor(itemDisplay: ItemElementFunction<T>, options?: ListOptions);
     notBusy(): Promise<void>;
     set itemColumns(value: number);
     get itemsPerPage(): number;
@@ -73,12 +89,16 @@ export declare class List<T> extends BasicElement {
      * @param {*} width
      */
     addAttribute(name: string, valueFunc?: string | ValueFunction<T>, displayFunc?: string | ValueFunction<T> | DisplayFunction<T>, width?: string): this;
-    _filtered(item: any): any;
+    addAttr(name: string, options: AttrOptions<T>): this;
+    getFilters(): Filter[];
+    addFilter(filter: Filter): this;
+    _filtered(item: T): any;
     filter(func?: any): void;
     /**
      * Display the sorting headers
      */
     sortDisplay(): void;
+    filterDisplay(): void;
     render(forceRedraw?: boolean): Promise<void>;
     sort(attribute?: string | Attr<T>, asc?: boolean): Promise<void>;
     /**
@@ -89,18 +109,5 @@ export declare class List<T> extends BasicElement {
     getItemElement(item: any): Promise<HTMLElement>;
     renderItem(item: any): Promise<HTMLElement>;
     pagingMarkup(page: number, pages: number, visibleCount: number): string;
-}
-/**
- * Table is a special case of List with a more automatic layout
- */
-export declare class Table<T> extends List<T> {
-    constructor(options?: {
-        itemsPerPage?: number;
-    });
-    get listLayout(): string;
-    /**
-     * Display the sorting headers
-     */
-    sortDisplay(): void;
 }
 export {};

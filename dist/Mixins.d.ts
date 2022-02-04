@@ -1,9 +1,32 @@
-import { Appendable } from './utils.js';
-declare const BasicElement_base: {
+declare type GConstructor<T = {}> = new (...args: any[]) => T;
+declare type HTMLElementBase = GConstructor<HTMLElement>;
+declare type ObjectBase = GConstructor<Object>;
+export declare function Readyable<TBase extends ObjectBase>(Base: TBase): {
+    new (...args: any[]): {
+        "__#1@#ready": boolean;
+        ready: boolean;
+        isReady(): Promise<void>;
+        constructor: Function;
+        toString(): string;
+        toLocaleString(): string;
+        valueOf(): Object;
+        hasOwnProperty(v: PropertyKey): boolean;
+        isPrototypeOf(v: Object): boolean;
+        propertyIsEnumerable(v: PropertyKey): boolean;
+    };
+} & TBase;
+export declare function Draggable<TBase extends HTMLElementBase>(Base: TBase): {
     new (...args: any[]): {
         "__#2@#dropTypeSet": Set<string>;
         droppable: boolean;
         dragdata: Record<string, any>;
+        /**
+         *
+         * Make the element draggable
+         *
+         * @param type a category of thing that is being dragged - eg a 'item', used to filter dropzones
+         * @param data
+         */
         makeDraggable(type?: string, data?: any, handle?: HTMLElement): void;
         "__#2@#makeDroppable"(): void;
         onDragOver(type: string, behaviour: (data: any, event: DragEvent, element: HTMLElement) => void): void;
@@ -308,74 +331,5 @@ declare const BasicElement_base: {
         blur(): void;
         focus(options?: FocusOptions): void;
     };
-} & {
-    new (): HTMLElement;
-    prototype: HTMLElement;
-};
-export declare class BasicElement extends BasicElement_base {
-    self: BasicElement;
-    intervals: any[];
-    constructor(content?: Appendable, { clazz }?: {
-        clazz?: string;
-    });
-    /**
-     *
-     * Replace the current content of this element with the provided content
-     *
-     * @param content
-     */
-    setContent(...content: Appendable[]): void;
-    /**
-     * Starts a interval timer that will stop when this element is no longer on the DOM
-     *
-     * @param {*} callback
-     * @param {Number} time in ms
-     *
-     * @returns {Number} interval id.
-     */
-    setInterval(callback: () => any, time: number): number;
-    /**
-     *
-     * @param {String} variable
-     *
-     * @returns {String}
-     */
-    css(variable: string): string;
-    /**
-     *
-     * @param {String} variable
-     *
-     * @returns {Number}
-     */
-    cssNumber(variable: string): number;
-    setCss(name: string, value: string | number): void;
-    getCss(name: string): void;
-    get visible(): boolean;
-    /**
-     * @param {Boolean} boolean
-     */
-    set visible(boolean: boolean);
-    show(parent?: HTMLElement): this;
-    hide(): this;
-    remove(): this;
-    /**
-     * Walk up dom tree looking for a closable element
-     */
-    close(): this;
-    attach(parent?: HTMLElement): this;
-    /**
-     *
-     * @param {String} string
-     *
-     * @returns {HTMLElement}
-     */
-    querySelector(string: string): HTMLElement;
-    /**
-     *
-     * @param {String} string
-     *
-     * @returns {NodeList<HTMLElement>}
-     */
-    querySelectorAll(string: string): NodeListOf<HTMLElement>;
-}
+} & TBase;
 export {};

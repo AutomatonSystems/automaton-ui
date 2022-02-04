@@ -2,6 +2,7 @@ import { BasicElement } from "../BasicElement.js";
 import "./Input.css";
 declare type AbstractInputOptions = {
     callback?: Function;
+    class?: string | string[];
     size?: number;
     color?: string;
     placeholder?: string;
