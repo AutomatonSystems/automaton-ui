@@ -21,7 +21,7 @@ export declare class BasicElement extends HTMLElement {
      *
      * @returns {Number} interval id.
      */
-    setInterval(callback: () => {}, time: number): number;
+    setInterval(callback: () => any, time: number): number;
     /**
      *
      * @param {String} variable
