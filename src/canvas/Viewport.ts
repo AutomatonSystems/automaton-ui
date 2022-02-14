@@ -18,8 +18,8 @@ type GridLine = {
 	color: string
 }
 
-type RenderableHTMLElement = HTMLElement & {
-	render?: (viewport: Viewport)=>{}
+export type RenderableHTMLElement = HTMLElement & {
+	render?: (viewport: Viewport)=>void
 	scalar?: number
 	x?: number
 	y?: number

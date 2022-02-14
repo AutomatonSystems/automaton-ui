@@ -10,7 +10,11 @@ type HashVariableMapperFunction = {
 
 type SlideProperty = number | [number, number];
 type HashResponse = false | HTMLElement | [HTMLElement, SlideProperty];
-type HashChangeHandler = (value: string|number|boolean|object)=> HashResponse | Promise<HashResponse>;
+type HashChangeHandler = (value: {[index:string]:string|number|boolean|object})=> HashResponse | Promise<HashResponse>;
+
+type BasicHashHandler = {
+	handle: (path: string, oldPath: string)=>Promise<HashResponse>;
+}
 
 export class HashHandler{
 
@@ -102,7 +106,7 @@ export class HashManager extends BasicElement {
 
 	eventlistener: ()=>void;
 
-	handlers: HashHandler[] = [];
+	handlers: BasicHashHandler[] = [];
 
 	position = [0,0];
 
@@ -197,7 +201,7 @@ export class HashManager extends BasicElement {
 		return this;
 	}
 
-	addHandler(h: HashHandler) {
+	addHandler(h: BasicHashHandler) {
 		this.handlers.push(h);
 	}
 

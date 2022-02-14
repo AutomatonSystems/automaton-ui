@@ -2,7 +2,7 @@ import "./Table.css";
 
 import { append, htmlToElement } from "../utils.js";
 import { List } from "./List";
-import { StringInput } from "../forms/Input.js";
+import { StringInput, StringInputOptions } from "../forms/Input.js";
 
 /**
  * Table is a special case of List with a more automatic layout
@@ -84,13 +84,17 @@ export class Table<T> extends List<T> {
 				let cell = htmlToElement('<td></td>', 'tr');
 				let filter = filters.find(f=>f.attr.includes(header.name))
 				if(filter){
-					cell.append(new StringInput(filter, 'value', {
+					let options: StringInputOptions = {
 						placeholder: 'Search',
 						callback: async (newValue: string)=>{
 							this.dirty = true;
 							await this.page();
 						}
-					}));
+					};
+					if(filter.suggest){
+						options['options'] = async ()=>this.data.map((t:T)=>header.value(t).toString()).sort();
+					}
+					cell.append(new StringInput(filter, 'value', options));
 				}
 				filterRow.append(cell);
 			}

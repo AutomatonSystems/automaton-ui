@@ -34,7 +34,7 @@ export declare class AbstractHTMLInput extends HTMLInputElement {
      * @param key json key/indes to keep up to date
      * @param options configuration parameters
      */
-    constructor(obj: any, key: any, options: AbstractInputOptions);
+    constructor(obj: any, key: any, options?: AbstractInputOptions);
     /**
      *
      * @param {String} name
@@ -43,6 +43,9 @@ export declare class AbstractHTMLInput extends HTMLInputElement {
      */
     label(name: string): InputLabel;
 }
+export declare type StringInputOptions = AbstractInputOptions & {
+    options?: (() => Promise<SelectInputOption[]>) | SelectInputOption[];
+};
 export declare class StringInput extends AbstractHTMLInput {
     /**
      *
@@ -50,7 +53,8 @@ export declare class StringInput extends AbstractHTMLInput {
      * @param key json key/indes to keep up to date
      * @param options configuration parameters
      */
-    constructor(obj: any, key: any, options: AbstractInputOptions);
+    constructor(obj: any, key: any, options: StringInputOptions);
+    buildOptions(parsedOptions: any[]): void;
 }
 /**
  * A number input that keeps a json object

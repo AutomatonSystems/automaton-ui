@@ -34,13 +34,15 @@ declare type Attr<T> = {
  *  @property {attributeValue} value
  *  @property {attributeDisplayValue} value
  */
-declare type ListOptions = {
+declare type ListOptions<T> = {
     itemColumns?: number;
     itemsPerPage?: number;
+    dedupeFunction?: (t: T) => any;
 };
 declare type Filter = {
     attr: string[];
     value: string;
+    suggest?: boolean;
 };
 declare type AttrOptions<T> = {
     value?: string | ValueFunction<T>;
@@ -48,11 +50,12 @@ declare type AttrOptions<T> = {
     display?: {
         width?: string;
         sortable?: boolean;
-        filterable?: boolean;
+        filterable?: boolean | 'suggest';
     };
 };
 export declare class List<T> extends BasicElement {
     #private;
+    dedupeFunction: (t: T) => any;
     elementMap: WeakMap<any, HTMLElement>;
     static ASC: boolean;
     static DESC: boolean;
@@ -73,7 +76,7 @@ export declare class List<T> extends BasicElement {
     _filterFunc: any;
     _itemDisplayFunc: ItemElementFunction<T>;
     pageNumber: number;
-    constructor(itemDisplay: ItemElementFunction<T>, options?: ListOptions);
+    constructor(itemDisplay: ItemElementFunction<T>, options?: ListOptions<T>);
     notBusy(): Promise<void>;
     set itemColumns(value: number);
     get itemsPerPage(): number;
@@ -106,7 +109,7 @@ export declare class List<T> extends BasicElement {
      * @param {Number} page ZERO-INDEXED page number
      */
     page(page?: number): Promise<void>;
-    getItemElement(item: any): Promise<HTMLElement>;
+    getItemElement(item: T): Promise<HTMLElement>;
     renderItem(item: any): Promise<HTMLElement>;
     pagingMarkup(page: number, pages: number, visibleCount: number): string;
 }

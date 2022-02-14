@@ -75,6 +75,7 @@ export { Card };
 export { Code };
 export { ContextMenu };
 export { Form };
+export { Form2 };
 export { InputLabel, NumberInput, StringInput, LabelledInput, MultiSelectInput };
 export { Grid };
 export { HashManager };

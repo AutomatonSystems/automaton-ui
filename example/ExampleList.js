@@ -11,12 +11,13 @@ let list = new List(item=>{
 
 list
 	.addAttribute("id")
-	.addAttr("name", {
-		display: {
-			filterable: true
-		}
-	})
-	.addAttribute("img", null, i=>`<img src="${i.img}"/>`);
+	.addAttribute("name")
+	.addAttribute("img", null, i=>`<img src="${i.img}"/>`)
+	.addFilter({
+		attr: ["name"],
+		value: "",
+		suggest: true
+	});
 list.data = POKEMON;
 list.sort("id", List.ASC);
 
@@ -25,7 +26,7 @@ table
 	.addAttribute("id")
 	.addAttr("name", {
 		display: {
-			filterable: true
+			filterable: 'suggest'
 		}
 	})
 	.addAttribute("img", null, i=>`<img src="${i.img}"/>`);

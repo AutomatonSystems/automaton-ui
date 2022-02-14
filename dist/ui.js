@@ -1368,7 +1368,7 @@ class AbstractHTMLInput extends HTMLInputElement {
     constructor(obj, key, options) {
         super();
         this.setAttribute("ui-input", '');
-        if (options.class) {
+        if (options?.class) {
             if (Array.isArray(options.class)) {
                 this.classList.add(...options.class);
             }
@@ -1405,12 +1405,32 @@ class StringInput extends AbstractHTMLInput {
         if (options?.placeholder) {
             this.setAttribute('placeholder', options?.placeholder);
         }
+        // Provide autocomplete options for the input
+        if (options?.options) {
+            // lazily create input options
+            let lazyInit = async () => {
+                this.buildOptions(Array.isArray(options.options) ? options.options : await options.options());
+                this.removeEventListener('mouseover', lazyInit);
+            };
+            this.addEventListener('mouseover', lazyInit);
+        }
         this.addEventListener('change', () => {
             let value = this.value;
             Reflect.set(obj, key, value);
             if (options?.callback)
                 options?.callback(value);
         });
+    }
+    buildOptions(parsedOptions) {
+        // dump the datalist out
+        let id = uuid$1();
+        let list = htmlToElement(`<datalist id="${id}">`
+            + parsedOptions.map(v => `<option value="${v.value ? v.value : v}">${v.name ? v.name : v}</option>`).join('')
+            + '</datalist>');
+        document.body.append(list);
+        // by default the list component only shows the items that match the input.value, which isn't very useful for a picker
+        this.addEventListener('focus', () => this.value = '');
+        this.setAttribute('list', id);
     }
 }
 customElements.define('ui-stringinput', StringInput, { extends: 'input' });
@@ -1525,8 +1545,8 @@ class MultiSelectInput extends AbstractInput {
     renderList() {
         this.list.innerHTML = "";
         this.list.append(...this.value.map((v, index) => {
-            let badge = new UI.Badge(v);
-            badge.append(new UI.Button('', () => {
+            let badge = new Badge(v);
+            badge.append(new Button('', () => {
                 // remove this item and redraw
                 this.value.splice(index, 1);
                 this.renderList();
@@ -1599,7 +1619,7 @@ class InputLabel extends HTMLLabelElement {
 customElements.define('ui-label', InputLabel, { extends: 'label' });
 class LabelledInput extends InputLabel {
     constructor(json, key, type, options) {
-        super(new type(json, key, options), options.name ?? key, { wrapped: true });
+        super(new type(json, key, options), options?.name ?? key, { wrapped: true });
     }
 }
 customElements.define('ui-labelledinput', LabelledInput, { extends: 'label' });
@@ -1909,6 +1929,7 @@ customElements.define('ui-json', Json);
 let uuid = 0;
 class List extends BasicElement {
     // weakmap will ensure that we don't hold elements after they have fallen out of both the DOM and the data list
+    dedupeFunction;
     elementMap = new WeakMap();
     static ASC = true;
     static DESC = false;
@@ -1945,6 +1966,13 @@ class List extends BasicElement {
             this.itemColumns = options.itemColumns;
         if (options.itemsPerPage)
             this.itemsPerPage = options.itemsPerPage;
+        if (options.dedupeFunction) {
+            this.elementMap = new Map();
+            this.dedupeFunction = options.dedupeFunction;
+        }
+        else {
+            this.dedupeFunction = (t) => t;
+        }
     }
     async notBusy() {
         while (this._busy)
@@ -2022,7 +2050,8 @@ class List extends BasicElement {
         if (valueFunc != null && (options.display?.filterable ?? false)) {
             this.addFilter({
                 attr: [name],
-                value: ''
+                value: '',
+                suggest: options.display?.filterable == 'suggest'
             });
         }
         this.dirty = true;
@@ -2038,9 +2067,10 @@ class List extends BasicElement {
     #internalFilter(item) {
         filters: for (let filter of this.#filters) {
             if (filter.value) {
+                const filterValue = filter.value.toLocaleLowerCase();
                 for (let attr of filter.attr) {
                     let value = ('' + this.attrs[attr]?.value(item)).toLowerCase();
-                    if (value.toLowerCase().includes(filter.value)) {
+                    if (value.toLowerCase().includes(filterValue)) {
                         // we've passed this filter
                         continue filters;
                     }
@@ -2195,15 +2225,16 @@ class List extends BasicElement {
         }
     }
     async getItemElement(item) {
-        if (!this.elementMap.has(item)) {
+        let key = this.dedupeFunction(item);
+        if (!this.elementMap.has(key)) {
             let ele = await this.renderItem(item);
             if (typeof item == "string") {
                 // TODO support caching of string based item elements....
                 return ele;
             }
-            this.elementMap.set(item, ele);
+            this.elementMap.set(key, ele);
         }
-        return this.elementMap.get(item);
+        return this.elementMap.get(key);
     }
     async renderItem(item) {
         return await this._itemDisplayFunc(item);
@@ -2310,13 +2341,17 @@ class Table extends List {
                 let cell = htmlToElement('<td></td>', 'tr');
                 let filter = filters.find(f => f.attr.includes(header.name));
                 if (filter) {
-                    cell.append(new StringInput(filter, 'value', {
+                    let options = {
                         placeholder: 'Search',
                         callback: async (newValue) => {
                             this.dirty = true;
                             await this.page();
                         }
-                    }));
+                    };
+                    if (filter.suggest) {
+                        options['options'] = async () => this.data.map((t) => header.value(t).toString()).sort();
+                    }
+                    cell.append(new StringInput(filter, 'value', options));
                 }
                 filterRow.append(cell);
             }
@@ -2662,5 +2697,5 @@ const UI = {
 window["UI"] = UI;
 let createElement = htmlToElement;
 
-export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Grid, HashManager, InputLabel, Json, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, UI as default, factory, mixin, utils };
+export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Form2, Grid, HashManager, InputLabel, Json, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, UI as default, factory, mixin, utils };
 //# sourceMappingURL=ui.js.map

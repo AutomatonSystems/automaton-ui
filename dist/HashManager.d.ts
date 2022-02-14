@@ -6,7 +6,12 @@ declare type HashVariableMapperFunction = {
 };
 declare type SlideProperty = number | [number, number];
 declare type HashResponse = false | HTMLElement | [HTMLElement, SlideProperty];
-declare type HashChangeHandler = (value: string | number | boolean | object) => HashResponse | Promise<HashResponse>;
+declare type HashChangeHandler = (value: {
+    [index: string]: string | number | boolean | object;
+}) => HashResponse | Promise<HashResponse>;
+declare type BasicHashHandler = {
+    handle: (path: string, oldPath: string) => Promise<HashResponse>;
+};
 export declare class HashHandler {
     /** @type {RegExp}*/
     path: RegExp;
@@ -38,7 +43,7 @@ export declare class HashManager extends BasicElement {
     hash: string;
     depth: number;
     eventlistener: () => void;
-    handlers: HashHandler[];
+    handlers: BasicHashHandler[];
     position: number[];
     static DIRECTION: {
         NONE: number;
@@ -56,7 +61,7 @@ export declare class HashManager extends BasicElement {
     remove(): this;
     get value(): string;
     handler(path: string, func: HashChangeHandler): this;
-    addHandler(h: HashHandler): void;
+    addHandler(h: BasicHashHandler): void;
     set(value: any, fireOnChange?: boolean, noHistory?: boolean): Promise<void>;
     hashChange(): Promise<void>;
     swapContent(body: HTMLElement, direction?: SlideProperty): Promise<HTMLElement>;

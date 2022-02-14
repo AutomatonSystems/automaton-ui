@@ -47,14 +47,16 @@ type Attr<T> = {
  *  @property {attributeDisplayValue} value
  */
 
-type ListOptions = {
+type ListOptions<T> = {
 	itemColumns?:number
 	itemsPerPage?: number
+	dedupeFunction?: (t: T)=> any
 }
 
 type Filter = {
 	attr: string[]
 	value: string
+	suggest?: boolean
 }
 
 type AttrOptions<T> = {
@@ -64,13 +66,14 @@ type AttrOptions<T> = {
 	display?: {
 		width?: string
 		sortable?: boolean
-		filterable?: boolean
+		filterable?: boolean | 'suggest'
 	}
 }
 
 export class List<T> extends BasicElement{
 
 	// weakmap will ensure that we don't hold elements after they have fallen out of both the DOM and the data list
+	dedupeFunction: (t: T) => any;
 	elementMap = new WeakMap<any, HTMLElement>();
 
 	static ASC = true;
@@ -102,8 +105,9 @@ export class List<T> extends BasicElement{
 	_filterFunc: any;
 	_itemDisplayFunc: ItemElementFunction<T>;
 	pageNumber: number;
+	
 
-	constructor(itemDisplay: ItemElementFunction<T>, options: ListOptions = {}) {
+	constructor(itemDisplay: ItemElementFunction<T>, options: ListOptions<T> = {}) {
 		super();
 
 		this.setAttribute("ui-list", '');
@@ -128,6 +132,13 @@ export class List<T> extends BasicElement{
 			this.itemColumns = options.itemColumns;
 		if(options.itemsPerPage)
 			this.itemsPerPage = options.itemsPerPage;
+
+		if(options.dedupeFunction){
+			this.elementMap = new Map<any, HTMLElement>();
+			this.dedupeFunction = options.dedupeFunction;
+		}else{
+			this.dedupeFunction = (t: T)=> t;
+		}
 	}
 
 	async notBusy(){
@@ -219,7 +230,8 @@ export class List<T> extends BasicElement{
 		if(valueFunc != null && (options.display?.filterable ?? false)){
 			this.addFilter({
 				attr: [name],
-				value: ''
+				value: '',
+				suggest: options.display?.filterable =='suggest'
 			})
 		}
 		this.dirty = true;
@@ -239,9 +251,10 @@ export class List<T> extends BasicElement{
 		filters:
 		for(let filter of this.#filters){
 			if(filter.value){
+				const filterValue = filter.value.toLocaleLowerCase();
 				for(let attr of filter.attr){
 					let value = ('' + this.attrs[attr]?.value(item)).toLowerCase();
-					if(value.toLowerCase().includes(filter.value)){
+					if(value.toLowerCase().includes(filterValue)){
 						// we've passed this filter
 						continue filters;
 					}
@@ -416,16 +429,17 @@ export class List<T> extends BasicElement{
 		}
 	}
 
-	async getItemElement(item: any){
-		if(!this.elementMap.has(item)){
+	async getItemElement(item: T){
+		let key = this.dedupeFunction(item);
+		if(!this.elementMap.has(key)){
 			let ele = await this.renderItem(item);
 			if(typeof item == "string"){
 				// TODO support caching of string based item elements....
 				return ele;
 			}
-			this.elementMap.set(item, ele);
+			this.elementMap.set(key, ele);
 		}
-		return this.elementMap.get(item);
+		return this.elementMap.get(key);
 	}
 
 	async renderItem(item: any){

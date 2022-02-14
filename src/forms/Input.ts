@@ -1,5 +1,7 @@
-import UI from "../ui.js";
 import { BasicElement } from "../BasicElement.js";
+import { Badge } from "../component/Badge.js";
+import { htmlToElement, uuid } from "../utils.js";
+import { Button } from "./Button.js";
 import "./Input.css";
 
 type AbstractInputOptions = {
@@ -65,12 +67,12 @@ export class AbstractHTMLInput extends HTMLInputElement{
 	 * @param key json key/indes to keep up to date
 	 * @param options configuration parameters 
 	 */
-	constructor(obj: any, key: any, options: AbstractInputOptions){
+	constructor(obj: any, key: any, options?: AbstractInputOptions){
 		super();
 
 		this.setAttribute("ui-input", '');
 
-		if(options.class){
+		if(options?.class){
 			if(Array.isArray(options.class)){
 				this.classList.add(...options.class);
 			}else{
@@ -90,6 +92,10 @@ export class AbstractHTMLInput extends HTMLInputElement{
 	}
 }
 
+export type StringInputOptions = AbstractInputOptions & {
+	options?: (()=>Promise<SelectInputOption[]>) | SelectInputOption[]
+}
+
 export class StringInput extends AbstractHTMLInput{
 
 	/**
@@ -98,7 +104,7 @@ export class StringInput extends AbstractHTMLInput{
 	 * @param key json key/indes to keep up to date
 	 * @param options configuration parameters 
 	 */
-	constructor(obj: any, key: any, options: AbstractInputOptions){
+	constructor(obj: any, key: any, options: StringInputOptions){
 		super(obj, key, options);
 
 		this.type = "text";
@@ -115,12 +121,35 @@ export class StringInput extends AbstractHTMLInput{
 			this.setAttribute('placeholder', options?.placeholder);
 		}
 
+		// Provide autocomplete options for the input
+		if(options?.options){
+			// lazily create input options
+			let lazyInit = async ()=>{
+				this.buildOptions(Array.isArray(options.options)?options.options:await options.options());
+				this.removeEventListener('mouseover', lazyInit);
+			};
+			this.addEventListener('mouseover', lazyInit);
+		}
+
 		this.addEventListener('change', ()=>{
 			let value = this.value;
 			Reflect.set(obj, key, value);
 			if(options?.callback)
 				options?.callback(value);
 		});
+	}
+
+	buildOptions(parsedOptions: any[]){
+		// dump the datalist out
+		let id = uuid();
+		let list = htmlToElement(
+			`<datalist id="${id}">`
+			+ parsedOptions.map(v => `<option value="${v.value ? v.value : v}">${v.name ? v.name : v}</option>`).join('')
+			+ '</datalist>');
+		document.body.append(list);
+		// by default the list component only shows the items that match the input.value, which isn't very useful for a picker
+		this.addEventListener('focus', ()=>this.value = '');
+		this.setAttribute('list', id);
 	}
 }
 customElements.define('ui-stringinput', StringInput, {extends:'input'});
@@ -274,8 +303,8 @@ export class MultiSelectInput extends AbstractInput{
 	renderList(){
 		this.list.innerHTML = "";
 		this.list.append(...this.value.map((v: any, index: number)=>{
-			let badge = new UI.Badge(v);
-			badge.append(new UI.Button('', ()=>{
+			let badge = new Badge(v);
+			badge.append(new Button('', ()=>{
 				// remove this item and redraw
 				this.value.splice(index, 1);
 				this.renderList();
@@ -366,7 +395,7 @@ type LabelledInputOptions = AbstractInputOptions & {
 
 export class LabelledInput extends InputLabel{
 	constructor(json: any, key: string, type: typeof AbstractInput| typeof AbstractHTMLInput, options?:LabelledInputOptions){
-		super(<AbstractInput>new type(json, key, options), options.name ?? key, {wrapped: true});
+		super(<AbstractInput>new type(json, key, options), options?.name ?? key, {wrapped: true});
 	}
 }
 customElements.define('ui-labelledinput', LabelledInput, {extends:'label'});
