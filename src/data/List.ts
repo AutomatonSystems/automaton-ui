@@ -1,6 +1,7 @@
 import "./List.css";
-import {append, Appendable, castHtmlElements, sleep} from "../utils.js";
+import {Appendable, castHtmlElements, sleep} from "../utils.js";
 import { BasicElement } from "../BasicElement";
+import { StringInput } from "../ui.js";
 
 let uuid = 0;
 
@@ -16,7 +17,9 @@ type Attr<T> = {
 	"name": string,
 	"width": string,
 	"value": ValueFunction<T>,
-	"displayFunc": DisplayFunction<T>
+	"displayFunc": DisplayFunction<T>,
+
+	sortable: boolean
 }
 
 /**
@@ -44,9 +47,33 @@ type Attr<T> = {
  *  @property {attributeDisplayValue} value
  */
 
+type ListOptions<T> = {
+	itemColumns?:number
+	itemsPerPage?: number
+	dedupeFunction?: (t: T)=> any
+}
+
+type Filter = {
+	attr: string[]
+	value: string
+	suggest?: boolean
+}
+
+type AttrOptions<T> = {
+	value?: string | ValueFunction<T>
+	render?: string | DisplayFunction<T>
+
+	display?: {
+		width?: string
+		sortable?: boolean
+		filterable?: boolean | 'suggest'
+	}
+}
+
 export class List<T> extends BasicElement{
 
 	// weakmap will ensure that we don't hold elements after they have fallen out of both the DOM and the data list
+	dedupeFunction: (t: T) => any;
 	elementMap = new WeakMap<any, HTMLElement>();
 
 	static ASC = true;
@@ -70,11 +97,17 @@ export class List<T> extends BasicElement{
 	static ITEMS_PER_PAGE_KEY = "--items-per-page";
 	display: any[];
 	lookup: {};
+
+	// internal filters
+	#filters: Filter[] = [];
+
+	// extenally provided filtering
 	_filterFunc: any;
 	_itemDisplayFunc: ItemElementFunction<T>;
 	pageNumber: number;
+	
 
-	constructor(itemDisplay: ItemElementFunction<T>, options: {itemColumns?:number, itemsPerPage?: number} = {}) {
+	constructor(itemDisplay: ItemElementFunction<T>, options: ListOptions<T> = {}) {
 		super();
 
 		this.setAttribute("ui-list", '');
@@ -99,6 +132,13 @@ export class List<T> extends BasicElement{
 			this.itemColumns = options.itemColumns;
 		if(options.itemsPerPage)
 			this.itemsPerPage = options.itemsPerPage;
+
+		if(options.dedupeFunction){
+			this.elementMap = new Map<any, HTMLElement>();
+			this.dedupeFunction = options.dedupeFunction;
+		}else{
+			this.dedupeFunction = (t: T)=> t;
+		}
 	}
 
 	async notBusy(){
@@ -123,7 +163,8 @@ export class List<T> extends BasicElement{
 		return `
 	<!-- pagination -->
 	<header>
-		<span><span class="sort"></span></span>
+		<span class="sort"></span>
+		<span class="filter"></span>
 		<ui-spacer></ui-spacer>
 		<span class="paging top"></span>
 	</header>
@@ -138,12 +179,8 @@ export class List<T> extends BasicElement{
 	</footer>`
 	}
 
-	set data(data){
+	set data(data){``
 		this._data = data;
-		for (let item of this._data) {
-			if (item.__id == null)
-				item.__id = item.id ? item.id : ('' + uuid++);
-		}
 		this.dirty = true;
 	}
 
@@ -164,14 +201,73 @@ export class List<T> extends BasicElement{
 			"name": name,
 			"width": width,
 			"value": (typeof valueFunc == "string") ? i => (<any>i)[valueFunc] : valueFunc,
-			"displayFunc": (typeof displayFunc == "string") ? i => (<any>i)[displayFunc] : displayFunc
+			"displayFunc": (typeof displayFunc == "string") ? i => (<any>i)[displayFunc] : displayFunc,
+
+			sortable: valueFunc != null
 		};
 		this.dirty = true;
 		return this;
 	}
 
-	_filtered(item: any) {
-		return this._filterFunc == null || this._filterFunc(item);
+	addAttr(name: string, options: AttrOptions<T>){
+		let valueFunc = options.value ?? name;
+		let displayFunc = options.render ?? valueFunc;
+
+		let attr: Attr<T> = {
+			id: uuid++,
+			name: name,
+
+			width: options.display?.width,
+
+			// @ts-ignore
+			value: typeof valueFunc === "string" ? (i: any) => i[valueFunc] : valueFunc,
+			// @ts-ignore
+			displayFunc: typeof displayFunc === "string" ? (i: any) => i[displayFunc] : displayFunc,
+
+			sortable: valueFunc != null && (options.display?.sortable ?? true),
+		}
+		this.attrs[name] = attr;
+		if(valueFunc != null && (options.display?.filterable ?? false)){
+			this.addFilter({
+				attr: [name],
+				value: '',
+				suggest: options.display?.filterable =='suggest'
+			})
+		}
+		this.dirty = true;
+		return this;
+	}
+
+	getFilters(){
+		return this.#filters;
+	}
+
+	addFilter(filter: Filter){
+		this.#filters.push(filter);
+		return this;
+	}
+
+	#internalFilter(item: T): boolean{
+		filters:
+		for(let filter of this.#filters){
+			if(filter.value){
+				const filterValue = filter.value.toLocaleLowerCase();
+				for(let attr of filter.attr){
+					let value = ('' + this.attrs[attr]?.value(item)).toLowerCase();
+					if(value.toLowerCase().includes(filterValue)){
+						// we've passed this filter
+						continue filters;
+					}
+				}
+				// we failed this filter
+				return false;
+			}
+		}
+		return true;
+	}
+
+	_filtered(item: T) {
+		return this.#internalFilter(item) && (this._filterFunc == null || this._filterFunc(item));
 	}
 
 	filter(func=this._filterFunc){
@@ -202,7 +298,26 @@ export class List<T> extends BasicElement{
 		wrapper.innerHTML = "";
 		wrapper.appendChild(select);
 
-		if(Object.values(this.attrs).length==0)
+		if(Object.values(this.attrs).length==0 || this.data.length ==0)
+			wrapper.style.display = "none";
+	}
+
+	filterDisplay(){
+		let wrapper = this.querySelector('.filter');
+
+		if(!wrapper.hasChildNodes()){
+			for(let filter of this.#filters){
+				wrapper.append(new StringInput(filter, 'value', {
+					placeholder: 'Search',
+					callback: async (newValue: string)=>{
+						this.dirty = true;
+						await this.page();
+					}
+				}));
+			}
+		}
+
+		if(Object.values(this.attrs).length==0 || this.data.length ==0)
 			wrapper.style.display = "none";
 	}
 
@@ -211,8 +326,11 @@ export class List<T> extends BasicElement{
 		if(forceRedraw){
 			this.dirty = true;
 		}
-		//render headers
+		// render headers
 		this.sortDisplay();
+
+		// render filters
+		this.filterDisplay();
 		
 		// setup paging
 		await this.page();
@@ -266,6 +384,8 @@ export class List<T> extends BasicElement{
 							return asc;
 						if(a == null)
 							return -asc;
+						if(typeof a == 'number' && typeof b == 'number')
+							return asc*(a-b);
 						return asc*(''+a).localeCompare(''+b, "en", {sensitivity: 'base', ignorePunctuation: true, numeric: true});
 					});
 				}
@@ -275,7 +395,7 @@ export class List<T> extends BasicElement{
 			
 			// compute paging numbers
 			let visibleCount = this.display.length;
-			let pages = Math.ceil(visibleCount / this.itemsPerPage);
+			let pages = this.itemsPerPage<Infinity?Math.ceil(visibleCount / this.itemsPerPage):1;
 			let needsPaging = pages > 1;
 			this.pageNumber = isNaN(page)?0:Math.max(Math.min(page, pages-1), 0);
 
@@ -296,7 +416,8 @@ export class List<T> extends BasicElement{
 
 			// finally actually add the items to the page
 			this.listBody.innerHTML = "";
-			for(let index = this.pageNumber*this.itemsPerPage; index < (this.pageNumber+1)*this.itemsPerPage && index < visibleCount; index++){
+			let start = this.itemsPerPage==Infinity?0:this.pageNumber*this.itemsPerPage;
+			for(let index = start; index < (this.pageNumber+1)*this.itemsPerPage && index < visibleCount; index++){
 				let item = this.display[index];
 				let ele = (await this.getItemElement(item));
 				if(ele instanceof BasicElement){
@@ -310,16 +431,17 @@ export class List<T> extends BasicElement{
 		}
 	}
 
-	async getItemElement(item: any){
-		if(!this.elementMap.has(item)){
+	async getItemElement(item: T){
+		let key = this.dedupeFunction(item);
+		if(!this.elementMap.has(key)){
 			let ele = await this.renderItem(item);
 			if(typeof item == "string"){
 				// TODO support caching of string based item elements....
 				return ele;
 			}
-			this.elementMap.set(item, ele);
+			this.elementMap.set(key, ele);
 		}
-		return this.elementMap.get(item);
+		return this.elementMap.get(key);
 	}
 
 	async renderItem(item: any){
@@ -357,71 +479,4 @@ export class List<T> extends BasicElement{
 }
 customElements.define('ui-list', List);
 
-/**
- * Table is a special case of List with a more automatic layout
- */
-export class Table<T> extends List<T>{
 
-	constructor(options: {itemsPerPage?: number} = {}) {
-		super(async (item)=>{
-			let tr = document.createElement('tr');
-			tr.dataset['tableId'] = (<any>item).__id;
-			// render item (possible hidden)
-			for (let header of Object.values(this.attrs)) {
-				let cell = document.createElement('td');
-				let content = await header.displayFunc(item);
-				append(cell, content)
-				tr.append(cell);
-			}
-			return tr;
-		}, options);
-
-		this.setAttribute("ui-table", '');
-	}
-
-	override get listLayout(){
-		return `<table>
-<thead>
-	<!-- pagination -->
-	<tr><td class="paging top" colspan="100"></td></tr>
-
-	<tr class="headers"></tr>
-	<!-- filters -->
-</thead>
-<tbody class="list">
-</tbody>
-<tfoot>
-	<!-- pagination -->
-	<tr><td class="paging bottom" colspan="100"></td></tr>
-</tfoot>
-</table>`
-	}
-
-	/**
-	 * Display the sorting headers
-	 */
-	override sortDisplay(){
-		let header = this.querySelector('thead tr.headers');
-		let headers =  Object.values(this.attrs);
-		let html = '';
-		for (let header of headers) {
-			html += `<th data-table-id="${header.id}" ${this.attrs[header.name].value?`data-sort="${header.name}"`:''} style="${header.width ? `width:${header.width}` : ''}">${header.name}</th>`;
-		}
-		header.innerHTML = html;
-		header.querySelectorAll('th').forEach(
-			ele=>{
-				// if it's a sortable column add the click behaviour
-				if(ele.dataset.sort){
-					ele.onclick = (event)=>{
-						this.sort(ele.dataset.sort);
-					}
-				}
-			}
-		);
-
-		// highlight the sorted header
-		if (this._sort)
-			this.querySelector(`thead tr.headers th[data-table-id='${this._sort.attr.id}']`).classList.add(this._sort.asc ? 'asc' : 'desc');
-	}
-}
-customElements.define('ui-table', Table);

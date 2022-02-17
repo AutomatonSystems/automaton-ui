@@ -30,7 +30,8 @@ ui-context:before{
 	background-color: black;
 }
 
-ui-context section div{
+ui-context section .menu-item{
+	position: relative;
 	cursor: pointer;
 	font-weight: normal;
 	padding: 3px 20px;
@@ -38,7 +39,7 @@ ui-context section div{
 	color: black;
 }
 
-ui-context section div:hover{
+ui-context section .menu-item:hover{
 	background-color: #ccc;
 }
 
@@ -46,4 +47,39 @@ ui-context section hr{
 	border: none;
 	border-top: 1px solid #ccc;
 	margin: 5px 2px;
+}
+
+ui-context section .menu-item > .sub-menu{
+	display: none;
+	position: absolute;
+	left: 250px;
+	top: 0;
+	width: 250px;
+	background-color: white;
+	border: 1px solid #ccc;
+	box-shadow: 3px 3px 2px #0006;
+}
+
+ui-context section .menu-item.has-sub-menu:after{
+	position: absolute;
+	content: "\f152";
+	font: var(--icon-font);
+	right: 5px;
+	top: 5px;
+}
+
+ui-context section .menu-item:hover > .sub-menu, ui-context section .menu-item.show > .sub-menu{
+	display: block;
+}
+
+ui-context section .menu-item > .sub-menu .menu-item{
+	position: relative;
+	cursor: pointer;
+	font-weight: normal;
+	padding: 3px 20px;
+	font-size: 0.9em;
+	color: black;
+}
+ui-context section div > .sub-menu div:hover{
+	background-color: #ccc;
 }

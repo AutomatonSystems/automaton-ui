@@ -5,8 +5,8 @@ declare type GridLine = {
     offset: number;
     color: string;
 };
-declare type RenderableHTMLElement = HTMLElement & {
-    render?: (viewport: Viewport) => {};
+export declare type RenderableHTMLElement = HTMLElement & {
+    render?: (viewport: Viewport) => void;
     scalar?: number;
     x?: number;
     y?: number;

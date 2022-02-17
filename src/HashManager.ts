@@ -10,7 +10,11 @@ type HashVariableMapperFunction = {
 
 type SlideProperty = number | [number, number];
 type HashResponse = false | HTMLElement | [HTMLElement, SlideProperty];
-type HashChangeHandler = (value: string|number|boolean|object)=> HashResponse | Promise<HashResponse>;
+type HashChangeHandler = (value: {[index:string]:string|number|boolean|object})=> HashResponse | Promise<HashResponse>;
+
+type BasicHashHandler = {
+	handle: (path: string, oldPath: string)=>Promise<HashResponse>;
+}
 
 export class HashHandler{
 
@@ -102,7 +106,7 @@ export class HashManager extends BasicElement {
 
 	eventlistener: ()=>void;
 
-	handlers: HashHandler[] = [];
+	handlers: BasicHashHandler[] = [];
 
 	position = [0,0];
 
@@ -131,7 +135,13 @@ export class HashManager extends BasicElement {
 
 	static hashPairs(){
 		let hash = window.location.hash.substring(1);
-		return hash.replaceAll("%7C", "|").split('|').filter(i=>i!='').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
+		return hash
+			// unescape the hash
+			.replaceAll("%7C", "|").replaceAll("%7c", "|")
+			// split into non-empty chunks
+			.split('|').filter(i=>i!='')
+			// map the to objects
+			.map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
 	}
 
 	static read(pathlike: string){
@@ -197,7 +207,7 @@ export class HashManager extends BasicElement {
 		return this;
 	}
 
-	addHandler(h: HashHandler) {
+	addHandler(h: BasicHashHandler) {
 		this.handlers.push(h);
 	}
 

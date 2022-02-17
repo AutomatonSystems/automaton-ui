@@ -3,6 +3,7 @@ import "./base.css";
 import { BasicElement } from "./BasicElement.js";
 import * as utils from "./utils.js";
 import * as factory from "./Factory.js";
+import * as mixin from './Mixins.js';
 
 import { Badge } from "./component/Badge.js";
 import { Button } from "./forms/Button.js";
@@ -16,7 +17,8 @@ import { Grid } from "./layout/Grid.js";
 import { JsonInput, InputLabel, NumberInput, StringInput, LabelledInput, SelectInput, MultiSelectInput} from "./forms/Input.js";
 import { HashManager } from "./HashManager.js";
 import { Json } from "./text/Json.js";
-import { List, Table} from "./data/List.js";
+import { List} from "./data/List.js";
+import { Table } from "./data/Table";
 import { Modal } from "./Modal.js";
 import { Panel } from "./layout/Panel.js";
 import { Spacer } from "./layout/Spacer.js";
@@ -83,7 +85,8 @@ const UI = {
 	sleep: utils.sleep,
 
 	utils,
-	factory
+	factory,
+	mixin
 };
 
 // @ts-ignore
@@ -101,6 +104,7 @@ export {Card};
 export {Code};
 export {ContextMenu};
 export {Form};
+export {Form2};
 export {InputLabel, NumberInput, StringInput, LabelledInput, MultiSelectInput};
 export {Grid};
 export {HashManager};
@@ -117,5 +121,6 @@ export {Viewport};
 
 export {utils};
 export {factory};
+export {mixin};
 
 export default UI;

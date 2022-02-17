@@ -12,14 +12,23 @@ let list = new List(item=>{
 list
 	.addAttribute("id")
 	.addAttribute("name")
-	.addAttribute("img", null, i=>`<img src="${i.img}"/>`);
+	.addAttribute("img", null, i=>`<img src="${i.img}"/>`)
+	.addFilter({
+		attr: ["name"],
+		value: "",
+		suggest: true
+	});
 list.data = POKEMON;
 list.sort("id", List.ASC);
 
 let table = new Table({itemsPerPage: 4});
 table
 	.addAttribute("id")
-	.addAttribute("name")
+	.addAttr("name", {
+		display: {
+			filterable: 'suggest'
+		}
+	})
 	.addAttribute("img", null, i=>`<img src="${i.img}"/>`);
 table.data = POKEMON;
 table.sort("id", List.ASC);

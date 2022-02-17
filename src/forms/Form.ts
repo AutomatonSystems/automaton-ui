@@ -7,6 +7,7 @@ import * as utils from "../utils.js";
 import UI from "../ui.js";
 import { htmlToElement } from "../utils.js";
 import { DragHandle } from "../component/DragHandle";
+import { Draggable } from "../Mixins.js";
 /****** FORM COMPONENTS ******/
 
 interface FormTemplateJSON {
@@ -362,18 +363,6 @@ export class Form extends BasicElement {
 
 							let item = new BasicElement(null, {clazz: 'item'});
 
-							item.append(...await this.jsonToHtml(inputConfig.children, itemValue, jsonKey, { style: substyle }));
-
-							item.append(new Button("", () => {
-								item.remove();
-								this.onChange();
-							}, { icon: 'fa-trash', style: "text", color: "error-color" }));
-							
-							let inputs = item.querySelectorAll('[data-key]');
-							for (let input of inputs) {
-								input.addEventListener('change', this.onChange);
-							}
-
 							if(config.sortable){
 								let handle = new DragHandle();
 								item.prepend(handle);
@@ -387,6 +376,18 @@ export class Form extends BasicElement {
 									// and move as appropriate
 									item.insertAdjacentElement(indexA < indexB?'beforebegin':'afterend', draggedItem);
 								});
+							}
+
+							item.append(...await this.jsonToHtml(inputConfig.children, itemValue, jsonKey, { style: substyle }));
+
+							item.append(new Button("", () => {
+								item.remove();
+								this.onChange();
+							}, { icon: 'fa-trash', style: "text", color: "error-color" }));
+							
+							let inputs = item.querySelectorAll('[data-key]');
+							for (let input of inputs) {
+								input.addEventListener('change', this.onChange);
 							}
 
 							contain.append(item);
