@@ -384,6 +384,8 @@ export class List<T> extends BasicElement{
 							return asc;
 						if(a == null)
 							return -asc;
+						if(typeof a == 'number' && typeof b == 'number')
+							return asc*(a-b);
 						return asc*(''+a).localeCompare(''+b, "en", {sensitivity: 'base', ignorePunctuation: true, numeric: true});
 					});
 				}

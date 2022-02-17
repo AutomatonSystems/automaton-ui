@@ -112,7 +112,7 @@ export class ContextMenu extends BasicElement {
 	 * @param {Function} hide
 	 */
 	addItem(text: string, action: (ele:HTMLElement)=>void, hide?: (ele:HTMLElement)=>boolean){
-		let item = <HTMLElement>htmlToElement(`<div>${text}</div>`);
+		let item = <HTMLElement>htmlToElement(`<div class="menu-item">${text}</div>`);
 		this.items.push({
 			element: item,
 			hide: hide
@@ -120,6 +120,26 @@ export class ContextMenu extends BasicElement {
 		item.addEventListener('click', ()=>{action(this.target); this.hide()});
 		this.firstElementChild.appendChild(item);
 		return this;
+	}
+
+	addSubMenu(text: string, hide?: (ele:HTMLElement)=>boolean){
+		let item = <HTMLElement>htmlToElement(`<div class="menu-item has-sub-menu">${text}<div class="sub-menu"></div></div>`);
+		let subMenuEle = item.querySelector('.sub-menu');
+		this.items.push({
+			element: item,
+			hide: hide
+		});
+		item.addEventListener('click', ()=>{item.classList.toggle("show")});
+		this.firstElementChild.appendChild(item);		
+		const subMenu = {
+			addItem: (text: string, action: (ele:HTMLElement)=>void)=>{
+				let item = <HTMLElement>htmlToElement(`<div class="menu-item">${text}</div>`);
+				item.addEventListener('click', (event)=>{event.stopPropagation(); action(this.target); this.hide(); item.classList.toggle("show", false)});
+				subMenuEle.append(item);
+				return subMenu;
+			}
+		};
+		return subMenu;
 	}
 
 	/**

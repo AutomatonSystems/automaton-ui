@@ -1247,7 +1247,7 @@ class ContextMenu extends BasicElement {
      * @param {Function} hide
      */
     addItem(text, action, hide) {
-        let item = htmlToElement(`<div>${text}</div>`);
+        let item = htmlToElement(`<div class="menu-item">${text}</div>`);
         this.items.push({
             element: item,
             hide: hide
@@ -1255,6 +1255,25 @@ class ContextMenu extends BasicElement {
         item.addEventListener('click', () => { action(this.target); this.hide(); });
         this.firstElementChild.appendChild(item);
         return this;
+    }
+    addSubMenu(text, hide) {
+        let item = htmlToElement(`<div class="menu-item has-sub-menu">${text}<div class="sub-menu"></div></div>`);
+        let subMenuEle = item.querySelector('.sub-menu');
+        this.items.push({
+            element: item,
+            hide: hide
+        });
+        item.addEventListener('click', () => { item.classList.toggle("show"); });
+        this.firstElementChild.appendChild(item);
+        const subMenu = {
+            addItem: (text, action) => {
+                let item = htmlToElement(`<div class="menu-item">${text}</div>`);
+                item.addEventListener('click', (event) => { event.stopPropagation(); action(this.target); this.hide(); item.classList.toggle("show", false); });
+                subMenuEle.append(item);
+                return subMenu;
+            }
+        };
+        return subMenu;
     }
     /**
      * Add a line break to the context menu
@@ -1754,7 +1773,13 @@ class HashManager extends BasicElement {
     }
     static hashPairs() {
         let hash = window.location.hash.substring(1);
-        return hash.replaceAll("%7C", "|").split('|').filter(i => i != '').map(pair => pair.includes('=') ? pair.split('=', 2) : [null, pair]);
+        return hash
+            // unescape the hash
+            .replaceAll("%7C", "|").replaceAll("%7c", "|")
+            // split into non-empty chunks
+            .split('|').filter(i => i != '')
+            // map the to objects
+            .map(pair => pair.includes('=') ? pair.split('=', 2) : [null, pair]);
     }
     static read(pathlike) {
         let [path, type] = pathlike ? pathlike.split(':') : [null];
@@ -2181,6 +2206,8 @@ class List extends BasicElement {
                             return asc;
                         if (a == null)
                             return -asc;
+                        if (typeof a == 'number' && typeof b == 'number')
+                            return asc * (a - b);
                         return asc * ('' + a).localeCompare('' + b, "en", { sensitivity: 'base', ignorePunctuation: true, numeric: true });
                     });
                 }

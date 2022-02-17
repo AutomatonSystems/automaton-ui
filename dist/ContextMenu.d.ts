@@ -40,6 +40,9 @@ export declare class ContextMenu extends BasicElement {
      * @param {Function} hide
      */
     addItem(text: string, action: (ele: HTMLElement) => void, hide?: (ele: HTMLElement) => boolean): this;
+    addSubMenu(text: string, hide?: (ele: HTMLElement) => boolean): {
+        addItem: (text: string, action: (ele: HTMLElement) => void) => any;
+    };
     /**
      * Add a line break to the context menu
      */

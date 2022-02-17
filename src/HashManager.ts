@@ -135,7 +135,13 @@ export class HashManager extends BasicElement {
 
 	static hashPairs(){
 		let hash = window.location.hash.substring(1);
-		return hash.replaceAll("%7C", "|").split('|').filter(i=>i!='').map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
+		return hash
+			// unescape the hash
+			.replaceAll("%7C", "|").replaceAll("%7c", "|")
+			// split into non-empty chunks
+			.split('|').filter(i=>i!='')
+			// map the to objects
+			.map(pair=>pair.includes('=')?pair.split('=',2):[null,pair]);
 	}
 
 	static read(pathlike: string){
