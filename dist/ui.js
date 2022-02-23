@@ -890,11 +890,6 @@ class Form extends BasicElement {
 customElements.define('ui-form', Form);
 
 class Panel extends BasicElement {
-    /**
-     *
-     * @param {String|Element|Element[]} content
-     * @param {{title?: String, clazz?: String, buttons?: String, header?: boolean, footer?: boolean}} param1
-     */
     constructor(content = '', options) {
         super();
         this.setAttribute("ui-panel", '');
@@ -905,6 +900,12 @@ class Panel extends BasicElement {
 				${(options?.footer || options?.buttons) ? `<footer>${options?.buttons ?? ''}</footer>` : ''}
 			`;
             append(this.content, content);
+            if (options.header && options.header !== true) {
+                this.header(options.header);
+            }
+            if (options.footer && options.footer !== true) {
+                this.footer(options.footer);
+            }
         }
         if (options?.clazz) {
             if (Array.isArray(options.clazz))
@@ -1437,7 +1438,7 @@ class StringInput extends AbstractHTMLInput {
             let value = this.value;
             Reflect.set(obj, key, value);
             if (options?.callback)
-                options?.callback(value);
+                options?.callback(value, this);
         });
     }
     buildOptions(parsedOptions) {
@@ -2370,13 +2371,14 @@ class Table extends List {
                 if (filter) {
                     let options = {
                         placeholder: 'Search',
-                        callback: async (newValue) => {
+                        callback: async (newValue, element) => {
                             this.dirty = true;
                             await this.page();
+                            element.blur();
                         }
                     };
                     if (filter.suggest) {
-                        options['options'] = async () => this.data.map((t) => header.value(t).toString()).sort();
+                        options['options'] = async () => [...new Set(this.data.map((t) => header.value(t).toString()))].sort();
                     }
                     cell.append(new StringInput(filter, 'value', options));
                 }

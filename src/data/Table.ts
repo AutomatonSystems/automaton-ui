@@ -86,13 +86,14 @@ export class Table<T> extends List<T> {
 				if(filter){
 					let options: StringInputOptions = {
 						placeholder: 'Search',
-						callback: async (newValue: string)=>{
+						callback: async (newValue: string, element: HTMLInputElement)=>{
 							this.dirty = true;
 							await this.page();
+							element.blur();
 						}
 					};
 					if(filter.suggest){
-						options['options'] = async ()=>this.data.map((t:T)=>header.value(t).toString()).sort();
+						options['options'] = async ()=>[...new Set(this.data.map((t:T)=>header.value(t).toString()))].sort();
 					}
 					cell.append(new StringInput(filter, 'value', options));
 				}

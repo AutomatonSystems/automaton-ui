@@ -2,7 +2,7 @@
 
 ui-context{
 	position: absolute;
-	
+	z-index: 999999;
 }
 
 ui-context section{

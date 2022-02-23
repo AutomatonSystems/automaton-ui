@@ -5,15 +5,10 @@ export declare type PanelOptions = {
     title?: string;
     clazz?: string | string[];
     buttons?: string;
-    header?: boolean;
-    footer?: boolean;
+    header?: boolean | Appendable;
+    footer?: boolean | Appendable;
 };
 export declare class Panel extends BasicElement {
-    /**
-     *
-     * @param {String|Element|Element[]} content
-     * @param {{title?: String, clazz?: String, buttons?: String, header?: boolean, footer?: boolean}} param1
-     */
     constructor(content?: Appendable, options?: PanelOptions);
     get content(): HTMLElement;
     append(...elements: Appendable[]): void;

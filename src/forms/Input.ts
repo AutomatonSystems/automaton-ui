@@ -135,7 +135,7 @@ export class StringInput extends AbstractHTMLInput{
 			let value = this.value;
 			Reflect.set(obj, key, value);
 			if(options?.callback)
-				options?.callback(value);
+				options?.callback(value, this);
 		});
 	}
 
