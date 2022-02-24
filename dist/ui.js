@@ -900,10 +900,10 @@ class Panel extends BasicElement {
 				${(options?.footer || options?.buttons) ? `<footer>${options?.buttons ?? ''}</footer>` : ''}
 			`;
             append(this.content, content);
-            if (options.header && options.header !== true) {
+            if (options?.header && options.header !== true) {
                 this.header(options.header);
             }
-            if (options.footer && options.footer !== true) {
+            if (options?.footer && options.footer !== true) {
                 this.footer(options.footer);
             }
         }
