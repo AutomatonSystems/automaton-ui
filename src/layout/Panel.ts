@@ -27,10 +27,10 @@ export class Panel extends BasicElement {
 
 			append(this.content, content);
 
-			if(options.header && options.header !== true){
+			if(options?.header && options.header !== true){
 				this.header(options.header);
 			}
-			if(options.footer && options.footer !== true){
+			if(options?.footer && options.footer !== true){
 				this.footer(options.footer);
 			}
 		}
