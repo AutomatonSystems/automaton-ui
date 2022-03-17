@@ -5,34 +5,37 @@ import { Button } from "./Button.js";
 import "./Toggle.js";
 import * as utils from "../utils.js";
 import UI from "../ui.js";
-import { htmlToElement } from "../utils.js";
 import { DragHandle } from "../component/DragHandle";
-import { Draggable } from "../Mixins.js";
 /****** FORM COMPONENTS ******/
 
-interface FormTemplateJSON {
+type FormInputHideFunction<T> = (value:T, element: HTMLElement)=>boolean;
+type FormInputOptionsFunction<T> = (value:T)=>any[];
+type FormInputAfterRenderFunction<T> = (element: HTMLElement, form: Form<T>)=>void;
+type FormInputTypeFunction<T> = (value: any, key: string, parent: HTMLElement)=>HTMLElement;
+
+interface FormTemplateJSON<T> {
 	key?: string,
 	name?: string,
 	hint?: string,
 	placeholder?: string, 
-	default?: string,
+	default?: string | boolean | number,
 	disabled?: boolean,
-	type?: string | Function,
+	type?: string | FormInputTypeFunction<T>,
 	format?: string,
 
-	hidden?: Function,
+	hidden?: FormInputHideFunction<T>,
 	redraw?: string | string[]
 
-	options?: any[] | Function,
+	options?: any[] | FormInputOptionsFunction<T>,
 
 	style?: "INLINE" | "ROW",
 
-	children?: FormTemplate | FormTemplate[],
+	children?: FormTemplate<T> | FormTemplate<T>[],
 
-	afterRender?: Function
+	afterRender?: FormInputAfterRenderFunction<T>
 };
 
-interface FormArrayTemplate extends FormTemplateJSON{
+interface FormArrayTemplate<T> extends FormTemplateJSON<T>{
 	type: "array"
 	config?: FormArrayConfig
 }
@@ -41,11 +44,11 @@ interface FormArrayConfig {
 	sortable: boolean
 }
 
-export type FormTemplate = FormArrayTemplate | FormTemplateJSON | string;
+export type FormTemplate<T> = FormArrayTemplate<T> | FormTemplateJSON<T> | string;
 
 interface FormStyle{ parent: string; wrap: string; label: string; value: string; };
 
-export class Form extends BasicElement {
+export class Form<T> extends BasicElement {
 
 	static STYLE: Record<string, FormStyle> = {
 		ROW: { parent: 'table', wrap: 'tr', label: 'th', value: 'td' },
@@ -53,8 +56,8 @@ export class Form extends BasicElement {
 	};
 
 	static TRUE_STRINGS = new Set(["true", "1", "yes", "t", "y"]);
-	template: FormTemplate | FormTemplate[];
-	changeListeners: any[];
+	template: FormTemplate<T> | FormTemplate<T>[];
+	changeListeners: ((t:T)=>Promise<void>)[];
 	formStyle: FormStyle;
 	configuration: {
 		formatting: {
@@ -64,9 +67,9 @@ export class Form extends BasicElement {
 		};
 	};
 
-	value: any;
+	value: T;
 
-	constructor(template: FormTemplate|FormTemplate[]) {
+	constructor(template: FormTemplate<T>|FormTemplate<T>[]) {
 		super();
 
 		this.template = template;
@@ -83,7 +86,7 @@ export class Form extends BasicElement {
 			}
 		}
 
-		this.value = {};
+		this.value = <T>{};
 	}
 
 	async build(json: any) {
@@ -112,7 +115,7 @@ export class Form extends BasicElement {
 		this.dispatchEvent(new Event('change'));
 	}
 
-	json(includeHidden = false) {
+	json(includeHidden = false): T{
 		return this._readValue(this, includeHidden);
 	}
 
@@ -191,11 +194,11 @@ export class Form extends BasicElement {
 		return json;
 	}
 
-	async jsonToHtml(templates: FormTemplate | FormTemplate[], json: any, jsonKey = '', options = { style: this.formStyle }) {
+	async jsonToHtml(templates: FormTemplate<T> | FormTemplate<T>[], json: any, jsonKey = '', options = { style: this.formStyle }) {
 		let elements = [];
 		let templatesArray = Array.isArray(templates)?templates:[templates];
 		for (let template of templatesArray) {
-			let templateJson: FormTemplateJSON;
+			let templateJson: FormTemplateJSON<T>;
 			if (typeof template == "string") {
 				if (template.indexOf(":") == -1) {
 					templateJson = {
@@ -255,7 +258,7 @@ export class Form extends BasicElement {
 		}
 	}
 
-	async oneItem(template: FormTemplateJSON, itemValue: any, jsonKey: string, { style = Form.STYLE.ROW } = {}) {
+	async oneItem(template: FormTemplateJSON<T>, itemValue: any, jsonKey: string, { style = Form.STYLE.ROW } = {}) {
 
 		let element = document.createElement(style.wrap);
 		element.dataset.element = jsonKey;
@@ -342,7 +345,7 @@ export class Form extends BasicElement {
 						// the element repeats multiple times
 						jsonKey = jsonKey + "[]";
 
-						let inputConfig: FormArrayTemplate = <FormArrayTemplate> template;
+						let inputConfig: FormArrayTemplate<T> = <FormArrayTemplate<T>> template;
 
 						let tStyle = inputConfig.style ?? 'INLINE';
 
@@ -452,7 +455,7 @@ export class Form extends BasicElement {
 			}else if (typeof template.type == 'function') {
 				let obj = template.type;
 				if(!!obj.prototype && !!obj.prototype.constructor.name){
-					// TODO figure out the typoescript safe way to do this...
+					// TODO figure out the typescript safe way to do this...
 					// @ts-ignore
 					let input = new template.type(elementValue, jsonKey, element);
 					input.dataset['key'] = jsonKey;
@@ -480,7 +483,7 @@ export class Form extends BasicElement {
 		await render(itemValue);
 
 		if (template.hidden) {
-			this.changeListeners.push((json: any) => {
+			this.changeListeners.push(async (json: T) => {
 				element.hidden = template.hidden(json, element);
 			});
 		}
@@ -491,7 +494,7 @@ export class Form extends BasicElement {
 				// cache of the previous value
 				let lastValue = {};
 				// handle change events can filter them
-				let changeListener = async (fullJson: any) => {
+				let changeListener = async (fullJson: T) => {
 					
 					let newJsonValue = this._readJsonWithKey(fullJson, redraw);
 					let newValue = JSON.stringify(newJsonValue);

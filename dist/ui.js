@@ -831,7 +831,7 @@ class Form extends BasicElement {
             else if (typeof template.type == 'function') {
                 let obj = template.type;
                 if (!!obj.prototype && !!obj.prototype.constructor.name) {
-                    // TODO figure out the typoescript safe way to do this...
+                    // TODO figure out the typescript safe way to do this...
                     // @ts-ignore
                     let input = new template.type(elementValue, jsonKey, element);
                     input.dataset['key'] = jsonKey;
@@ -856,7 +856,7 @@ class Form extends BasicElement {
         };
         await render(itemValue);
         if (template.hidden) {
-            this.changeListeners.push((json) => {
+            this.changeListeners.push(async (json) => {
                 element.hidden = template.hidden(json, element);
             });
         }

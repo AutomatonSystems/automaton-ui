@@ -2,41 +2,45 @@ import "./Form.css";
 import { BasicElement } from "../BasicElement.js";
 import "./Toggle.js";
 /****** FORM COMPONENTS ******/
-interface FormTemplateJSON {
+declare type FormInputHideFunction<T> = (value: T, element: HTMLElement) => boolean;
+declare type FormInputOptionsFunction<T> = (value: T) => any[];
+declare type FormInputAfterRenderFunction<T> = (element: HTMLElement, form: Form<T>) => void;
+declare type FormInputTypeFunction<T> = (value: any, key: string, parent: HTMLElement) => HTMLElement;
+interface FormTemplateJSON<T> {
     key?: string;
     name?: string;
     hint?: string;
     placeholder?: string;
-    default?: string;
+    default?: string | boolean | number;
     disabled?: boolean;
-    type?: string | Function;
+    type?: string | FormInputTypeFunction<T>;
     format?: string;
-    hidden?: Function;
+    hidden?: FormInputHideFunction<T>;
     redraw?: string | string[];
-    options?: any[] | Function;
+    options?: any[] | FormInputOptionsFunction<T>;
     style?: "INLINE" | "ROW";
-    children?: FormTemplate | FormTemplate[];
-    afterRender?: Function;
+    children?: FormTemplate<T> | FormTemplate<T>[];
+    afterRender?: FormInputAfterRenderFunction<T>;
 }
-interface FormArrayTemplate extends FormTemplateJSON {
+interface FormArrayTemplate<T> extends FormTemplateJSON<T> {
     type: "array";
     config?: FormArrayConfig;
 }
 interface FormArrayConfig {
     sortable: boolean;
 }
-export declare type FormTemplate = FormArrayTemplate | FormTemplateJSON | string;
+export declare type FormTemplate<T> = FormArrayTemplate<T> | FormTemplateJSON<T> | string;
 interface FormStyle {
     parent: string;
     wrap: string;
     label: string;
     value: string;
 }
-export declare class Form extends BasicElement {
+export declare class Form<T> extends BasicElement {
     static STYLE: Record<string, FormStyle>;
     static TRUE_STRINGS: Set<string>;
-    template: FormTemplate | FormTemplate[];
-    changeListeners: any[];
+    template: FormTemplate<T> | FormTemplate<T>[];
+    changeListeners: ((t: T) => Promise<void>)[];
     formStyle: FormStyle;
     configuration: {
         formatting: {
@@ -45,17 +49,17 @@ export declare class Form extends BasicElement {
             };
         };
     };
-    value: any;
-    constructor(template: FormTemplate | FormTemplate[]);
+    value: T;
+    constructor(template: FormTemplate<T> | FormTemplate<T>[]);
     build(json: any): Promise<this>;
     onChange(): Promise<void>;
-    json(includeHidden?: boolean): any;
+    json(includeHidden?: boolean): T;
     _readValue(element: HTMLElement, includeHidden?: boolean): any;
-    jsonToHtml(templates: FormTemplate | FormTemplate[], json: any, jsonKey?: string, options?: {
+    jsonToHtml(templates: FormTemplate<T> | FormTemplate<T>[], json: any, jsonKey?: string, options?: {
         style: FormStyle;
     }): Promise<HTMLElement[]>;
     _readJsonWithKey(json: any, key: string): any;
-    oneItem(template: FormTemplateJSON, itemValue: any, jsonKey: string, { style }?: {
+    oneItem(template: FormTemplateJSON<T>, itemValue: any, jsonKey: string, { style }?: {
         style?: FormStyle;
     }): Promise<HTMLElement>;
 }

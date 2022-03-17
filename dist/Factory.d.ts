@@ -6,11 +6,11 @@ import { Form, FormTemplate } from "./forms/Form.js";
  *
  * @returns {Promise<*>} returns the response from the user (the populated form json)
  */
-export declare function popupForm(template: FormTemplate | FormTemplate[], { value, title, submitText, wrapper, dismissable }?: {
+export declare function popupForm<T>(template: FormTemplate<T> | FormTemplate<T>[], { value, title, submitText, wrapper, dismissable }?: {
     value?: {};
     title?: string;
     submitText?: string;
-    wrapper?: (form: Form) => HTMLElement;
+    wrapper?: (form: Form<T>) => HTMLElement;
     dismissable?: boolean;
 }): Promise<unknown>;
 export declare function info(...args: any[] | any): void;
