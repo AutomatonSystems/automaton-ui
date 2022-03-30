@@ -3,7 +3,7 @@ import { BasicElement } from "../BasicElement.js";
 import "./Toggle.js";
 /****** FORM COMPONENTS ******/
 declare type FormInputHideFunction<T> = (value: T, element: HTMLElement) => boolean;
-declare type FormInputOptionsFunction<T> = (value: T) => any[];
+declare type FormInputOptionsFunction<T> = (value: T) => any[] | Promise<any[]>;
 declare type FormInputAfterRenderFunction<T> = (element: HTMLElement, form: Form<T>) => void;
 declare type FormInputTypeFunction<T> = (value: any, key: string, parent: HTMLElement) => HTMLElement;
 interface FormTemplateJSON<T> {

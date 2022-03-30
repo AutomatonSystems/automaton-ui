@@ -30,7 +30,7 @@ export class AbstractInput extends BasicElement{
 
 		this.setAttribute("ui-input", '');
 
-		if(options.class){
+		if(options?.class){
 			if(Array.isArray(options.class)){
 				this.classList.add(...options.class);
 			}else{
@@ -252,6 +252,7 @@ export class SelectInput extends HTMLSelectElement{
 			options = optionsArg;
 		}
 		let value = this.getValue();
+		this.innerHTML = "";
 		for(let opt of options){
 			let option = document.createElement('option');
 			if(typeof opt == 'string'){

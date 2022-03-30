@@ -1,6 +1,5 @@
 const sleep = (time, value) => new Promise(r => setTimeout(() => r(value), time));
-// @ts-ignore
-window['sleep'] = sleep;
+self['sleep'] = sleep;
 /**
  * Add items onto a element
  *
@@ -940,10 +939,10 @@ class Splash extends BasicElement {
 customElements.define('ui-splash', Splash);
 
 class Modal extends Splash {
-    constructor(content, { title = '', clazz = '', buttons = '', dismissable = true, header = false, footer = false } = {}) {
-        super('', { dismissable: dismissable });
+    constructor(content, options) {
+        super('', { dismissable: options?.dismissable ?? true });
         this.setAttribute("ui-modal", '');
-        let panel = new Panel(content, { title, clazz, buttons, header, footer });
+        let panel = new Panel(content, options);
         panel.addEventListener("mousedown", () => event.stopPropagation());
         // rebind panel to parent splash so hide/show etc call parent
         panel.self = this;
@@ -1353,7 +1352,7 @@ class AbstractInput extends BasicElement {
         this.obj = obj;
         this.key = key;
         this.setAttribute("ui-input", '');
-        if (options.class) {
+        if (options?.class) {
             if (Array.isArray(options.class)) {
                 this.classList.add(...options.class);
             }
@@ -1523,6 +1522,7 @@ class SelectInput extends HTMLSelectElement {
             options = optionsArg;
         }
         let value = this.getValue();
+        this.innerHTML = "";
         for (let opt of options) {
             let option = document.createElement('option');
             if (typeof opt == 'string') {
@@ -2635,6 +2635,7 @@ class Viewport extends BasicElement {
             e.preventDefault();
         });
         this.addEventListener('wheel', (e) => {
+            e.preventDefault();
             let v = this.toView(e.x, e.y);
             // this looks funky but give a nice UX
             let zoom = Math.exp((Math.log(this.#view.zoom) * 480 - e.deltaY) / 480);
@@ -2642,7 +2643,8 @@ class Viewport extends BasicElement {
             this.render();
         });
         // TODO the events here are document scoped - they should check if they are actually viewport based
-        document.addEventListener('mousedown', (e) => {
+        this.addEventListener('mousedown', (e) => {
+            e.preventDefault();
             if (e.button == MIDDLE_MOUSE) {
                 drag = [e.x, e.y];
             }
@@ -2670,6 +2672,206 @@ class Viewport extends BasicElement {
     }
 }
 customElements.define('ui-viewport', Viewport);
+
+const style = `
+
+:host{
+	display: block;
+    max-width: 100vw;
+	position: relative;
+}
+
+:host > slot#slider{
+	width: 100%;
+    overflow: hidden;
+    display: flex;
+    box-sizing: border-box;
+}
+
+:host ::slotted(*){
+    width: var(--element-width) !important;
+    margin-left: var(--element-margin) !important;
+	margin-right: var(--element-margin) !important;
+    flex: 0 0 auto !important;
+    box-sizing: border-box !important;
+}
+
+:host slot.button{
+	position: absolute;
+	top:0;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	cursor: pointer;
+	opacity: 0.5;
+	transition: opacity 0.3s;
+}
+
+:host(:hover) slot.button{
+	opacity: 0.8;
+}
+
+:host slot.button:hover{
+	opacity: 1; 
+}
+
+:host slot.button.inactive{
+	opacity: 0.2;
+	pointer-events: none;
+}
+
+slot#back{
+	left:0;
+}
+
+slot#forward{
+	right:0;
+}`;
+class Slider extends HTMLElement {
+    sliderContainer;
+    backButton;
+    forwardButton;
+    #index = 0;
+    itemsPerPage = 1;
+    itemWidth = 1;
+    #options = {
+        minElementWidth: 140,
+        elementMargin: 20,
+        visibleElementCallback: null
+    };
+    #initializedItems = new WeakSet();
+    constructor() {
+        super();
+        const shadowRoot = this.attachShadow({ mode: 'open' });
+        shadowRoot.innerHTML = `
+		<style>${style}</style>
+		<slot id="slider"></slot>
+		<slot class="button" id="back" name="back"><span style="font-size: 40px">〈</span></slot>
+		<slot class="button" id="forward" name="forward"><span style="font-size: 40px">〉</span></slot>
+		`;
+        this.forwardButton = shadowRoot.querySelector('#forward');
+        this.forwardButton.addEventListener("click", this.slideForward.bind(this));
+        this.backButton = shadowRoot.querySelector('#back');
+        this.backButton.addEventListener("click", this.slideBack.bind(this));
+        this.sliderContainer = shadowRoot.querySelector('slot');
+        this.#bindTouchEvents(this.sliderContainer);
+        new ResizeObserver(this.redraw.bind(this)).observe(this);
+        this.index = 0;
+    }
+    slideForward() {
+        // if we are at the end scroll to the start, otherwise scroll forward
+        this.index = (this.index == this.length - this.itemsPerPage) ? 0 : Math.min(this.length - this.itemsPerPage, this.index + this.itemsPerPage);
+    }
+    slideBack() {
+        this.index = Math.max(0, this.index - this.itemsPerPage);
+    }
+    get index() {
+        return this.#index;
+    }
+    set index(i) {
+        if (this.length == 0)
+            return;
+        this.#index = i;
+        this.backButton.classList.toggle('inactive', this.index == 0);
+        // scroll
+        this.scrollToIndex(true);
+    }
+    get options() {
+        return this.#options;
+    }
+    set options(options) {
+        this.#options = options;
+        this.redraw();
+    }
+    redraw() {
+        if (this.length == 0)
+            return;
+        // compute the number of elements that should be visible per scroll
+        let rect = this.sliderContainer.getBoundingClientRect();
+        let width = rect.width;
+        let maxElements = Math.floor(width / (this.options.minElementWidth + 2 * this.options.elementMargin));
+        this.itemsPerPage = maxElements;
+        // set the element size to match
+        this.itemWidth = (width / maxElements) - this.options.elementMargin * 2;
+        this.style.setProperty('--element-width', this.itemWidth + "px");
+        this.style.setProperty('--element-margin', this.options.elementMargin + "px");
+        // we'll need to update our scroller
+        this.scrollToIndex(false);
+    }
+    get length() {
+        return this.children.length;
+    }
+    scrollToIndex(smooth) {
+        if (this.length == 0)
+            return;
+        // Find items that are now visible, or will be visible in one scroll, and trigger callback
+        if (this.options.visibleElementCallback) {
+            for (let itemIndex = this.index - this.itemsPerPage; itemIndex < this.index + this.itemsPerPage * 2; itemIndex++) {
+                let wrappedIndex = itemIndex < 0 ? this.length - (-itemIndex % this.length) : itemIndex % this.length;
+                console.log(wrappedIndex);
+                let item = this.children[wrappedIndex];
+                if (!this.#initializedItems.has(item)) {
+                    this.#initializedItems.add(item);
+                    this.options.visibleElementCallback(item);
+                }
+            }
+        }
+        // actually scroll the slider
+        let element = this.children[this.index];
+        let position = element.offsetLeft - this.sliderContainer.offsetLeft - this.options.elementMargin;
+        if (smooth) {
+            this.sliderContainer.scrollTo({
+                top: 0,
+                left: position,
+                behavior: 'smooth'
+            });
+        }
+        else {
+            this.sliderContainer.scrollLeft = position;
+        }
+    }
+    #bindTouchEvents(frame) {
+        let touchOffset = null;
+        frame.addEventListener('touchstart', (event) => {
+            let touch = event.touches[0];
+            if (!touchOffset) {
+                touchOffset = {
+                    originX: this.sliderContainer.scrollLeft,
+                    x: touch.pageX,
+                    y: touch.pageY,
+                    amountX: 0,
+                    amountY: 0,
+                    time: Date.now()
+                };
+            }
+        });
+        frame.addEventListener('touchmove', (event) => {
+            let touch = event.touches[0];
+            touchOffset.amountX = touchOffset.x - touch.pageX;
+            touchOffset.amountY = touchOffset.y - touch.pageY;
+            this.sliderContainer.scrollLeft = touchOffset.amountX + touchOffset.originX;
+        });
+        frame.addEventListener('touchend', (event) => {
+            console.log(touchOffset);
+            // decide if the user scrolled far enough
+            if (Math.abs(touchOffset.amountX) > this.itemWidth) {
+                // SCROLL
+                if (touchOffset.amountX > 0) {
+                    this.slideForward();
+                }
+                else {
+                    this.slideBack();
+                }
+            }
+            else {
+                this.scrollToIndex(true);
+            }
+            touchOffset = null;
+        });
+    }
+}
+customElements.define('ui-slider', Slider);
 
 // @ts-ignore
 let URL$1 = import.meta.url;
@@ -2704,6 +2906,7 @@ const UI = {
     NumberInput,
     Panel,
     SelectInput,
+    Slider,
     Spacer,
     Spinner,
     Splash,
@@ -2726,5 +2929,5 @@ const UI = {
 window["UI"] = UI;
 let createElement = htmlToElement;
 
-export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Form2, Grid, HashManager, InputLabel, Json, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, UI as default, factory, mixin, utils };
+export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Form2, Grid, HashManager, InputLabel, Json, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, Slider, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, UI as default, factory, mixin, utils };
 //# sourceMappingURL=ui.js.map

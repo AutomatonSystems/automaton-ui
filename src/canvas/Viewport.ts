@@ -292,6 +292,7 @@ export class Viewport extends BasicElement{
 			e.preventDefault();
 		});
 		this.addEventListener('wheel', (e)=>{
+			e.preventDefault();
 			let v = this.toView(e.x, e.y);
 
 			// this looks funky but give a nice UX
@@ -302,7 +303,9 @@ export class Viewport extends BasicElement{
 		});
 
 		// TODO the events here are document scoped - they should check if they are actually viewport based
-		document.addEventListener('mousedown', (e)=>{
+		this.addEventListener('mousedown', (e)=>{
+			e.preventDefault();
+
 			if(e.button==MIDDLE_MOUSE){
 				drag = [e.x, e.y];
 			}

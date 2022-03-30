@@ -27,6 +27,7 @@ import { Splash } from "./Splash.js";
 import { Toast } from "./feedback/Toast.js";
 import { Toggle } from "./forms/Toggle.js";
 import { Viewport } from "./canvas/Viewport.js";
+import { Slider } from "./layout/Slider.js";
 
 // @ts-ignore
 let URL = import.meta.url;
@@ -65,6 +66,7 @@ const UI = {
 	NumberInput,
 	Panel,
 	SelectInput,
+	Slider,
 	Spacer,
 	Spinner,
 	Splash,
@@ -112,6 +114,7 @@ export {Json};
 export {List, Table};
 export {Modal};
 export {Panel};
+export {Slider};
 export {Spacer};
 export {Spinner};
 export {Splash};

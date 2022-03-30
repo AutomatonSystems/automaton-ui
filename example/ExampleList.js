@@ -6,7 +6,7 @@ let list = new List(item=>{
 	return new Panel(`<img src="${item.img}"/><div>${item.name}</div>`);
 	},{
 		itemColumns: 3,
-		itemsPerPage: 9
+		itemsPerPage: 150
 	});
 
 list

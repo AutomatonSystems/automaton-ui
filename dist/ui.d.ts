@@ -25,6 +25,7 @@ import { Splash } from "./Splash.js";
 import { Toast } from "./feedback/Toast.js";
 import { Toggle } from "./forms/Toggle.js";
 import { Viewport } from "./canvas/Viewport.js";
+import { Slider } from "./layout/Slider.js";
 declare const UI: {
     BasicElement: typeof BasicElement;
     Badge: typeof Badge;
@@ -47,6 +48,7 @@ declare const UI: {
     NumberInput: typeof NumberInput;
     Panel: typeof Panel;
     SelectInput: typeof SelectInput;
+    Slider: typeof Slider;
     Spacer: typeof Spacer;
     Spinner: typeof Spinner;
     Splash: typeof Splash;
@@ -83,6 +85,7 @@ export { Json };
 export { List, Table };
 export { Modal };
 export { Panel };
+export { Slider };
 export { Spacer };
 export { Spinner };
 export { Splash };

@@ -1,5 +1,6 @@
 
 ui-viewport{
+	display: block;
 	position: relative;
 	overflow: hidden;
 }

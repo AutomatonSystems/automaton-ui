@@ -1,15 +1,11 @@
-import { Panel } from "./layout/Panel";
+import { Panel, PanelOptions } from "./layout/Panel";
 import { Splash } from "./Splash";
 import { Appendable } from "./utils.js";
+export declare type ModalOptions = PanelOptions & {
+    dismissable?: boolean;
+};
 export declare class Modal extends Splash {
-    constructor(content?: Appendable, { title, clazz, buttons, dismissable, header, footer }?: {
-        title?: string;
-        clazz?: string;
-        buttons?: string;
-        dismissable?: boolean;
-        header?: boolean;
-        footer?: boolean;
-    });
+    constructor(content?: Appendable, options?: ModalOptions);
     get panel(): Panel;
     close(): this;
 }

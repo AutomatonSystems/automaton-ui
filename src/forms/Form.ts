@@ -9,7 +9,7 @@ import { DragHandle } from "../component/DragHandle";
 /****** FORM COMPONENTS ******/
 
 type FormInputHideFunction<T> = (value:T, element: HTMLElement)=>boolean;
-type FormInputOptionsFunction<T> = (value:T)=>any[];
+type FormInputOptionsFunction<T> = (value:T)=>any[]|Promise<any[]>;
 type FormInputAfterRenderFunction<T> = (element: HTMLElement, form: Form<T>)=>void;
 type FormInputTypeFunction<T> = (value: any, key: string, parent: HTMLElement)=>HTMLElement;
 

@@ -1,7 +1,6 @@
 export const sleep = (time: number, value?: any)=>new Promise(r=>setTimeout(()=>r(value),time));
 
-// @ts-ignore
-window['sleep'] = sleep;
+(<any>self)['sleep'] = sleep;
 
 export type Appendable = Node|string|number|boolean|Appendable[]
 
