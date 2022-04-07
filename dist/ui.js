@@ -1846,8 +1846,7 @@ class HashManager extends BasicElement {
             return this.hashChange();
     }
     async hashChange() {
-        let hash = window.location.hash.substring(1);
-        let pairs = hash.split('|').map(pair => pair.includes('=') ? pair.split('=', 2) : [null, pair]);
+        let pairs = HashManager.hashPairs();
         let pair = pairs.find(i => i[0] == this.key);
         if (pair == null)
             pair = [this.key, ""];
