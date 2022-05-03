@@ -200,15 +200,21 @@ type SliderInputOptions = AbstractInputOptions & {
 	min?: number
 	max?: number
 	step?: number
+	displayFunc?: (value: number)=>string
 }
 
-export class SliderInput extends AbstractHTMLInput{
+export class SliderInput extends AbstractInput{
 
 	 constructor(obj: any, key: any, options: SliderInputOptions){
 		super(obj, key, options);
-
-		this.type = "range";
 		
+		this.innerHTML = `<input type="range"/><div></div>`
+
+		this.onselectstart = ()=>false;
+
+		let input = <HTMLInputElement>this.querySelector('input');
+		let display = <HTMLInputElement>this.querySelector('div');
+
 		this.value = Reflect.get(obj, key);
 
 		this.setAttribute('ui-sliderinput', '');
@@ -217,23 +223,33 @@ export class SliderInput extends AbstractHTMLInput{
 			this.style.width = (options?.size*24)+"px";
 		if(options?.color)
 			this.style.setProperty('--color', options?.color);
-		if(options?.placeholder)
-			this.setAttribute('placeholder', options?.placeholder);
 
-		this.setAttribute('min', (options?.min ?? 0)+"");
-		this.setAttribute('max', (options?.max ?? 100)+"");
-		this.setAttribute('step', (options?.step ?? 1)+"");
+		input.setAttribute('min', (options?.min ?? 0)+"");
+		input.setAttribute('max', (options?.max ?? 100)+"");
+		input.setAttribute('step', (options?.step ?? 1)+"");
 
-		this.addEventListener('input', ()=>{
-			console.log("input", this.value);
-			let value = this.valueAsNumber;
+		if(options?.displayFunc){
+			display.innerHTML = options.displayFunc(this.value);
+		}else{
+			display.innerHTML = ""+this.value;
+		}
+
+		input.addEventListener('input', ()=>{
+			let value = input.valueAsNumber;
 			Reflect.set(obj, key, value);
+
+			if(options?.displayFunc){
+				display.innerHTML = options.displayFunc(this.value);
+			}else{
+				display.innerHTML = ""+this.value;
+			}
+
 			if(options?.callback)
 				options?.callback(value);
 		});
 	}
 }
-customElements.define('ui-sliderinput', SliderInput, {extends:'input'});
+customElements.define('ui-sliderinput', SliderInput);
 
 type SelectInputOptions = AbstractInputOptions & {
 	options: (()=>Promise<SelectInputOption[]>) | SelectInputOption[]

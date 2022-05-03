@@ -1484,6 +1484,43 @@ class NumberInput extends AbstractHTMLInput {
     }
 }
 customElements.define('ui-numberinput', NumberInput, { extends: 'input' });
+class SliderInput extends AbstractInput {
+    constructor(obj, key, options) {
+        super(obj, key, options);
+        this.innerHTML = `<input type="range"/><div></div>`;
+        this.onselectstart = () => false;
+        let input = this.querySelector('input');
+        let display = this.querySelector('div');
+        this.value = Reflect.get(obj, key);
+        this.setAttribute('ui-sliderinput', '');
+        if (options?.size)
+            this.style.width = (options?.size * 24) + "px";
+        if (options?.color)
+            this.style.setProperty('--color', options?.color);
+        input.setAttribute('min', (options?.min ?? 0) + "");
+        input.setAttribute('max', (options?.max ?? 100) + "");
+        input.setAttribute('step', (options?.step ?? 1) + "");
+        if (options?.displayFunc) {
+            display.innerHTML = options.displayFunc(this.value);
+        }
+        else {
+            display.innerHTML = "" + this.value;
+        }
+        input.addEventListener('input', () => {
+            let value = input.valueAsNumber;
+            Reflect.set(obj, key, value);
+            if (options?.displayFunc) {
+                display.innerHTML = options.displayFunc(this.value);
+            }
+            else {
+                display.innerHTML = "" + this.value;
+            }
+            if (options?.callback)
+                options?.callback(value);
+        });
+    }
+}
+customElements.define('ui-sliderinput', SliderInput);
 class SelectInput extends HTMLSelectElement {
     _value = null;
     obj;
@@ -2928,5 +2965,5 @@ const UI = {
 window["UI"] = UI;
 let createElement = htmlToElement;
 
-export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Form2, Grid, HashManager, InputLabel, Json, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, Slider, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, UI as default, factory, mixin, utils };
+export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Form2, Grid, HashManager, InputLabel, Json, JsonInput, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, SelectInput, Slider, SliderInput, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, Viewport, createElement, UI as default, factory, mixin, utils };
 //# sourceMappingURL=ui.js.map

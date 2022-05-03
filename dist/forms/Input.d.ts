@@ -70,6 +70,15 @@ export declare class NumberInput extends AbstractHTMLInput {
      */
     constructor(obj: any, key: any, options: AbstractInputOptions);
 }
+declare type SliderInputOptions = AbstractInputOptions & {
+    min?: number;
+    max?: number;
+    step?: number;
+    displayFunc?: (value: number) => string;
+};
+export declare class SliderInput extends AbstractInput {
+    constructor(obj: any, key: any, options: SliderInputOptions);
+}
 declare type SelectInputOptions = AbstractInputOptions & {
     options: (() => Promise<SelectInputOption[]>) | SelectInputOption[];
 };
