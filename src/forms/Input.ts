@@ -195,6 +195,46 @@ export class NumberInput extends AbstractHTMLInput{
 }
 customElements.define('ui-numberinput', NumberInput, {extends:'input'});
 
+
+type SliderInputOptions = AbstractInputOptions & {
+	min?: number
+	max?: number
+	step?: number
+}
+
+export class SliderInput extends AbstractHTMLInput{
+
+	 constructor(obj: any, key: any, options: SliderInputOptions){
+		super(obj, key, options);
+
+		this.type = "range";
+		
+		this.value = Reflect.get(obj, key);
+
+		this.setAttribute('ui-sliderinput', '');
+
+		if(options?.size)
+			this.style.width = (options?.size*24)+"px";
+		if(options?.color)
+			this.style.setProperty('--color', options?.color);
+		if(options?.placeholder)
+			this.setAttribute('placeholder', options?.placeholder);
+
+		this.setAttribute('min', (options?.min ?? 0)+"");
+		this.setAttribute('max', (options?.max ?? 100)+"");
+		this.setAttribute('step', (options?.step ?? 1)+"");
+
+		this.addEventListener('input', ()=>{
+			console.log("input", this.value);
+			let value = this.valueAsNumber;
+			Reflect.set(obj, key, value);
+			if(options?.callback)
+				options?.callback(value);
+		});
+	}
+}
+customElements.define('ui-sliderinput', SliderInput, {extends:'input'});
+
 type SelectInputOptions = AbstractInputOptions & {
 	options: (()=>Promise<SelectInputOption[]>) | SelectInputOption[]
 }
