@@ -1,5 +1,5 @@
 import { BasicElement } from "./BasicElement.js";
-import { sleep } from "./utils.js";
+import { sleep, random} from "./utils.js";
 
 type GConstructor<T = {}> = new (...args: any[]) => T;
 type HTMLElementBase = GConstructor<HTMLElement>;
@@ -69,7 +69,7 @@ export function Draggable<TBase extends HTMLElementBase>(Base: TBase){
 			this.addEventListener('dragstart', (event)=>{
 				// setup a unique drag ID
 				if(this.dataset['drag'] == null){
-					let id = "D_"+Math.floor(1_000_000*Math.random()).toString(16);
+					let id = "D_"+Math.floor(1_000_000*random()).toString(16);
 					// TODO collision detection
 					this.dataset['drag'] = id;
 				}

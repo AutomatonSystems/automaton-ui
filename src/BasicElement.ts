@@ -2,11 +2,15 @@ import { Draggable } from './Mixins.js';
 import {append, sleep} from './utils.js';
 import { Appendable } from './utils.js';
 
+export type BasicElementOpts = {
+	clazz?: string
+}
+
 export class BasicElement extends Draggable(HTMLElement) {
 	self: BasicElement;
 	intervals: any[];
 
-	constructor(content?: Appendable, {clazz=''}={}) {
+	constructor(content?: Appendable, {clazz=''}: BasicElementOpts={}) {
 		super();
 
 		this.self = this;

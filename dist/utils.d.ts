@@ -7,6 +7,8 @@ export declare type Appendable = Node | string | number | boolean | Appendable[]
  * @param content
  */
 export declare function append(element: HTMLElement, content: Appendable): void;
+export declare let random: () => number;
+export declare function setRandom(rng: () => number): void;
 export declare function uuid(): string;
 /**
  * Convert html text to a HTMLElement

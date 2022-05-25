@@ -2,6 +2,7 @@ import { append, sleep } from "./utils.js";
 import { BasicElement } from "./BasicElement.js";
 
 import "./HashManager.css";
+import { utils } from "./ui.js";
 
 type HashVariableMapperFunction = {
 	name: string,
@@ -263,7 +264,7 @@ export class HashManager extends BasicElement {
 		let enter: string, exit: string;
 		if (direction == HashManager.DIRECTION.RANDOM) {
 			let dirs = [HashManager.DIRECTION.RIGHT, HashManager.DIRECTION.LEFT, HashManager.DIRECTION.TOP, HashManager.DIRECTION.BOTTOM];
-			direction = dirs[Math.floor(Math.random() * dirs.length)];
+			direction = dirs[Math.floor(utils.random() * dirs.length)];
 		}
 		if(Array.isArray(direction)){
 			console.log(this.position, direction);

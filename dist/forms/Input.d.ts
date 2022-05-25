@@ -7,7 +7,7 @@ declare type AbstractInputOptions = {
     color?: string;
     placeholder?: string;
 };
-export declare class AbstractInput extends BasicElement {
+export declare class AbstractInput<T> extends BasicElement {
     obj: any;
     key: any;
     /**
@@ -17,14 +17,8 @@ export declare class AbstractInput extends BasicElement {
      * @param options configuration parameters
      */
     constructor(obj: any, key: any, options?: AbstractInputOptions);
-    get value(): any;
-    set value(value: any);
-    /**
-     *
-     * @param {String} name
-     *
-     * @returns {InputLabel}
-     */
+    get value(): T;
+    set value(value: T);
     label(name: string): InputLabel;
 }
 export declare class AbstractHTMLInput extends HTMLInputElement {
@@ -44,7 +38,7 @@ export declare class AbstractHTMLInput extends HTMLInputElement {
     label(name: string): InputLabel;
 }
 export declare type StringInputOptions = AbstractInputOptions & {
-    options?: (() => Promise<SelectInputOption[]>) | SelectInputOption[];
+    options?: (() => Promise<SelectInputOption<string>[]>) | SelectInputOption<string>[];
 };
 export declare class StringInput extends AbstractHTMLInput {
     /**
@@ -76,39 +70,46 @@ declare type SliderInputOptions = AbstractInputOptions & {
     step?: number;
     displayFunc?: (value: number) => string;
 };
-export declare class SliderInput extends AbstractInput {
+export declare class SliderInput extends AbstractInput<number> {
+    input: HTMLInputElement;
     constructor(obj: any, key: any, options: SliderInputOptions);
+    update(): void;
 }
-declare type SelectInputOptions = AbstractInputOptions & {
-    options: (() => Promise<SelectInputOption[]>) | SelectInputOption[];
+declare type SelectInputOptions<T> = AbstractInputOptions & {
+    options: (() => Promise<SelectInputOption<T>[]>) | SelectInputOption<T>[];
 };
-declare type SelectInputOption = {
-    value: any;
+declare type SelectInputOption<T> = {
+    value: T;
     display: any;
-} | string;
-export declare class SelectInput extends HTMLSelectElement {
+} | T;
+export declare class SelectInput<T> extends HTMLSelectElement {
     _value: any;
     obj: any;
     key: any;
-    constructor(obj: any, key: any, options?: SelectInputOptions);
+    constructor(obj: any, key: any, options?: SelectInputOptions<T>);
     getValue(): any;
     setValue(value: any): void;
-    renderOptions(optionsArg: (() => Promise<SelectInputOption[]>) | SelectInputOption[]): Promise<void>;
+    renderOptions(optionsArg: (() => Promise<SelectInputOption<T>[]>) | SelectInputOption<T>[]): Promise<void>;
 }
 declare type MultiSelectInputOptions = {
     options: any;
 };
-export declare class MultiSelectInput extends AbstractInput {
+export declare class MultiSelectInput extends AbstractInput<string[]> {
     list: HTMLElement;
     constructor(obj: any, key: any, options: MultiSelectInputOptions);
     renderList(): void;
 }
-export declare class JsonInput extends AbstractInput {
+export declare class JsonInput extends AbstractInput<string> {
     constructor(obj: any, key: any);
 }
+export declare class ToggleInput extends AbstractInput<boolean> {
+    input: HTMLInputElement;
+    constructor(obj: any, key: any);
+    update(): void;
+}
 export declare class InputLabel extends HTMLLabelElement {
-    input: AbstractInput;
-    constructor(inputElement: AbstractInput, display: string, { wrapped }?: {
+    input: AbstractInput<any>;
+    constructor(inputElement: AbstractInput<any>, display: string, { wrapped }?: {
         wrapped?: boolean;
     });
     get value(): any;

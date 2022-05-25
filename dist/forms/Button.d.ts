@@ -1,7 +1,7 @@
 import "./Button.css";
-import { BasicElement } from "../BasicElement.js";
+import { BasicElement, BasicElementOpts } from "../BasicElement.js";
 import { Appendable } from "../utils.js";
-export declare type ButtonOptions = {
+export declare type ButtonOptions = BasicElementOpts & {
     icon?: string;
     style?: 'button' | 'text' | string;
     color?: string;

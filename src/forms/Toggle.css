@@ -1,4 +1,4 @@
-ui-toggle{
+[ui-toggle]{
 	width: 50px;
 	--size: 20px;
 
@@ -9,7 +9,7 @@ ui-toggle{
 	height: var(--size);
 }
 
-ui-toggle input{
+[ui-toggle] input{
 	display:inline-block;
 	position: absolute;
 	opacity: 0;
@@ -18,7 +18,7 @@ ui-toggle input{
 	cursor: pointer;
 }
 
-ui-toggle div{
+[ui-toggle] div{
 	display:inline-block;
 	height: 100%;
 	background-color: var(--color-error);
@@ -28,7 +28,7 @@ ui-toggle div{
 	box-shadow: inset var(--shadow);
 }
 
-ui-toggle span{
+[ui-toggle] span{
 	display:inline-block;
 	height: 100%;
 	width: var(--size);
@@ -39,10 +39,10 @@ ui-toggle span{
 	box-shadow: var(--shadow);
 }
 
-ui-toggle input:checked + div{
+[ui-toggle] input:checked + div{
 	background-color: var(--color-success);
 }
 
-ui-toggle input:checked + div span{
+[ui-toggle] input:checked + div span{
 	margin-left: calc(100% - var(--size));
 }

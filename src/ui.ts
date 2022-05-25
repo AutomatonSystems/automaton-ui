@@ -14,7 +14,7 @@ import { ContextMenu } from "./ContextMenu.js";
 import { Form } from "./forms/Form.js";
 import { Form2 } from "./forms/Form2.js";
 import { Grid } from "./layout/Grid.js";
-import { JsonInput, InputLabel, NumberInput, StringInput, SliderInput, LabelledInput, SelectInput, MultiSelectInput} from "./forms/Input.js";
+import { JsonInput, InputLabel, NumberInput, StringInput, SliderInput, ToggleInput, LabelledInput, SelectInput, MultiSelectInput} from "./forms/Input.js";
 import { HashManager } from "./HashManager.js";
 import { Json } from "./text/Json.js";
 import { List} from "./data/List.js";
@@ -67,6 +67,7 @@ const UI = {
 	Panel,
 	SelectInput,
 	Slider,
+	SliderInput,
 	Spacer,
 	Spinner,
 	Splash,
@@ -74,6 +75,7 @@ const UI = {
 	Table,
 	Toast,
 	Toggle,
+	ToggleInput,
 	Viewport,
 
 	info: factory.info,
@@ -107,7 +109,7 @@ export {Code};
 export {ContextMenu};
 export {Form};
 export {Form2};
-export {JsonInput, InputLabel, NumberInput, StringInput, SliderInput, LabelledInput, SelectInput, MultiSelectInput};
+export {JsonInput, InputLabel, NumberInput, StringInput, SliderInput, ToggleInput, LabelledInput, SelectInput, MultiSelectInput};
 export {Grid};
 export {HashManager};
 export {Json};

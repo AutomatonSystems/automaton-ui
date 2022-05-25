@@ -1,5 +1,6 @@
 import { BasicElement } from "../BasicElement.js";
 import { Badge } from "../component/Badge.js";
+import { utils } from "../ui.js";
 import { htmlToElement, uuid } from "../utils.js";
 import { Button } from "./Button.js";
 import "./Input.css";
@@ -12,7 +13,7 @@ type AbstractInputOptions = {
 	placeholder?:string
 }
 
-export class AbstractInput extends BasicElement{
+export class AbstractInput<T> extends BasicElement{
 	obj: any;
 	key: any;
 
@@ -39,21 +40,15 @@ export class AbstractInput extends BasicElement{
 		}
 	}
 
-	get value(){
+	get value(): T{
 		return Reflect.get(this.obj, this.key);
 	}
 
-	set value(value){
+	set value(value: T){
 		Reflect.set(this.obj, this.key, value);
 	}
 
-	/**
-	 * 
-	 * @param {String} name 
-	 * 
-	 * @returns {InputLabel}
-	 */
-	label(name: string){
+	label(name: string): InputLabel{
 		return new InputLabel(this, name, {wrapped: true});
 	}
 }
@@ -88,12 +83,12 @@ export class AbstractHTMLInput extends HTMLInputElement{
 	 * @returns {InputLabel}
 	 */
 	label(name: string){
-		return new InputLabel(<AbstractInput><any>this, name, {wrapped: true});
+		return new InputLabel(<AbstractInput<any>><any>this, name, {wrapped: true});
 	}
 }
 
 export type StringInputOptions = AbstractInputOptions & {
-	options?: (()=>Promise<SelectInputOption[]>) | SelectInputOption[]
+	options?: (()=>Promise<SelectInputOption<string>[]>) | SelectInputOption<string>[]
 }
 
 export class StringInput extends AbstractHTMLInput{
@@ -203,19 +198,19 @@ type SliderInputOptions = AbstractInputOptions & {
 	displayFunc?: (value: number)=>string
 }
 
-export class SliderInput extends AbstractInput{
+export class SliderInput extends AbstractInput<number>{
 
-	 constructor(obj: any, key: any, options: SliderInputOptions){
+	input: HTMLInputElement;
+
+	constructor(obj: any, key: any, options: SliderInputOptions){
 		super(obj, key, options);
 		
 		this.innerHTML = `<input type="range"/><div></div>`
 
 		this.onselectstart = ()=>false;
 
-		let input = <HTMLInputElement>this.querySelector('input');
+		this.input = <HTMLInputElement>this.querySelector('input');
 		let display = <HTMLInputElement>this.querySelector('div');
-
-		this.value = Reflect.get(obj, key);
 
 		this.setAttribute('ui-sliderinput', '');
 
@@ -224,9 +219,10 @@ export class SliderInput extends AbstractInput{
 		if(options?.color)
 			this.style.setProperty('--color', options?.color);
 
-		input.setAttribute('min', (options?.min ?? 0)+"");
-		input.setAttribute('max', (options?.max ?? 100)+"");
-		input.setAttribute('step', (options?.step ?? 1)+"");
+		this.input.setAttribute('min', (options?.min ?? 0)+"");
+		this.input.setAttribute('max', (options?.max ?? 100)+"");
+		this.input.setAttribute('step', (options?.step ?? 1)+"");
+		this.input.value = Reflect.get(obj, key);
 
 		if(options?.displayFunc){
 			display.innerHTML = options.displayFunc(this.value);
@@ -234,8 +230,8 @@ export class SliderInput extends AbstractInput{
 			display.innerHTML = ""+this.value;
 		}
 
-		input.addEventListener('input', ()=>{
-			let value = input.valueAsNumber;
+		this.input.addEventListener('input', ()=>{
+			let value = this.input.valueAsNumber;
 			Reflect.set(obj, key, value);
 
 			if(options?.displayFunc){
@@ -248,26 +244,31 @@ export class SliderInput extends AbstractInput{
 				options?.callback(value);
 		});
 	}
+
+	update(){
+		this.input.value = Reflect.get(this.obj, this.key);
+	}
+
 }
 customElements.define('ui-sliderinput', SliderInput);
 
-type SelectInputOptions = AbstractInputOptions & {
-	options: (()=>Promise<SelectInputOption[]>) | SelectInputOption[]
+type SelectInputOptions<T> = AbstractInputOptions & {
+	options: (()=>Promise<SelectInputOption<T>[]>) | SelectInputOption<T>[]
 }
 
-type SelectInputOption = {
-	value: any
+type SelectInputOption<T> = {
+	value: T
 	display: any
-} | string
+} | T
 
 
-export class SelectInput extends HTMLSelectElement{
+export class SelectInput<T> extends HTMLSelectElement{
 
 	_value: any = null;
 	obj: any;
 	key: any;
 
-	constructor(obj: any, key: any, options: SelectInputOptions = {options: []}){
+	constructor(obj: any, key: any, options: SelectInputOptions<T> = {options: []}){
 		super();
 		this.obj = obj;
 		this.key = key;
@@ -300,8 +301,8 @@ export class SelectInput extends HTMLSelectElement{
 	setValue(value: any){
 		Reflect.set(this.obj, this.key, value);
 	}
-	async renderOptions(optionsArg: (()=>Promise<SelectInputOption[]>) | SelectInputOption[]){
-		let options: SelectInputOption[] = null;
+	async renderOptions(optionsArg: (()=>Promise<SelectInputOption<T>[]>) | SelectInputOption<T>[]){
+		let options: SelectInputOption<T>[] = null;
 		if(typeof optionsArg == 'function'){
 			options = await optionsArg();
 		}else{
@@ -311,15 +312,15 @@ export class SelectInput extends HTMLSelectElement{
 		this.innerHTML = "";
 		for(let opt of options){
 			let option = document.createElement('option');
-			if(typeof opt == 'string'){
+			if(typeof opt != 'object' || !('display' in opt)){
 				if(opt == value)
 					option.setAttribute('selected', '');
-				option.innerText = opt;
+				option.innerText = '' + opt;
 			}else{
 				if(opt.value == value)
 					option.setAttribute('selected', '');
 				option.innerText = opt.display ?? opt.value;
-				option.value = opt.value;
+				option.value = '' + opt.value;
 			}
 			this.append(option);
 		}
@@ -331,7 +332,7 @@ type MultiSelectInputOptions = {
 	options: any
 }
 
-export class MultiSelectInput extends AbstractInput{
+export class MultiSelectInput extends AbstractInput<string[]>{
 	list: HTMLElement;
 	constructor(obj: any , key: any, options: MultiSelectInputOptions){
 		super(obj, key);
@@ -372,7 +373,7 @@ export class MultiSelectInput extends AbstractInput{
 }
 customElements.define('ui-multiselectinput', MultiSelectInput);
 
-export class JsonInput extends AbstractInput{
+export class JsonInput extends AbstractInput<string>{
 
 	constructor(obj: any, key: any){
 		super(obj, key);
@@ -410,11 +411,36 @@ export class JsonInput extends AbstractInput{
 }
 customElements.define('ui-json-input', JsonInput);
 
+export class ToggleInput extends AbstractInput<boolean> {
+
+	input: HTMLInputElement;
+
+	constructor(obj: any, key: any) {
+		super(obj, key);
+
+		this.innerHTML = `<input type="checkbox"/><div><span></span></div>`;
+		this.setAttribute("ui-toggle", "");
+
+		this.input = <HTMLInputElement>this.querySelector('input');
+		this.input.checked = this.value;
+
+		this.querySelector('input').addEventListener('change', ()=>{
+			this.value = this.input.checked;
+		});
+	}
+
+	update(){
+		this.input.checked = this.value;
+	}
+}
+customElements.define('ui-toggleinput', ToggleInput);
+
+
 export class InputLabel extends HTMLLabelElement{
 
-	input: AbstractInput;
+	input: AbstractInput<any>;
 
-	constructor(inputElement: AbstractInput, display: string, {wrapped = false}= {}){
+	constructor(inputElement: AbstractInput<any>, display: string, {wrapped = false}= {}){
 		super();
 
 		if(wrapped){
@@ -425,8 +451,8 @@ export class InputLabel extends HTMLLabelElement{
 
 			let id = inputElement.id;
 			if(id==null){
-				// generate a (likely) unique id and use it
-				id =  "ui-" + Math.random().toString(16).slice(2);
+				// generate a unique id and use it
+				id = utils.uuid();
 				inputElement.id = id;
 			}
 
@@ -452,7 +478,7 @@ type LabelledInputOptions = AbstractInputOptions & {
 
 export class LabelledInput extends InputLabel{
 	constructor(json: any, key: string, type: typeof AbstractInput| typeof AbstractHTMLInput, options?:LabelledInputOptions){
-		super(<AbstractInput>new type(json, key, options), options?.name ?? key, {wrapped: true});
+		super(<AbstractInput<any>>new type(json, key, options), options?.name ?? key, {wrapped: true});
 	}
 }
 customElements.define('ui-labelledinput', LabelledInput, {extends:'label'});
