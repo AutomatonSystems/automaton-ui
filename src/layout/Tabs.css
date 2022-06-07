@@ -1,0 +1,32 @@
+[ui-tabs]{
+    display: flex;
+    flex-direction: column;
+}
+
+[ui-tabs] > header{
+    display: flex;
+    /*flex-direction: column;**/
+}
+
+[ui-tabs] > header > .tab{
+    cursor: pointer;
+    display: block;
+    padding: 10px 20px;
+
+    background-color: var(--brand-secondary);
+    color: var(--brand-secondary-text);
+
+    margin-right: 5px;
+}
+
+[ui-tabs] > header > .tab.active{
+    background-color: var(--brand-primary);
+    color: var(--brand-primary-text);
+}
+
+[ui-tabs] > content{
+    flex: 1 1 auto;
+    display: flex;
+    border: 2px solid var(--brand-primary);
+    padding: 10px;
+}

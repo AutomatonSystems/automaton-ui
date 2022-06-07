@@ -109,14 +109,16 @@ export class Form<T> extends BasicElement {
 
 	async onChange() {
 		let json = this.json();
-		this.value = json;
 		for(let listener of this.changeListeners)
 			await listener(json);
 		this.dispatchEvent(new Event('change'));
 	}
 
 	json(includeHidden = false): T{
-		return this._readValue(this, includeHidden);
+		let value = this._readValue(this, includeHidden);
+		if(!includeHidden)
+			this.value = value;
+		return value;
 	}
 
 	_readValue(element: HTMLElement, includeHidden = false){

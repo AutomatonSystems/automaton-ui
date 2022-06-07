@@ -7,8 +7,9 @@ let obj = {
 let panel = new UI.Panel();
 document.body.querySelector('content').append(panel);
 
-let jsonEle = new UI.Json(obj);
+console.log(UI);
 
+let jsonEle = new UI.Json(obj);
 panel.append(jsonEle);
 panel.append(
 		new UI.SliderInput(obj, 'volume', {
@@ -18,5 +19,3 @@ panel.append(
 			}
 		})
 	);
-
-panel.append(UI.html())

@@ -299,11 +299,13 @@ export declare function Draggable<TBase extends HTMLElementBase>(Base: TBase): {
         onreset: (this: GlobalEventHandlers, ev: Event) => any;
         onresize: (this: GlobalEventHandlers, ev: UIEvent) => any;
         onscroll: (this: GlobalEventHandlers, ev: Event) => any;
+        onsecuritypolicyviolation: (this: GlobalEventHandlers, ev: SecurityPolicyViolationEvent) => any;
         onseeked: (this: GlobalEventHandlers, ev: Event) => any;
         onseeking: (this: GlobalEventHandlers, ev: Event) => any;
         onselect: (this: GlobalEventHandlers, ev: Event) => any;
         onselectionchange: (this: GlobalEventHandlers, ev: Event) => any;
         onselectstart: (this: GlobalEventHandlers, ev: Event) => any;
+        onslotchange: (this: GlobalEventHandlers, ev: Event) => any;
         onstalled: (this: GlobalEventHandlers, ev: Event) => any;
         onsubmit: (this: GlobalEventHandlers, ev: SubmitEvent) => any;
         onsuspend: (this: GlobalEventHandlers, ev: Event) => any;

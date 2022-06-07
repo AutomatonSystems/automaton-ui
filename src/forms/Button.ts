@@ -1,9 +1,9 @@
 import "./Button.css";
 
-import { BasicElement } from "../BasicElement.js";
+import { BasicElement, BasicElementOpts } from "../BasicElement.js";
 import { Appendable } from "../utils.js";
 
-export type ButtonOptions = {
+export type ButtonOptions = BasicElementOpts & {
 	icon?: string
 	style?: 'button'|'text'|string
 	color?: string
@@ -18,7 +18,7 @@ export class Button extends BasicElement {
      * @param {{icon?: String, style?: String, color?: String|boolean}} options
      */
 	constructor(content?: Appendable, callback?: EventListenerOrEventListenerObject|String, options:ButtonOptions = {}) {
-		super(content);
+		super(content, options);
 
 		this.setAttribute("ui-button", '');
 
@@ -67,8 +67,19 @@ export class Button extends BasicElement {
 			this.prepend(i);
 
 			if(content=='')
-				i.classList.add('icon-only');
+				this.classList.add('icon-only');
 		}
+	}
+
+	setIcon(icon: string){
+		this.querySelector('i').remove();
+		let i = document.createElement('i');
+		let classes = icon.trim().split(" ");
+		// include the default font-awesome class if one wasn't provided
+		if(!classes.includes('fa') && !classes.includes('fab') && !classes.includes('fas'))
+			i.classList.add('fa');
+		i.classList.add(...classes);
+		this.prepend(i);
 	}
 
 	// TODO reinstate setCallback

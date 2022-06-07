@@ -1,42 +1,4 @@
-:where([ui-button]){
-	display: inline-block;
-	margin: 2px;
-	padding: 4px 12px;
-
-	cursor: pointer;
-
-	border-radius: var(--corner-smoothing);
-	background-color: var(--brand-primary);
-	color: var(--brand-primary-text);
-	/*box-shadow: var(--shadow);	*/
-}
-
-[ui-button]::selection{
-	user-select: all;
-}
-
-[ui-button].text{
-	background-color: transparent;
-	padding: 0;
-}
-
-[ui-button] a{
-	text-decoration: none;
-	color: var(--brand-primary-text);
-}
-
-[ui-button] > i:not(.icon-only){
-	margin-right: 4px;
-}
-
-[ui-button]:hover{
-	filter: brightness(1.1);
-}
-
-[ui-button][disabled]{
-	filter: grayscale(1);
-	pointer-events: none;
-}:root{
+:root{
 	/* variables for colour */
 	--text-light: white;
 	--text-dark: #333;
@@ -285,7 +247,45 @@ table.ui-table > tbody > tr:nth-child(2n + 1){
 	background-color: var(--brand-primary);
 	display: inline-block;
 }
+:where([ui-button]){
+	display: inline-block;
+	margin: 2px;
+	padding: 4px 12px;
 
+	cursor: pointer;
+
+	border-radius: var(--corner-smoothing);
+	background-color: var(--brand-primary);
+	color: var(--brand-primary-text);
+	/*box-shadow: var(--shadow);	*/
+}
+
+[ui-button]::selection{
+	user-select: all;
+}
+
+[ui-button].text{
+	background-color: transparent;
+	padding: 0;
+}
+
+[ui-button] a{
+	text-decoration: none;
+	color: var(--brand-primary-text);
+}
+
+[ui-button]:not(.icon-only) > i{
+	margin-right: 4px;
+}
+
+[ui-button]:hover{
+	filter: brightness(1.1);
+}
+
+[ui-button][disabled]{
+	filter: grayscale(1);
+	pointer-events: none;
+}
 
 :where([ui-badge]){
 	font-size: 0.8em;
@@ -299,91 +299,6 @@ table.ui-table > tbody > tr:nth-child(2n + 1){
 
 :where([ui-badge]) > i{
 	margin-right: 8px;
-}
-/*** CONTEXT MENU **/
-
-ui-context{
-	position: absolute;
-	z-index: 999999;
-}
-
-ui-context section{
-	position: relative;
-	background-color: white;
-	
-	border: 1px solid #ccc;
-	box-shadow: 3px 3px 2px #0006;
-
-	padding: 5px 0;
-
-	width: 250px;
-	z-index: 1;
-}
-
-ui-context:before{
-	content:'';
-	position: fixed;
-	opacity: 0;
-	top: 0;
-	left:0;
-	display:block;
-	width: 100vw;
-	height: 100vh;
-	background-color: black;
-}
-
-ui-context section .menu-item{
-	position: relative;
-	cursor: pointer;
-	font-weight: normal;
-	padding: 3px 20px;
-	font-size: 0.9em;
-	color: black;
-}
-
-ui-context section .menu-item:hover{
-	background-color: #ccc;
-}
-
-ui-context section hr{
-	border: none;
-	border-top: 1px solid #ccc;
-	margin: 5px 2px;
-}
-
-ui-context section .menu-item > .sub-menu{
-	display: none;
-	position: absolute;
-	left: 250px;
-	top: 0;
-	width: 250px;
-	background-color: white;
-	border: 1px solid #ccc;
-	box-shadow: 3px 3px 2px #0006;
-}
-
-ui-context section .menu-item.has-sub-menu:after{
-	position: absolute;
-	content: "\f152";
-	font: var(--icon-font);
-	right: 5px;
-	top: 5px;
-}
-
-ui-context section .menu-item:hover > .sub-menu, ui-context section .menu-item.show > .sub-menu{
-	display: block;
-}
-
-ui-context section .menu-item > .sub-menu .menu-item{
-	position: relative;
-	cursor: pointer;
-	font-weight: normal;
-	padding: 3px 20px;
-	font-size: 0.9em;
-	color: black;
-}
-ui-context section div > .sub-menu div:hover{
-	background-color: #ccc;
 }
 [ui-card]{
 	display: inline-block;
@@ -528,15 +443,45 @@ ui-form table{
 	border-collapse: separate;
 	border-spacing: 0 10px;
 	padding: 10px;
-}[ui-grid]{
-	display: grid;
-	grid-template-columns: repeat(var(--columns), 1fr);
-	grid-template-rows: repeat(var(--rows), 1fr);
-	grid-gap: var(--padding);
+}/*** HASH MANAGER **/
+
+ui-hash{
+	--timing: 400ms;
+	display: block;
+	position: relative;
+	overflow: hidden;
 }
 
-[ui-grid] > ui-basic > *{
-	flex: 1 1 auto;
+ui-hash > *{
+	position: absolute;
+
+	width:  100%;
+	height: 100%;
+	overflow-y: auto;
+
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-evenly;
+	align-items: center;
+
+	flex: 0 0 auto;
+	left: 0;
+	top: 0;
+	transition: var(--timing) left ease, var(--timing) top ease;
+}
+
+ui-hash > *.left{
+	left: -100%;
+}
+ui-hash > *.right{
+	left: 100%;
+}
+
+ui-hash > *.top{
+	top: -100%;
+}
+ui-hash > *.bottom{
+	top: 100%;
 }
 
 [ui-list]{
@@ -593,6 +538,91 @@ ui-form table{
 	font-size: 2em;
 	line-height: 16px;
 }
+/*** CONTEXT MENU **/
+
+ui-context{
+	position: absolute;
+	z-index: 999999;
+}
+
+ui-context section{
+	position: relative;
+	background-color: white;
+	
+	border: 1px solid #ccc;
+	box-shadow: 3px 3px 2px #0006;
+
+	padding: 5px 0;
+
+	width: 250px;
+	z-index: 1;
+}
+
+ui-context:before{
+	content:'';
+	position: fixed;
+	opacity: 0;
+	top: 0;
+	left:0;
+	display:block;
+	width: 100vw;
+	height: 100vh;
+	background-color: black;
+}
+
+ui-context section .menu-item{
+	position: relative;
+	cursor: pointer;
+	font-weight: normal;
+	padding: 3px 20px;
+	font-size: 0.9em;
+	color: black;
+}
+
+ui-context section .menu-item:hover{
+	background-color: #ccc;
+}
+
+ui-context section hr{
+	border: none;
+	border-top: 1px solid #ccc;
+	margin: 5px 2px;
+}
+
+ui-context section .menu-item > .sub-menu{
+	display: none;
+	position: absolute;
+	left: 250px;
+	top: 0;
+	width: 250px;
+	background-color: white;
+	border: 1px solid #ccc;
+	box-shadow: 3px 3px 2px #0006;
+}
+
+ui-context section .menu-item.has-sub-menu:after{
+	position: absolute;
+	content: "\f152";
+	font: var(--icon-font);
+	right: 5px;
+	top: 5px;
+}
+
+ui-context section .menu-item:hover > .sub-menu, ui-context section .menu-item.show > .sub-menu{
+	display: block;
+}
+
+ui-context section .menu-item > .sub-menu .menu-item{
+	position: relative;
+	cursor: pointer;
+	font-weight: normal;
+	padding: 3px 20px;
+	font-size: 0.9em;
+	color: black;
+}
+ui-context section div > .sub-menu div:hover{
+	background-color: #ccc;
+}
 [ui-input]{	
 	box-sizing: border-box;
 	display: inline-block;
@@ -617,45 +647,62 @@ ui-form table{
 [ui-input]::-webkit-input-placeholder{
 	color: var(--color);
 	opacity: 0.8;
-}/*** HASH MANAGER **/
-
-ui-hash{
-	--timing: 400ms;
-	display: block;
-	position: relative;
-	overflow: hidden;
 }
 
-ui-hash > *{
-	position: absolute;
+/*******/
 
-	width:  100%;
-	height: 100%;
-	overflow-y: auto;
-
+[ui-sliderinput]{
 	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-evenly;
-	align-items: center;
-
-	flex: 0 0 auto;
-	left: 0;
-	top: 0;
-	transition: var(--timing) left ease, var(--timing) top ease;
 }
 
-ui-hash > *.left{
-	left: -100%;
-}
-ui-hash > *.right{
-	left: 100%;
+[ui-sliderinput] > input{
+	flex: 1 1 auto;
 }
 
-ui-hash > *.top{
-	top: -100%;
+[ui-sliderinput] > div{
+	text-align: right;
+	flex: 0 0 36px;
 }
-ui-hash > *.bottom{
-	top: 100%;
+
+/*******/
+
+[ui-label] > [ui-button]{
+	color: var(--color-error);
+}[ui-grid]{
+	display: grid;
+	grid-template-columns: repeat(var(--columns), 1fr);
+	grid-template-rows: repeat(var(--rows), 1fr);
+	grid-gap: var(--padding);
+}
+
+[ui-grid] > ui-basic > *{
+	flex: 1 1 auto;
+}
+[ui-table] > table{
+	border-collapse: collapse;
+	width:100%
+}
+
+[ui-table] > table > * > tr > *{
+	padding:  5px;
+}
+
+[ui-table] > table > thead > tr > th{
+	position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+[ui-table] > table > thead > tr > th[data-sort]{
+	cursor: pointer;
+}
+
+[ui-table] > table > tbody > tr:nth-child(2n + 0){
+	background-color: #eee;
+}
+
+[ui-table] > table > tbody > tr:nth-child(2n + 1){
+	background-color: #f6f6f6;
 }[ui-panel]{
 	display: block;
 
@@ -696,32 +743,37 @@ ui-hash > *.bottom{
 
 	display: flex;
 	align-items: center;
-}
-[ui-table] > table{
-	border-collapse: collapse;
-	width:100%
-}
-
-[ui-table] > table > * > tr > *{
-	padding:  5px;
+}[ui-tabs]{
+    display: flex;
+    flex-direction: column;
 }
 
-[ui-table] > table > thead > tr > th{
-	position: sticky;
-    top: 0;
-    z-index: 10;
+[ui-tabs] > header{
+    display: flex;
+    /*flex-direction: column;**/
 }
 
-[ui-table] > table > thead > tr > th[data-sort]{
-	cursor: pointer;
+[ui-tabs] > header > .tab{
+    cursor: pointer;
+    display: block;
+    padding: 10px 20px;
+
+    background-color: var(--brand-secondary);
+    color: var(--brand-secondary-text);
+
+    margin-right: 5px;
 }
 
-[ui-table] > table > tbody > tr:nth-child(2n + 0){
-	background-color: #eee;
+[ui-tabs] > header > .tab.active{
+    background-color: var(--brand-primary);
+    color: var(--brand-primary-text);
 }
 
-[ui-table] > table > tbody > tr:nth-child(2n + 1){
-	background-color: #f6f6f6;
+[ui-tabs] > content{
+    flex: 1 1 auto;
+    display: flex;
+    border: 2px solid var(--brand-primary);
+    padding: 10px;
 }ui-toaster{
 	pointer-events: none;
 	position: fixed;
@@ -749,55 +801,7 @@ ui-toast{
 
 ui-toast > i{
 	margin-right: 8px;
-}ui-toggle{
-	width: 50px;
-	--size: 20px;
-
-	position: relative;
-	display:inline-block;
-	margin: 5px;
-	
-	height: var(--size);
-}
-
-ui-toggle input{
-	display:inline-block;
-	position: absolute;
-	opacity: 0;
-	width:100%;
-	height:100%;
-	cursor: pointer;
-}
-
-ui-toggle div{
-	display:inline-block;
-	height: 100%;
-	background-color: var(--color-error);
-	padding: 3px;
-	width: 100%;
-	border-radius: var(--size);
-	box-shadow: inset var(--shadow);
-}
-
-ui-toggle span{
-	display:inline-block;
-	height: 100%;
-	width: var(--size);
-	background-color: white;
-	border-radius: var(--size);
-	margin-left: 0px;
-	transition: margin-left 0.2s ease;
-	box-shadow: var(--shadow);
-}
-
-ui-toggle input:checked + div{
-	background-color: var(--color-success);
-}
-
-ui-toggle input:checked + div span{
-	margin-left: calc(100% - var(--size));
-}
-ui-drag{
+}ui-drag{
 	padding: 5px;
 	cursor: grab;
 	opacity: 0.5;
@@ -814,4 +818,93 @@ ui-viewport > *{
 	left: 0;
 	transform-origin: 0 0;
 	image-rendering: pixelated;
+}[ui-toggle]{
+	width: 50px;
+	--size: 20px;
+
+	position: relative;
+	display:inline-block;
+	margin: 5px;
+	
+	height: var(--size);
+
+	margin-right: 25px;
+}
+
+[ui-toggle] input{
+	display:inline-block;
+	position: absolute;
+	opacity: 0;
+	width:100%;
+	height:100%;
+	cursor: pointer;
+}
+
+[ui-toggle] div{
+	display:inline-block;
+	height: 100%;
+	background-color: var(--color-error);
+	padding: 3px;
+	width: 100%;
+	border-radius: var(--size);
+	box-shadow: inset var(--shadow);
+}
+
+[ui-toggle] span{
+	position: relative;
+	display:inline-block;
+	height: 100%;
+	width: var(--size);
+	background-color: white;
+	border-radius: var(--size);
+	margin-left: 0px;
+	transition: margin-left 0.2s ease;
+	box-shadow: var(--shadow);
+	font: var(--icon-font);
+	font-size: 14px;
+	pointer-events: none;
+}
+
+[ui-toggle] input:checked + div{
+	background-color: var(--color-success);
+}
+
+[ui-toggle] input:checked + div span{
+	margin-left: calc(100% - var(--size));
+}
+
+[ui-toggle]:not(.indeterminate) input:not(:checked) + div span::after{
+	content: "\f00d";
+	position: absolute;
+	left: 5px;
+	top: 3px;
+	opacity: 0.2;
+}
+
+[ui-toggle]:not(.indeterminate) input:checked + div span::after{
+	content: "\f00c";
+	position: absolute;
+	left: 3px;
+	top: 4px;
+	opacity: 0.2;
+}
+
+[ui-toggle].indeterminate input + div{
+	background-color: #666;
+}
+
+[ui-toggle].indeterminate input + div span{
+	margin-left: calc(70% - var(--size));
+}
+
+[ui-toggle] [ui-button]{
+	position: absolute;
+	right: -22px;
+    top: 1px;
+	display: block;
+	color: var(--color-error);
+}
+
+[ui-toggle].indeterminate [ui-button]{
+	display: none;
 }

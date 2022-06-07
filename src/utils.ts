@@ -29,10 +29,16 @@ export function append(element: HTMLElement, content: Appendable){
 
 const IDs = new Set();
 
+export let random = Math.random;
+
+export function setRandom(rng: ()=>number){
+	random = rng;
+}
+
 export function uuid(){
 	let id = null;
 	do{
-		id = "ui-" + Math.random().toString(16).slice(2);
+		id = "ui-" + random().toString(16).slice(2);
 	}while(IDs.has(id) || document.querySelector('#'+id));
 	IDs.add(id);
 	return id;
