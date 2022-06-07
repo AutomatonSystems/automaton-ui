@@ -14,4 +14,5 @@ export declare class Button extends BasicElement {
      * @param {{icon?: String, style?: String, color?: String|boolean}} options
      */
     constructor(content?: Appendable, callback?: EventListenerOrEventListenerObject | String, options?: ButtonOptions);
+    setIcon(icon: string): void;
 }

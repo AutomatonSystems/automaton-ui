@@ -7,6 +7,8 @@
 	margin: 5px;
 	
 	height: var(--size);
+
+	margin-right: 25px;
 }
 
 [ui-toggle] input{
@@ -29,6 +31,7 @@
 }
 
 [ui-toggle] span{
+	position: relative;
 	display:inline-block;
 	height: 100%;
 	width: var(--size);
@@ -37,6 +40,9 @@
 	margin-left: 0px;
 	transition: margin-left 0.2s ease;
 	box-shadow: var(--shadow);
+	font: var(--icon-font);
+	font-size: 14px;
+	pointer-events: none;
 }
 
 [ui-toggle] input:checked + div{
@@ -45,4 +51,40 @@
 
 [ui-toggle] input:checked + div span{
 	margin-left: calc(100% - var(--size));
+}
+
+[ui-toggle]:not(.indeterminate) input:not(:checked) + div span::after{
+	content: "\f00d";
+	position: absolute;
+	left: 5px;
+	top: 3px;
+	opacity: 0.2;
+}
+
+[ui-toggle]:not(.indeterminate) input:checked + div span::after{
+	content: "\f00c";
+	position: absolute;
+	left: 3px;
+	top: 4px;
+	opacity: 0.2;
+}
+
+[ui-toggle].indeterminate input + div{
+	background-color: #666;
+}
+
+[ui-toggle].indeterminate input + div span{
+	margin-left: calc(70% - var(--size));
+}
+
+[ui-toggle] [ui-button]{
+	position: absolute;
+	right: -22px;
+    top: 1px;
+	display: block;
+	color: var(--color-error);
+}
+
+[ui-toggle].indeterminate [ui-button]{
+	display: none;
 }

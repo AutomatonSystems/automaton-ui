@@ -15,15 +15,17 @@ import { Form } from "./forms/Form.js";
 import { Form2 } from "./forms/Form2.js";
 import { Grid } from "./layout/Grid.js";
 import { JsonInput, InputLabel, NumberInput, StringInput, SliderInput, ToggleInput, LabelledInput, SelectInput, MultiSelectInput} from "./forms/Input.js";
-import { HashManager } from "./HashManager.js";
+import { HashManager } from "./layout/HashManager.js";
 import { Json } from "./text/Json.js";
 import { List} from "./data/List.js";
+import { HashController } from "./data/HashController.js";
 import { Table } from "./data/Table";
 import { Modal } from "./Modal.js";
 import { Panel } from "./layout/Panel.js";
 import { Spacer } from "./layout/Spacer.js";
 import { Spinner } from "./component/Spinner.js";
 import { Splash } from "./Splash.js";
+import { Tabs } from "./layout/Tabs.js";
 import { Toast } from "./feedback/Toast.js";
 import { Toggle } from "./forms/Toggle.js";
 import { Viewport } from "./canvas/Viewport.js";
@@ -55,7 +57,7 @@ const UI = {
 	Form,Form2,
 	Grid,
 
-	HashManager,
+	HashManager, HashController,
 	InputLabel, 
 	Json,
 	JsonInput,
@@ -73,6 +75,7 @@ const UI = {
 	Splash,
 	StringInput,
 	Table,
+	Tabs,
 	Toast,
 	Toggle,
 	ToggleInput,
@@ -111,7 +114,7 @@ export {Form};
 export {Form2};
 export {JsonInput, InputLabel, NumberInput, StringInput, SliderInput, ToggleInput, LabelledInput, SelectInput, MultiSelectInput};
 export {Grid};
-export {HashManager};
+export {HashManager, HashController};
 export {Json};
 export {List, Table};
 export {Modal};
@@ -120,6 +123,7 @@ export {Slider};
 export {Spacer};
 export {Spinner};
 export {Splash};
+export {Tabs};
 export {Toast};
 export {Toggle};
 export {Viewport};

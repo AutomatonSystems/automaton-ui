@@ -1,8 +1,8 @@
-import { append, sleep } from "./utils.js";
-import { BasicElement } from "./BasicElement.js";
+import { append, sleep } from "../utils.js";
+import { BasicElement } from "../BasicElement.js";
 
 import "./HashManager.css";
-import { utils } from "./ui.js";
+import * as utils from "../utils.js";
 
 type HashVariableMapperFunction = {
 	name: string,

@@ -1,6 +1,7 @@
+import { createBuilderStatusReporter } from "typescript";
 import { BasicElement } from "../BasicElement.js";
 import { Badge } from "../component/Badge.js";
-import { utils } from "../ui.js";
+import UI, { utils } from "../ui.js";
 import { htmlToElement, uuid } from "../utils.js";
 import { Button } from "./Button.js";
 import "./Input.css";
@@ -51,10 +52,16 @@ export class AbstractInput<T> extends BasicElement{
 	label(name: string): InputLabel{
 		return new InputLabel(this, name, {wrapped: true});
 	}
+
+	clear(){
+		this.value = undefined;
+	}
 }
 
 export class AbstractHTMLInput extends HTMLInputElement{
 
+	obj: any;
+	key: any;
 
 	/**
 	 * 
@@ -64,6 +71,9 @@ export class AbstractHTMLInput extends HTMLInputElement{
 	 */
 	constructor(obj: any, key: any, options?: AbstractInputOptions){
 		super();
+
+		this.obj= obj;
+		this.key=key;
 
 		this.setAttribute("ui-input", '');
 
@@ -84,6 +94,11 @@ export class AbstractHTMLInput extends HTMLInputElement{
 	 */
 	label(name: string){
 		return new InputLabel(<AbstractInput<any>><any>this, name, {wrapped: true});
+	}
+
+	clear(){
+		Reflect.set(this.obj, this.key, undefined);
+		this.value = null;
 	}
 }
 
@@ -180,7 +195,8 @@ export class NumberInput extends AbstractHTMLInput{
 			this.setAttribute('placeholder', options?.placeholder);
 
 		this.addEventListener('change', ()=>{
-			let value = parseFloat(this.value);
+			let v = this.value;
+			let value = v!==undefined?parseFloat(this.value):v;
 			Reflect.set(obj, key, value);
 			if(options?.callback)
 				options?.callback(value);
@@ -325,6 +341,16 @@ export class SelectInput<T> extends HTMLSelectElement{
 			this.append(option);
 		}
 	}
+
+	/**
+	 * 
+	 * @param {String} name 
+	 * 
+	 * @returns {InputLabel}
+	 */
+	label(name: string){
+		return new InputLabel(<AbstractInput<any>><any>this, name, {wrapped: true});
+	}
 }
 customElements.define('ui-selectinput', SelectInput, {extends:'select'});
 
@@ -411,15 +437,32 @@ export class JsonInput extends AbstractInput<string>{
 }
 customElements.define('ui-json-input', JsonInput);
 
+type ToggleInputOptions = {
+	allowUnset?: boolean
+}
+
 export class ToggleInput extends AbstractInput<boolean> {
+
+	options: ToggleInputOptions;
 
 	input: HTMLInputElement;
 
-	constructor(obj: any, key: any) {
+	unset: boolean;
+
+	constructor(obj: any, key: any, options?: ToggleInputOptions) {
 		super(obj, key);
+
+		this.options = options;
 
 		this.innerHTML = `<input type="checkbox"/><div><span></span></div>`;
 		this.setAttribute("ui-toggle", "");
+
+		if(this.options?.allowUnset){
+			if(super.value == undefined){
+				this.unset = true;
+				this.classList.toggle('indeterminate', this.unset);
+			}
+		}
 
 		this.input = <HTMLInputElement>this.querySelector('input');
 		this.input.checked = this.value;
@@ -427,6 +470,22 @@ export class ToggleInput extends AbstractInput<boolean> {
 		this.querySelector('input').addEventListener('change', ()=>{
 			this.value = this.input.checked;
 		});
+	}
+
+	override get value(): boolean {
+		if(this.options?.allowUnset && this.unset){
+			return null;
+		}
+		return super.value;
+	}
+	override set value(value: boolean) {
+		if(this.options?.allowUnset && value === undefined){
+			this.unset = true;
+		}else{
+			this.unset = false;
+		}
+		this.classList.toggle('indeterminate', this.unset);
+		super.value = value;
 	}
 
 	update(){
@@ -443,10 +502,11 @@ export class InputLabel extends HTMLLabelElement{
 	constructor(inputElement: AbstractInput<any>, display: string, {wrapped = false}= {}){
 		super();
 
+		this.setAttribute("ui-label", "");
+
 		if(wrapped){
 			// wrap the item with the label
 			this.innerHTML = `<span class="label">${display}</span>`;
-			this.append(inputElement);
 		}else{
 
 			let id = inputElement.id;
@@ -459,6 +519,18 @@ export class InputLabel extends HTMLLabelElement{
 			this.setAttribute('for', id);
 
 			this.innerText = display;
+		}
+
+		if(true){
+			this.append(new UI.Button('', (event)=>{
+				inputElement.clear();
+				event.preventDefault();
+				event.stopPropagation();
+			}, {icon: "fa-times", style: "text"}));
+		}
+
+		if(wrapped){
+			this.append(inputElement);
 		}
 	}
 

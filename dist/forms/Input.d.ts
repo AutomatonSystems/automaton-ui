@@ -20,8 +20,11 @@ export declare class AbstractInput<T> extends BasicElement {
     get value(): T;
     set value(value: T);
     label(name: string): InputLabel;
+    clear(): void;
 }
 export declare class AbstractHTMLInput extends HTMLInputElement {
+    obj: any;
+    key: any;
     /**
      *
      * @param obj json object/array to keep up to date
@@ -36,6 +39,7 @@ export declare class AbstractHTMLInput extends HTMLInputElement {
      * @returns {InputLabel}
      */
     label(name: string): InputLabel;
+    clear(): void;
 }
 export declare type StringInputOptions = AbstractInputOptions & {
     options?: (() => Promise<SelectInputOption<string>[]>) | SelectInputOption<string>[];
@@ -90,6 +94,13 @@ export declare class SelectInput<T> extends HTMLSelectElement {
     getValue(): any;
     setValue(value: any): void;
     renderOptions(optionsArg: (() => Promise<SelectInputOption<T>[]>) | SelectInputOption<T>[]): Promise<void>;
+    /**
+     *
+     * @param {String} name
+     *
+     * @returns {InputLabel}
+     */
+    label(name: string): InputLabel;
 }
 declare type MultiSelectInputOptions = {
     options: any;
@@ -102,9 +113,16 @@ export declare class MultiSelectInput extends AbstractInput<string[]> {
 export declare class JsonInput extends AbstractInput<string> {
     constructor(obj: any, key: any);
 }
+declare type ToggleInputOptions = {
+    allowUnset?: boolean;
+};
 export declare class ToggleInput extends AbstractInput<boolean> {
+    options: ToggleInputOptions;
     input: HTMLInputElement;
-    constructor(obj: any, key: any);
+    unset: boolean;
+    constructor(obj: any, key: any, options?: ToggleInputOptions);
+    get value(): boolean;
+    set value(value: boolean);
     update(): void;
 }
 export declare class InputLabel extends HTMLLabelElement {

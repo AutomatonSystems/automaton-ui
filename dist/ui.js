@@ -450,8 +450,18 @@ class Button extends BasicElement {
             i.classList.add(...classes);
             this.prepend(i);
             if (content == '')
-                i.classList.add('icon-only');
+                this.classList.add('icon-only');
         }
+    }
+    setIcon(icon) {
+        this.querySelector('i').remove();
+        let i = document.createElement('i');
+        let classes = icon.trim().split(" ");
+        // include the default font-awesome class if one wasn't provided
+        if (!classes.includes('fa') && !classes.includes('fab') && !classes.includes('fas'))
+            i.classList.add('fa');
+        i.classList.add(...classes);
+        this.prepend(i);
     }
 }
 customElements.define('ui-button', Button);
@@ -527,13 +537,15 @@ class Form extends BasicElement {
     }
     async onChange() {
         let json = this.json();
-        this.value = json;
         for (let listener of this.changeListeners)
             await listener(json);
         this.dispatchEvent(new Event('change'));
     }
     json(includeHidden = false) {
-        return this._readValue(this, includeHidden);
+        let value = this._readValue(this, includeHidden);
+        if (!includeHidden)
+            this.value = value;
+        return value;
     }
     _readValue(element, includeHidden = false) {
         let json = {};
@@ -1377,8 +1389,13 @@ class AbstractInput extends BasicElement {
     label(name) {
         return new InputLabel(this, name, { wrapped: true });
     }
+    clear() {
+        this.value = undefined;
+    }
 }
 class AbstractHTMLInput extends HTMLInputElement {
+    obj;
+    key;
     /**
      *
      * @param obj json object/array to keep up to date
@@ -1387,6 +1404,8 @@ class AbstractHTMLInput extends HTMLInputElement {
      */
     constructor(obj, key, options) {
         super();
+        this.obj = obj;
+        this.key = key;
         this.setAttribute("ui-input", '');
         if (options?.class) {
             if (Array.isArray(options.class)) {
@@ -1405,6 +1424,10 @@ class AbstractHTMLInput extends HTMLInputElement {
      */
     label(name) {
         return new InputLabel(this, name, { wrapped: true });
+    }
+    clear() {
+        Reflect.set(this.obj, this.key, undefined);
+        this.value = null;
     }
 }
 class StringInput extends AbstractHTMLInput {
@@ -1477,7 +1500,8 @@ class NumberInput extends AbstractHTMLInput {
         if (options?.placeholder)
             this.setAttribute('placeholder', options?.placeholder);
         this.addEventListener('change', () => {
-            let value = parseFloat(this.value);
+            let v = this.value;
+            let value = v !== undefined ? parseFloat(this.value) : v;
             Reflect.set(obj, key, value);
             if (options?.callback)
                 options?.callback(value);
@@ -1581,6 +1605,15 @@ class SelectInput extends HTMLSelectElement {
             this.append(option);
         }
     }
+    /**
+     *
+     * @param {String} name
+     *
+     * @returns {InputLabel}
+     */
+    label(name) {
+        return new InputLabel(this, name, { wrapped: true });
+    }
 }
 customElements.define('ui-selectinput', SelectInput, { extends: 'select' });
 class MultiSelectInput extends AbstractInput {
@@ -1652,16 +1685,41 @@ class JsonInput extends AbstractInput {
 }
 customElements.define('ui-json-input', JsonInput);
 class ToggleInput extends AbstractInput {
+    options;
     input;
-    constructor(obj, key) {
+    unset;
+    constructor(obj, key, options) {
         super(obj, key);
+        this.options = options;
         this.innerHTML = `<input type="checkbox"/><div><span></span></div>`;
         this.setAttribute("ui-toggle", "");
+        if (this.options?.allowUnset) {
+            if (super.value == undefined) {
+                this.unset = true;
+                this.classList.toggle('indeterminate', this.unset);
+            }
+        }
         this.input = this.querySelector('input');
         this.input.checked = this.value;
         this.querySelector('input').addEventListener('change', () => {
             this.value = this.input.checked;
         });
+    }
+    get value() {
+        if (this.options?.allowUnset && this.unset) {
+            return null;
+        }
+        return super.value;
+    }
+    set value(value) {
+        if (this.options?.allowUnset && value === undefined) {
+            this.unset = true;
+        }
+        else {
+            this.unset = false;
+        }
+        this.classList.toggle('indeterminate', this.unset);
+        super.value = value;
     }
     update() {
         this.input.checked = this.value;
@@ -1672,10 +1730,10 @@ class InputLabel extends HTMLLabelElement {
     input;
     constructor(inputElement, display, { wrapped = false } = {}) {
         super();
+        this.setAttribute("ui-label", "");
         if (wrapped) {
             // wrap the item with the label
             this.innerHTML = `<span class="label">${display}</span>`;
-            this.append(inputElement);
         }
         else {
             let id = inputElement.id;
@@ -1686,6 +1744,16 @@ class InputLabel extends HTMLLabelElement {
             }
             this.setAttribute('for', id);
             this.innerText = display;
+        }
+        {
+            this.append(new UI.Button('', (event) => {
+                inputElement.clear();
+                event.preventDefault();
+                event.stopPropagation();
+            }, { icon: "fa-times", style: "text" }));
+        }
+        if (wrapped) {
+            this.append(inputElement);
         }
     }
     get value() {
@@ -2356,6 +2424,113 @@ class List extends BasicElement {
 }
 customElements.define('ui-list', List);
 
+const HashController = new (class HashController {
+    map = new Map();
+    constructor() {
+        window.addEventListener('hashchange', () => this.update());
+    }
+    update() {
+        let pairs = this.#hashPairs();
+        for (let entry of this.map.values()) {
+            let pair = pairs.find(i => i[0] == entry.path);
+            let value = this.#parse(pair?.[1], entry.type);
+            if (entry.value !== value) {
+                entry.value = value;
+                entry.events.forEach(l => l(value));
+            }
+        }
+    }
+    getEntry(key) {
+        if (!this.map.has(key)) {
+            this.map.set(key, {
+                path: key,
+                type: "string",
+                value: null,
+                events: []
+            });
+        }
+        return this.map.get(key);
+    }
+    listen(key, changeEvent) {
+        let entry = this.getEntry(key);
+        entry.value = this.#read(key);
+        entry.events.push(changeEvent);
+        changeEvent(entry.value);
+    }
+    set(key, value, passive = false) {
+        let entry = this.getEntry(key);
+        if (entry.value !== value) {
+            this.#write(key, value, passive);
+            entry.value = value;
+            if (!passive) {
+                entry.events.forEach(l => l(value));
+            }
+        }
+    }
+    #hashPairs() {
+        let hash = window.location.hash.substring(1);
+        return hash
+            // unescape the hash
+            .replaceAll("%7C", "|").replaceAll("%7c", "|")
+            // split into non-empty chunks
+            .split('|').filter(i => i != '')
+            // map the to objects
+            .map(pair => pair.includes('=') ? pair.split('=', 2) : [null, pair]);
+    }
+    #read(key) {
+        let path = key;
+        let type = this.getEntry(key).type;
+        let pairs = this.#hashPairs();
+        let pair = pairs.find(i => i[0] == path);
+        let value = pair?.[1];
+        if (value) {
+            value = this.#parse(value, type);
+        }
+        return value;
+    }
+    #parse(input, type) {
+        let value = input;
+        if (value) {
+            switch (type) {
+                case 'number':
+                    value = parseFloat(input);
+                    break;
+                case 'boolean':
+                    value = (input.toLowerCase() == 'true');
+                    break;
+                case 'json':
+                    value = JSON.parse(input);
+                    break;
+            }
+        }
+        return value;
+    }
+    #write(key, value, passive = false) {
+        let path = key;
+        let type = this.getEntry(key).type;
+        let pairs = this.#hashPairs();
+        if (value !== null && value !== "") {
+            let pair = pairs.find(i => i[0] == path);
+            if (pair == null) {
+                pair = [path, null];
+                pairs.push(pair);
+            }
+            if (type == "json")
+                value = JSON.stringify(value);
+            pair[1] = value;
+        }
+        else {
+            pairs = pairs.filter(i => i[0] != path);
+        }
+        if (passive) {
+            history.replaceState(undefined, undefined, "#" + pairs.map(p => p[0] ? p.join('=') : p[1]).join('|'));
+        }
+        else {
+            window.location.hash = pairs.map(p => p[0] ? p.join('=') : p[1]).join('|');
+        }
+    }
+})();
+
 /**
  * Table is a special case of List with a more automatic layout
  */
@@ -2462,6 +2637,40 @@ class Spinner extends BasicElement {
     }
 }
 customElements.define('ui-spinner', Spinner);
+
+class Tabs extends BasicElement {
+    activeTab = null;
+    constructor(options) {
+        super(`<header></header><content></content>`, options);
+        this.setAttribute("ui-tabs", '');
+    }
+    tab(title, content) {
+        let tab;
+        let tabElement = htmlToElement("<div class='tab'></div>");
+        let openFunction = () => {
+            // highlight open tab
+            this.querySelectorAll('header .tab').forEach(e => {
+                e.classList.toggle('active', e == tabElement);
+            });
+            // set content
+            this.querySelector('content').innerHTML = "";
+            append(this.querySelector('content'), typeof content == 'function' ? content() : content);
+            return tab;
+        };
+        tabElement.addEventListener('click', openFunction);
+        append(tabElement, title);
+        this.querySelector('header').append(tabElement);
+        tab = {
+            open: openFunction
+        };
+        if (this.activeTab == null) {
+            this.activeTab = tab;
+            this.activeTab.open();
+        }
+        return tab;
+    }
+}
+customElements.define('ui-tabs', Tabs);
 
 class Viewport extends BasicElement {
     #view = {
@@ -2953,7 +3162,7 @@ const UI = {
     ContextMenu,
     Form, Form2,
     Grid,
-    HashManager,
+    HashManager, HashController,
     InputLabel,
     Json,
     JsonInput,
@@ -2971,6 +3180,7 @@ const UI = {
     Splash,
     StringInput,
     Table,
+    Tabs,
     Toast,
     Toggle,
     ToggleInput,
@@ -2989,5 +3199,5 @@ const UI = {
 window["UI"] = UI;
 let createElement = htmlToElement;
 
-export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Form2, Grid, HashManager, InputLabel, Json, JsonInput, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, SelectInput, Slider, SliderInput, Spacer, Spinner, Splash, StringInput, Table, Toast, Toggle, ToggleInput, Viewport, createElement, UI as default, factory, mixin, utils };
+export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Form2, Grid, HashController, HashManager, InputLabel, Json, JsonInput, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, SelectInput, Slider, SliderInput, Spacer, Spinner, Splash, StringInput, Table, Tabs, Toast, Toggle, ToggleInput, Viewport, createElement, UI as default, factory, mixin, utils };
 //# sourceMappingURL=ui.js.map

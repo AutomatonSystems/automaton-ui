@@ -67,8 +67,19 @@ export class Button extends BasicElement {
 			this.prepend(i);
 
 			if(content=='')
-				i.classList.add('icon-only');
+				this.classList.add('icon-only');
 		}
+	}
+
+	setIcon(icon: string){
+		this.querySelector('i').remove();
+		let i = document.createElement('i');
+		let classes = icon.trim().split(" ");
+		// include the default font-awesome class if one wasn't provided
+		if(!classes.includes('fa') && !classes.includes('fab') && !classes.includes('fas'))
+			i.classList.add('fa');
+		i.classList.add(...classes);
+		this.prepend(i);
 	}
 
 	// TODO reinstate setCallback

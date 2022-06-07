@@ -38,3 +38,9 @@
 	text-align: right;
 	flex: 0 0 36px;
 }
+
+/*******/
+
+[ui-label] > [ui-button]{
+	color: var(--color-error);
+}
