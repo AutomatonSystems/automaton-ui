@@ -499,7 +499,7 @@ export class InputLabel extends HTMLLabelElement{
 
 	input: AbstractInput<any>;
 
-	constructor(inputElement: AbstractInput<any>, display: string, {wrapped = false}= {}){
+	constructor(inputElement: AbstractInput<any>, display: string, {wrapped = false, clearable = false}= {}){
 		super();
 
 		this.setAttribute("ui-label", "");
@@ -521,7 +521,7 @@ export class InputLabel extends HTMLLabelElement{
 			this.innerText = display;
 		}
 
-		if(true){
+		if(clearable){
 			this.append(new UI.Button('', (event)=>{
 				inputElement.clear();
 				event.preventDefault();

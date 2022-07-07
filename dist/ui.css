@@ -356,7 +356,92 @@ table.ui-table > tbody > tr:nth-child(2n + 1){
     background-color: dodgerblue;
 	background-image: repeating-linear-gradient(45deg, #0003, #0003 4%, transparent 4%, transparent 8%);
 	
-}ui-code,ui-json{
+}/*** CONTEXT MENU **/
+
+ui-context{
+	position: absolute;
+	z-index: 999999;
+}
+
+ui-context section{
+	position: relative;
+	background-color: white;
+	
+	border: 1px solid #ccc;
+	box-shadow: 3px 3px 2px #0006;
+
+	padding: 5px 0;
+
+	width: 250px;
+	z-index: 1;
+}
+
+ui-context:before{
+	content:'';
+	position: fixed;
+	opacity: 0;
+	top: 0;
+	left:0;
+	display:block;
+	width: 100vw;
+	height: 100vh;
+	background-color: black;
+}
+
+ui-context section .menu-item{
+	position: relative;
+	cursor: pointer;
+	font-weight: normal;
+	padding: 3px 20px;
+	font-size: 0.9em;
+	color: black;
+}
+
+ui-context section .menu-item:hover{
+	background-color: #ccc;
+}
+
+ui-context section hr{
+	border: none;
+	border-top: 1px solid #ccc;
+	margin: 5px 2px;
+}
+
+ui-context section .menu-item > .sub-menu{
+	display: none;
+	position: absolute;
+	left: 250px;
+	top: 0;
+	width: 250px;
+	background-color: white;
+	border: 1px solid #ccc;
+	box-shadow: 3px 3px 2px #0006;
+}
+
+ui-context section .menu-item.has-sub-menu:after{
+	position: absolute;
+	content: "\f152";
+	font: var(--icon-font);
+	right: 5px;
+	top: 5px;
+}
+
+ui-context section .menu-item:hover > .sub-menu, ui-context section .menu-item.show > .sub-menu{
+	display: block;
+}
+
+ui-context section .menu-item > .sub-menu .menu-item{
+	position: relative;
+	cursor: pointer;
+	font-weight: normal;
+	padding: 3px 20px;
+	font-size: 0.9em;
+	color: black;
+}
+ui-context section div > .sub-menu div:hover{
+	background-color: #ccc;
+}
+ui-code,ui-json{
 	font-family: monospace;
 	white-space: pre;
 	tab-size: 4;
@@ -443,6 +528,51 @@ ui-form table{
 	border-collapse: separate;
 	border-spacing: 0 10px;
 	padding: 10px;
+}[ui-input]{	
+	box-sizing: border-box;
+	display: inline-block;
+	--color: attr(color);
+	color: var(--color);
+	tab-size: 2;
+	width: 100%;
+}
+
+[ui-input].error{
+	border-right: 5px solid firebrick;
+}
+
+[ui-input] textarea{
+	box-sizing: border-box;
+	width: 100%;
+	color: var(--color);
+	white-space: pre;
+	overflow-y: hidden;
+}
+
+[ui-input]::-webkit-input-placeholder{
+	color: var(--color);
+	opacity: 0.8;
+}
+
+/*******/
+
+[ui-sliderinput]{
+	display: flex;
+}
+
+[ui-sliderinput] > input{
+	flex: 1 1 auto;
+}
+
+[ui-sliderinput] > div{
+	text-align: right;
+	flex: 0 0 36px;
+}
+
+/*******/
+
+[ui-label] > [ui-button]{
+	color: var(--color-error);
 }/*** HASH MANAGER **/
 
 ui-hash{
@@ -482,6 +612,32 @@ ui-hash > *.top{
 }
 ui-hash > *.bottom{
 	top: 100%;
+}
+[ui-table] > table{
+	border-collapse: collapse;
+	width:100%
+}
+
+[ui-table] > table > * > tr > *{
+	padding:  5px;
+}
+
+[ui-table] > table > thead > tr > th{
+	position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+[ui-table] > table > thead > tr > th[data-sort]{
+	cursor: pointer;
+}
+
+[ui-table] > table > tbody > tr:nth-child(2n + 0){
+	background-color: #eee;
+}
+
+[ui-table] > table > tbody > tr:nth-child(2n + 1){
+	background-color: #f6f6f6;
 }
 
 [ui-list]{
@@ -538,137 +694,7 @@ ui-hash > *.bottom{
 	font-size: 2em;
 	line-height: 16px;
 }
-/*** CONTEXT MENU **/
-
-ui-context{
-	position: absolute;
-	z-index: 999999;
-}
-
-ui-context section{
-	position: relative;
-	background-color: white;
-	
-	border: 1px solid #ccc;
-	box-shadow: 3px 3px 2px #0006;
-
-	padding: 5px 0;
-
-	width: 250px;
-	z-index: 1;
-}
-
-ui-context:before{
-	content:'';
-	position: fixed;
-	opacity: 0;
-	top: 0;
-	left:0;
-	display:block;
-	width: 100vw;
-	height: 100vh;
-	background-color: black;
-}
-
-ui-context section .menu-item{
-	position: relative;
-	cursor: pointer;
-	font-weight: normal;
-	padding: 3px 20px;
-	font-size: 0.9em;
-	color: black;
-}
-
-ui-context section .menu-item:hover{
-	background-color: #ccc;
-}
-
-ui-context section hr{
-	border: none;
-	border-top: 1px solid #ccc;
-	margin: 5px 2px;
-}
-
-ui-context section .menu-item > .sub-menu{
-	display: none;
-	position: absolute;
-	left: 250px;
-	top: 0;
-	width: 250px;
-	background-color: white;
-	border: 1px solid #ccc;
-	box-shadow: 3px 3px 2px #0006;
-}
-
-ui-context section .menu-item.has-sub-menu:after{
-	position: absolute;
-	content: "\f152";
-	font: var(--icon-font);
-	right: 5px;
-	top: 5px;
-}
-
-ui-context section .menu-item:hover > .sub-menu, ui-context section .menu-item.show > .sub-menu{
-	display: block;
-}
-
-ui-context section .menu-item > .sub-menu .menu-item{
-	position: relative;
-	cursor: pointer;
-	font-weight: normal;
-	padding: 3px 20px;
-	font-size: 0.9em;
-	color: black;
-}
-ui-context section div > .sub-menu div:hover{
-	background-color: #ccc;
-}
-[ui-input]{	
-	box-sizing: border-box;
-	display: inline-block;
-	--color: attr(color);
-	color: var(--color);
-	tab-size: 2;
-	width: 100%;
-}
-
-[ui-input].error{
-	border-right: 5px solid firebrick;
-}
-
-[ui-input] textarea{
-	box-sizing: border-box;
-	width: 100%;
-	color: var(--color);
-	white-space: pre;
-	overflow-y: hidden;
-}
-
-[ui-input]::-webkit-input-placeholder{
-	color: var(--color);
-	opacity: 0.8;
-}
-
-/*******/
-
-[ui-sliderinput]{
-	display: flex;
-}
-
-[ui-sliderinput] > input{
-	flex: 1 1 auto;
-}
-
-[ui-sliderinput] > div{
-	text-align: right;
-	flex: 0 0 36px;
-}
-
-/*******/
-
-[ui-label] > [ui-button]{
-	color: var(--color-error);
-}[ui-grid]{
+[ui-grid]{
 	display: grid;
 	grid-template-columns: repeat(var(--columns), 1fr);
 	grid-template-rows: repeat(var(--rows), 1fr);
@@ -677,32 +703,6 @@ ui-context section div > .sub-menu div:hover{
 
 [ui-grid] > ui-basic > *{
 	flex: 1 1 auto;
-}
-[ui-table] > table{
-	border-collapse: collapse;
-	width:100%
-}
-
-[ui-table] > table > * > tr > *{
-	padding:  5px;
-}
-
-[ui-table] > table > thead > tr > th{
-	position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-[ui-table] > table > thead > tr > th[data-sort]{
-	cursor: pointer;
-}
-
-[ui-table] > table > tbody > tr:nth-child(2n + 0){
-	background-color: #eee;
-}
-
-[ui-table] > table > tbody > tr:nth-child(2n + 1){
-	background-color: #f6f6f6;
 }[ui-panel]{
 	display: block;
 
@@ -801,23 +801,6 @@ ui-toast{
 
 ui-toast > i{
 	margin-right: 8px;
-}ui-drag{
-	padding: 5px;
-	cursor: grab;
-	opacity: 0.5;
-}
-ui-viewport{
-	display: block;
-	position: relative;
-	overflow: hidden;
-}
-
-ui-viewport > *{
-	position: absolute;
-	top: 0;
-	left: 0;
-	transform-origin: 0 0;
-	image-rendering: pixelated;
 }[ui-toggle]{
 	width: 50px;
 	--size: 20px;
@@ -907,4 +890,22 @@ ui-viewport > *{
 
 [ui-toggle].indeterminate [ui-button]{
 	display: none;
+}
+
+ui-viewport{
+	display: block;
+	position: relative;
+	overflow: hidden;
+}
+
+ui-viewport > *{
+	position: absolute;
+	top: 0;
+	left: 0;
+	transform-origin: 0 0;
+	image-rendering: pixelated;
+}ui-drag{
+	padding: 5px;
+	cursor: grab;
+	opacity: 0.5;
 }

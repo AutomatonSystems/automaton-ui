@@ -1728,7 +1728,7 @@ class ToggleInput extends AbstractInput {
 customElements.define('ui-toggleinput', ToggleInput);
 class InputLabel extends HTMLLabelElement {
     input;
-    constructor(inputElement, display, { wrapped = false } = {}) {
+    constructor(inputElement, display, { wrapped = false, clearable = false } = {}) {
         super();
         this.setAttribute("ui-label", "");
         if (wrapped) {
@@ -1745,7 +1745,7 @@ class InputLabel extends HTMLLabelElement {
             this.setAttribute('for', id);
             this.innerText = display;
         }
-        {
+        if (clearable) {
             this.append(new UI.Button('', (event) => {
                 inputElement.clear();
                 event.preventDefault();

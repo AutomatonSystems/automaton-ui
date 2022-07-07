@@ -127,8 +127,9 @@ export declare class ToggleInput extends AbstractInput<boolean> {
 }
 export declare class InputLabel extends HTMLLabelElement {
     input: AbstractInput<any>;
-    constructor(inputElement: AbstractInput<any>, display: string, { wrapped }?: {
+    constructor(inputElement: AbstractInput<any>, display: string, { wrapped, clearable }?: {
         wrapped?: boolean;
+        clearable?: boolean;
     });
     get value(): any;
     set value(v: any);
