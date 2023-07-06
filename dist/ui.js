@@ -950,6 +950,7 @@ customElements.define('ui-panel', Panel);
 class Splash extends BasicElement {
     constructor(content, { dismissable = false } = {}) {
         super(content);
+        this.setAttribute("ui-splash", '');
         if (dismissable) {
             this.addEventListener('mousedown', this.remove);
         }
@@ -2667,6 +2668,15 @@ class Tabs extends BasicElement {
             this.activeTab = tab;
             this.activeTab.open();
         }
+        else {
+            // de-parent the items
+            if (content instanceof HTMLElement) {
+                content.remove();
+            }
+            else if (Array.isArray(content)) {
+                content.forEach(c => c instanceof HTMLElement ? c.remove() : '');
+            }
+        }
         return tab;
     }
 }
@@ -3140,10 +3150,8 @@ class Slider extends HTMLElement {
 }
 customElements.define('ui-slider', Slider);
 
-// @ts-ignore
-let URL$1 = import.meta.url;
 let css = [
-    URL$1 + "/../ui.css",
+    // URL + "/../ui.css",
     "https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,200;0,300;0,400;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,600;1,700;1,800;1,900&display=swap",
     "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css"
 ];

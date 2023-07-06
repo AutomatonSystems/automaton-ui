@@ -103,7 +103,7 @@ input, select, textarea{
 	background-color: transparent;
 }
 
-ui-splash, [ui-modal]{
+[ui-splash], [ui-modal]{
 	position: fixed;
 	top:0;
 	left:0;

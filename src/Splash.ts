@@ -6,6 +6,8 @@ export class Splash extends BasicElement {
 	constructor(content?: Appendable, { dismissable = false } = {}) {
 		super(content);
 
+		this.setAttribute("ui-splash", '');
+
 		if (dismissable) {
 			this.addEventListener('mousedown', this.remove);
 		}

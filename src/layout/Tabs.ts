@@ -2,7 +2,6 @@ import "./Tabs.css";
 
 import { BasicElement, BasicElementOpts } from "../BasicElement";
 import { append, Appendable, htmlToElement } from "../utils.js";
-import { textChangeRangeIsUnchanged } from "typescript";
 
 export type TabsOptions = {
 	
@@ -48,6 +47,13 @@ export class Tabs extends BasicElement {
 		if(this.activeTab == null){
 			this.activeTab = tab;
 			this.activeTab.open();
+		}else{
+			// de-parent the items
+			if(content instanceof HTMLElement){
+				content.remove();
+			}else if(Array.isArray(content)){
+				content.forEach(c=>c instanceof HTMLElement?c.remove():'');
+			}
 		}
 
 		return tab;
