@@ -532,6 +532,8 @@ export class InputLabel extends HTMLLabelElement{
 		if(wrapped){
 			this.append(inputElement);
 		}
+
+		this.input = inputElement;
 	}
 
 	get value(){
