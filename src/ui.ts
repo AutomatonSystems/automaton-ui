@@ -14,7 +14,7 @@ import { ContextMenu } from "./ContextMenu.js";
 import { Form } from "./forms/Form.js";
 import { Form2 } from "./forms/Form2.js";
 import { Grid } from "./layout/Grid.js";
-import { JsonInput, InputLabel, NumberInput, StringInput, SliderInput, ToggleInput, LabelledInput, SelectInput, MultiSelectInput} from "./forms/Input.js";
+import { JsonInput, InputLabel, NumberInput, StringInput, SliderInput, ToggleInput, LabelledInput, SelectInput, MultiSelectInput, TextInput} from "./forms/Input.js";
 import { HashManager } from "./layout/HashManager.js";
 import { Json } from "./text/Json.js";
 import { List} from "./data/List.js";
@@ -62,6 +62,7 @@ const UI = {
 	Json,
 	JsonInput,
 	LabelledInput,
+	TextInput,
 	List, 
 	Modal,
 	MultiSelectInput,
@@ -112,7 +113,7 @@ export {Code};
 export {ContextMenu};
 export {Form};
 export {Form2};
-export {JsonInput, InputLabel, NumberInput, StringInput, SliderInput, ToggleInput, LabelledInput, SelectInput, MultiSelectInput};
+export {JsonInput, InputLabel, NumberInput, StringInput, SliderInput, ToggleInput, LabelledInput, SelectInput, MultiSelectInput, TextInput};
 export {Grid};
 export {HashManager, HashController};
 export {Json};

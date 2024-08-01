@@ -1685,6 +1685,24 @@ class JsonInput extends AbstractInput {
     }
 }
 customElements.define('ui-json-input', JsonInput);
+class TextInput extends AbstractInput {
+    constructor(obj, key) {
+        super(obj, key);
+        let text = document.createElement('textarea');
+        let resize = () => {
+            text.style["height"] = "1px";
+            text.style["height"] = text.scrollHeight + "px";
+        };
+        text.onkeyup = resize;
+        text.addEventListener('change', () => {
+            this.value = text.value;
+        });
+        text.value = this.value ?? "";
+        this.append(text);
+        setTimeout(resize, 10);
+    }
+}
+customElements.define('ui-text-input', TextInput);
 class ToggleInput extends AbstractInput {
     options;
     input;
@@ -3176,6 +3194,7 @@ const UI = {
     Json,
     JsonInput,
     LabelledInput,
+    TextInput,
     List,
     Modal,
     MultiSelectInput,
@@ -3208,5 +3227,5 @@ const UI = {
 window["UI"] = UI;
 let createElement = htmlToElement;
 
-export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Form2, Grid, HashController, HashManager, InputLabel, Json, JsonInput, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, SelectInput, Slider, SliderInput, Spacer, Spinner, Splash, StringInput, Table, Tabs, Toast, Toggle, ToggleInput, Viewport, createElement, UI as default, factory, mixin, utils };
+export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Form2, Grid, HashController, HashManager, InputLabel, Json, JsonInput, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, SelectInput, Slider, SliderInput, Spacer, Spinner, Splash, StringInput, Table, Tabs, TextInput, Toast, Toggle, ToggleInput, Viewport, createElement, UI as default, factory, mixin, utils };
 //# sourceMappingURL=ui.js.map

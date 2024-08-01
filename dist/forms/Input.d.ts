@@ -113,6 +113,9 @@ export declare class MultiSelectInput extends AbstractInput<string[]> {
 export declare class JsonInput extends AbstractInput<string> {
     constructor(obj: any, key: any);
 }
+export declare class TextInput extends AbstractInput<string> {
+    constructor(obj: any, key: any);
+}
 declare type ToggleInputOptions = {
     allowUnset?: boolean;
 };

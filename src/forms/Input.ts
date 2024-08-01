@@ -437,6 +437,27 @@ export class JsonInput extends AbstractInput<string>{
 }
 customElements.define('ui-json-input', JsonInput);
 
+export class TextInput extends AbstractInput<string>{
+	constructor(obj: any, key: any){
+		super(obj, key);
+
+		let text = document.createElement('textarea');
+		let resize = ()=>{
+			text.style["height"] = "1px";
+			text.style["height"] = text.scrollHeight+"px";
+		}
+		text.onkeyup = resize;
+		text.addEventListener('change', ()=>{
+			this.value = text.value;
+		});
+		text.value = this.value ?? "";
+		this.append(text);
+
+		setTimeout(resize, 10);
+	}
+}
+customElements.define('ui-text-input', TextInput);
+
 type ToggleInputOptions = {
 	allowUnset?: boolean
 }
