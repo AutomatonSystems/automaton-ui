@@ -335,7 +335,7 @@ export class Viewport extends BasicElement{
 		});
 		document.addEventListener('mouseup', (e)=>{
 			
-			if(e.button==MIDDLE_MOUSE){
+			if(e.button==MIDDLE_MOUSE && drag){
 				let ndrag: XY = [e.x, e.y];
 				this.panScreen(drag[0]-ndrag[0],drag[1]-ndrag[1]);
 				drag = null;

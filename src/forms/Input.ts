@@ -355,13 +355,17 @@ export class SelectInput<T> extends HTMLSelectElement{
 customElements.define('ui-selectinput', SelectInput, {extends:'select'});
 
 type MultiSelectInputOptions = {
-	options: any
+	options: any,
+	callback?: Function
 }
 
 export class MultiSelectInput extends AbstractInput<string[]>{
+	options: MultiSelectInputOptions;
 	list: HTMLElement;
 	constructor(obj: any , key: any, options: MultiSelectInputOptions){
 		super(obj, key);
+
+		this.options = options;
 
 		if(!Array.isArray(this.value))
 			this.value = [];
@@ -378,6 +382,7 @@ export class MultiSelectInput extends AbstractInput<string[]>{
 			this.value.push(select.value);
 			select.value = "Add...";
 			this.renderList();
+			this.options.callback?.();
 		});
 		this.append(select);
 
@@ -392,6 +397,7 @@ export class MultiSelectInput extends AbstractInput<string[]>{
 				// remove this item and redraw
 				this.value.splice(index, 1);
 				this.renderList();
+				this.options.callback?.();
 			}, {icon: 'fa-times', style: 'text', color: 'error-color'}))
 			return badge;
 		}));

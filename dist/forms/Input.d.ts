@@ -104,8 +104,10 @@ export declare class SelectInput<T> extends HTMLSelectElement {
 }
 declare type MultiSelectInputOptions = {
     options: any;
+    callback?: Function;
 };
 export declare class MultiSelectInput extends AbstractInput<string[]> {
+    options: MultiSelectInputOptions;
     list: HTMLElement;
     constructor(obj: any, key: any, options: MultiSelectInputOptions);
     renderList(): void;

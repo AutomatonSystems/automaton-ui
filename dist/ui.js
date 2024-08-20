@@ -1618,9 +1618,11 @@ class SelectInput extends HTMLSelectElement {
 }
 customElements.define('ui-selectinput', SelectInput, { extends: 'select' });
 class MultiSelectInput extends AbstractInput {
+    options;
     list;
     constructor(obj, key, options) {
         super(obj, key);
+        this.options = options;
         if (!Array.isArray(this.value))
             this.value = [];
         let list = document.createElement("content");
@@ -1634,6 +1636,7 @@ class MultiSelectInput extends AbstractInput {
             this.value.push(select.value);
             select.value = "Add...";
             this.renderList();
+            this.options.callback?.();
         });
         this.append(select);
         this.renderList();
@@ -1646,6 +1649,7 @@ class MultiSelectInput extends AbstractInput {
                 // remove this item and redraw
                 this.value.splice(index, 1);
                 this.renderList();
+                this.options.callback?.();
             }, { icon: 'fa-times', style: 'text', color: 'error-color' }));
             return badge;
         }));
@@ -2956,7 +2960,7 @@ class Viewport extends BasicElement {
             }
         });
         document.addEventListener('mouseup', (e) => {
-            if (e.button == MIDDLE_MOUSE) {
+            if (e.button == MIDDLE_MOUSE && drag) {
                 let ndrag = [e.x, e.y];
                 this.panScreen(drag[0] - ndrag[0], drag[1] - ndrag[1]);
                 drag = null;
