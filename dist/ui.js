@@ -1656,6 +1656,60 @@ class MultiSelectInput extends AbstractInput {
     }
 }
 customElements.define('ui-multiselectinput', MultiSelectInput);
+class MultiStringInput extends AbstractInput {
+    options;
+    list;
+    constructor(obj, key, options) {
+        super(obj, key);
+        this.options = options;
+        if (!Array.isArray(this.value))
+            this.value = [];
+        let list = document.createElement("content");
+        this.list = list;
+        this.append(list);
+        // picker
+        let addItem = () => {
+            this.value.push(input.value);
+            input.value = "";
+            this.renderList();
+            this.options.callback?.();
+        };
+        const DATA = {
+            value: ""
+        };
+        let input = new StringInput(DATA, "value", {});
+        input.addEventListener("keypress", (e) => {
+            if (e.key == "Enter") {
+                addItem();
+            }
+        });
+        let row = new Row();
+        row.append(input);
+        row.append(new Button("Add", addItem));
+        if (options.clearButton) {
+            row.append(new Button("Clear", () => {
+                this.value = [];
+                this.renderList();
+            }, { clazz: "delete" }));
+        }
+        this.append(row);
+        this.renderList();
+    }
+    renderList() {
+        this.list.innerHTML = "";
+        this.list.append(...this.value.map((v, index) => {
+            let badge = new Badge(v);
+            badge.append(new Button('', () => {
+                // remove this item and redraw
+                this.value.splice(index, 1);
+                this.renderList();
+                this.options.callback?.();
+            }, { icon: 'fa-times', style: 'text', color: 'error-color' }));
+            return badge;
+        }));
+    }
+}
+customElements.define('ui-multistringinput', MultiStringInput);
 class JsonInput extends AbstractInput {
     constructor(obj, key) {
         super(obj, key);
@@ -3173,6 +3227,13 @@ class Slider extends HTMLElement {
 }
 customElements.define('ui-slider', Slider);
 
+class Row extends BasicElement {
+}
+customElements.define('ui-row', Row);
+class Column extends BasicElement {
+}
+customElements.define('ui-col', Column);
+
 let css = [
     // URL + "/../ui.css",
     "https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,200;0,300;0,400;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,600;1,700;1,800;1,900&display=swap",
@@ -3202,6 +3263,7 @@ const UI = {
     List,
     Modal,
     MultiSelectInput,
+    MultiStringInput,
     NumberInput,
     Panel,
     SelectInput,
@@ -3231,5 +3293,5 @@ const UI = {
 window["UI"] = UI;
 let createElement = htmlToElement;
 
-export { Badge, BasicElement, Button, Cancel, Card, Code, ContextMenu, Form, Form2, Grid, HashController, HashManager, InputLabel, Json, JsonInput, LabelledInput, List, Modal, MultiSelectInput, NumberInput, Panel, SelectInput, Slider, SliderInput, Spacer, Spinner, Splash, StringInput, Table, Tabs, TextInput, Toast, Toggle, ToggleInput, Viewport, createElement, UI as default, factory, mixin, utils };
+export { Badge, BasicElement, Button, Cancel, Card, Code, Column, ContextMenu, Form, Form2, Grid, HashController, HashManager, InputLabel, Json, JsonInput, LabelledInput, List, Modal, MultiSelectInput, MultiStringInput, NumberInput, Panel, Row, SelectInput, Slider, SliderInput, Spacer, Spinner, Splash, StringInput, Table, Tabs, TextInput, Toast, Toggle, ToggleInput, Viewport, createElement, UI as default, factory, mixin, utils };
 //# sourceMappingURL=ui.js.map

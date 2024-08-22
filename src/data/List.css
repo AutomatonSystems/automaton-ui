@@ -35,7 +35,6 @@
 }
 
 [ui-list] .paging ui-button{
-	width: 30px;
 	text-align: center;
 	background-color: var(--brand-secondary);
 	display: inline-block;

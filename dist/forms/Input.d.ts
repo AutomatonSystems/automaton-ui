@@ -112,6 +112,16 @@ export declare class MultiSelectInput extends AbstractInput<string[]> {
     constructor(obj: any, key: any, options: MultiSelectInputOptions);
     renderList(): void;
 }
+declare type MultiStringInputOptions = {
+    clearButton?: boolean;
+    callback?: Function;
+};
+export declare class MultiStringInput extends AbstractInput<string[]> {
+    options: MultiStringInputOptions;
+    list: HTMLElement;
+    constructor(obj: any, key: any, options: MultiStringInputOptions);
+    renderList(): void;
+}
 export declare class JsonInput extends AbstractInput<string> {
     constructor(obj: any, key: any);
 }

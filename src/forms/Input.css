@@ -4,7 +4,7 @@
 	--color: attr(color);
 	color: var(--color);
 	tab-size: 2;
-	width: 100%;
+	/*width: 100%;*/
 }
 
 [ui-input].error{
@@ -43,4 +43,12 @@
 
 [ui-label] > [ui-button]{
 	color: var(--color-error);
+}
+
+/*********/
+
+ui-multistringinput[ui-input]{
+	display: block;
+    background-color: #ddd;
+    padding: 5px;
 }

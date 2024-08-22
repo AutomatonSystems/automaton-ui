@@ -1,7 +1,7 @@
 import { createBuilderStatusReporter } from "typescript";
 import { BasicElement } from "../BasicElement.js";
 import { Badge } from "../component/Badge.js";
-import UI, { utils } from "../ui.js";
+import UI, { Row, utils } from "../ui.js";
 import { htmlToElement, uuid } from "../utils.js";
 import { Button } from "./Button.js";
 import "./Input.css";
@@ -404,6 +404,73 @@ export class MultiSelectInput extends AbstractInput<string[]>{
 	}
 }
 customElements.define('ui-multiselectinput', MultiSelectInput);
+
+type MultiStringInputOptions = {
+	clearButton?: boolean
+	callback?: Function
+}
+
+export class MultiStringInput extends AbstractInput<string[]>{
+	options: MultiStringInputOptions;
+	list: HTMLElement;
+	constructor(obj: any , key: any, options: MultiStringInputOptions){
+		super(obj, key);
+
+		this.options = options;
+
+		if(!Array.isArray(this.value))
+			this.value = [];
+
+		let list = document.createElement("content");
+		this.list = list;
+		this.append(list);
+
+		// picker
+		let addItem = ()=>{
+			this.value.push(input.value);
+			input.value = "";
+			this.renderList();
+			this.options.callback?.();
+		}
+
+		const DATA = {
+			value: ""
+		}
+		let input = new StringInput(DATA, "value", {});
+		input.addEventListener("keypress", (e)=>{
+			if(e.key == "Enter"){
+				addItem();
+			}
+		})
+		let row = new Row();
+		row.append(input);
+		row.append(new Button("Add", addItem));
+		if(options.clearButton){
+			row.append(new Button("Clear", ()=>{
+				this.value = [];
+				this.renderList();
+			}, {clazz: "delete"}));
+		}
+		this.append(row);
+
+		this.renderList();
+	}
+
+	renderList(){
+		this.list.innerHTML = "";
+		this.list.append(...this.value.map((v: any, index: number)=>{
+			let badge = new Badge(v);
+			badge.append(new Button('', ()=>{
+				// remove this item and redraw
+				this.value.splice(index, 1);
+				this.renderList();
+				this.options.callback?.();
+			}, {icon: 'fa-times', style: 'text', color: 'error-color'}))
+			return badge;
+		}));
+	}
+}
+customElements.define('ui-multistringinput', MultiStringInput);
 
 export class JsonInput extends AbstractInput<string>{
 
