@@ -1,5 +1,5 @@
 import { BasicElement } from "../BasicElement.js";
-export declare type KeyboardShortcutOptions = {
+export type KeyboardShortcutOptions = {
     display?: string;
     event?: () => {};
 };

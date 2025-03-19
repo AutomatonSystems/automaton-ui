@@ -1,5 +1,5 @@
-declare type ElementCallback = (element: HTMLElement) => void;
-declare type SliderOptions = {
+type ElementCallback = (element: HTMLElement) => void;
+type SliderOptions = {
     minElementWidth: number;
     elementMargin: number;
     visibleElementCallback: ElementCallback;

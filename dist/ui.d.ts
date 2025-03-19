@@ -57,10 +57,10 @@ declare const UI: {
         };
         listen(key: string, changeEvent: (value: string) => void): void;
         set(key: string, value: any, passive?: boolean): void;
-        "__#6@#hashPairs"(): string[][];
-        "__#6@#read"(key: string): any;
-        "__#6@#parse"(input: string, type: "string" | "number" | "boolean" | "json"): any;
-        "__#6@#write"(key: string, value: any, passive?: boolean): void;
+        "__#5238@#hashPairs"(): string[][];
+        "__#5238@#read"(key: string): any;
+        "__#5238@#parse"(input: string, type: "string" | "number" | "boolean" | "json"): any;
+        "__#5238@#write"(key: string, value: any, passive?: boolean): void;
     };
     InputLabel: typeof InputLabel;
     Json: typeof Json;
@@ -97,7 +97,8 @@ declare const UI: {
     mixin: typeof mixin;
 };
 declare let createElement: typeof utils.htmlToElement;
-export { createElement };
+declare const html: typeof utils.htmlToElement;
+export { createElement, html };
 export { Row, Column };
 export { BasicElement };
 export { Badge };

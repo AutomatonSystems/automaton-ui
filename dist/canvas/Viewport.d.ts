@@ -1,11 +1,11 @@
 import "./Viewport.css";
 import { BasicElement } from "../BasicElement.js";
-declare type GridLine = {
+type GridLine = {
     step: number;
     offset: number;
     color: string;
 };
-export declare type RenderableHTMLElement = HTMLElement & {
+export type RenderableHTMLElement = HTMLElement & {
     render?: (viewport: Viewport) => void;
     scalar?: number;
     x?: number;

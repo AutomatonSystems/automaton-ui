@@ -2,10 +2,10 @@ import "./Form.css";
 import { BasicElement } from "../BasicElement.js";
 import "./Toggle.js";
 /****** FORM COMPONENTS ******/
-declare type FormInputHideFunction<T> = (value: T, element: HTMLElement) => boolean;
-declare type FormInputOptionsFunction<T> = (value: T) => any[] | Promise<any[]>;
-declare type FormInputAfterRenderFunction<T> = (element: HTMLElement, form: Form<T>) => void;
-declare type FormInputTypeFunction<T> = (value: any, key: string, parent: HTMLElement) => HTMLElement;
+type FormInputHideFunction<T> = (value: T, element: HTMLElement) => boolean;
+type FormInputOptionsFunction<T> = (value: T) => any[] | Promise<any[]>;
+type FormInputAfterRenderFunction<T> = (element: HTMLElement, form: Form<T>) => void;
+type FormInputTypeFunction<T> = (value: any, key: string, parent: HTMLElement) => HTMLElement;
 interface FormTemplateJSON<T> {
     key?: string;
     name?: string;
@@ -29,7 +29,7 @@ interface FormArrayTemplate<T> extends FormTemplateJSON<T> {
 interface FormArrayConfig {
     sortable: boolean;
 }
-export declare type FormTemplate<T> = FormArrayTemplate<T> | FormTemplateJSON<T> | string;
+export type FormTemplate<T> = FormArrayTemplate<T> | FormTemplateJSON<T> | string;
 interface FormStyle {
     parent: string;
     wrap: string;

@@ -1,7 +1,7 @@
 import "./Panel.css";
 import { BasicElement } from "../BasicElement";
 import { Appendable } from "../utils.js";
-export declare type PanelOptions = {
+export type PanelOptions = {
     title?: string;
     clazz?: string | string[];
     buttons?: string;

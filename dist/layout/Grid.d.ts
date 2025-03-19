@@ -1,6 +1,6 @@
 import "./Grid.css";
 import { BasicElement } from "../BasicElement";
-export declare type GridOptions = {
+export type GridOptions = {
     padding?: string;
     columnGap?: string;
     rowGap?: string;

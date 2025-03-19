@@ -1,7 +1,8 @@
-import { terser } from "rollup-plugin-terser";
 import css from 'rollup-plugin-css-only';
 import webWorkerLoader from 'rollup-plugin-web-worker-loader';
 import typescript from '@rollup/plugin-typescript';
+import eol from 'rollup-plugin-eol';
+import terser from '@rollup/plugin-terser';
 
 export default [
 	{
@@ -13,6 +14,10 @@ export default [
 			}),
 			webWorkerLoader({targetPlatform: "browser", inline: true, preserveFileNames: true}),
 			css({ output: 'dist/ui.css' }),
+			eol({
+				outputFiles: true,
+				watchFiles: true,
+			}),
 		], 
 		output: {
 			dir: 'dist',

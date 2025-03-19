@@ -1,11 +1,11 @@
 import "./List.css";
 import { Appendable } from "../utils.js";
 import { BasicElement } from "../BasicElement";
-declare type ItemElementFunction<T> = (item: T) => HTMLElement | Promise<HTMLElement>;
-declare type ValueElement = string | number | boolean;
-declare type ValueFunction<T> = (item: T) => ValueElement;
-declare type DisplayFunction<T> = (item: T) => Appendable | Promise<Appendable>;
-declare type Attr<T> = {
+type ItemElementFunction<T> = (item: T) => HTMLElement | Promise<HTMLElement>;
+type ValueElement = string | number | boolean;
+type ValueFunction<T> = (item: T) => ValueElement;
+type DisplayFunction<T> = (item: T) => Appendable | Promise<Appendable>;
+type Attr<T> = {
     "id": number;
     "name": string;
     "width": string;
@@ -34,17 +34,17 @@ declare type Attr<T> = {
  *  @property {attributeValue} value
  *  @property {attributeDisplayValue} value
  */
-declare type ListOptions<T> = {
+type ListOptions<T> = {
     itemColumns?: number;
     itemsPerPage?: number;
     dedupeFunction?: (t: T) => any;
 };
-declare type Filter = {
+type Filter = {
     attr: string[];
     value: string;
     suggest?: boolean;
 };
-declare type AttrOptions<T> = {
+type AttrOptions<T> = {
     value?: string | ValueFunction<T>;
     render?: string | DisplayFunction<T>;
     display?: {

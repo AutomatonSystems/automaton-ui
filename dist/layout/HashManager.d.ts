@@ -1,15 +1,15 @@
 import { BasicElement } from "../BasicElement.js";
 import "./HashManager.css";
-declare type HashVariableMapperFunction = {
+type HashVariableMapperFunction = {
     name: string;
     set: (obj: any, value: any) => void;
 };
-declare type SlideProperty = number | [number, number];
-declare type HashResponse = false | HTMLElement | [HTMLElement, SlideProperty];
-declare type HashChangeHandler = (value: {
+type SlideProperty = number | [number, number];
+type HashResponse = false | HTMLElement | [HTMLElement, SlideProperty];
+type HashChangeHandler = (value: {
     [index: string]: string | number | boolean | object;
 }) => HashResponse | Promise<HashResponse>;
-declare type BasicHashHandler = {
+type BasicHashHandler = {
     handle: (path: string, oldPath: string) => Promise<HashResponse>;
 };
 export declare class HashHandler {

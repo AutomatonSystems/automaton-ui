@@ -1,6 +1,6 @@
 import { BasicElement } from "../BasicElement.js";
 import "./Input.css";
-declare type AbstractInputOptions = {
+type AbstractInputOptions = {
     callback?: Function;
     class?: string | string[];
     size?: number;
@@ -41,7 +41,7 @@ export declare class AbstractHTMLInput extends HTMLInputElement {
     label(name: string): InputLabel;
     clear(): void;
 }
-export declare type StringInputOptions = AbstractInputOptions & {
+export type StringInputOptions = AbstractInputOptions & {
     options?: (() => Promise<SelectInputOption<string>[]>) | SelectInputOption<string>[];
 };
 export declare class StringInput extends AbstractHTMLInput {
@@ -68,7 +68,7 @@ export declare class NumberInput extends AbstractHTMLInput {
      */
     constructor(obj: any, key: any, options: AbstractInputOptions);
 }
-declare type SliderInputOptions = AbstractInputOptions & {
+type SliderInputOptions = AbstractInputOptions & {
     min?: number;
     max?: number;
     step?: number;
@@ -79,10 +79,10 @@ export declare class SliderInput extends AbstractInput<number> {
     constructor(obj: any, key: any, options: SliderInputOptions);
     update(): void;
 }
-declare type SelectInputOptions<T> = AbstractInputOptions & {
+type SelectInputOptions<T> = AbstractInputOptions & {
     options: (() => Promise<SelectInputOption<T>[]>) | SelectInputOption<T>[];
 };
-declare type SelectInputOption<T> = {
+type SelectInputOption<T> = {
     value: T;
     display: any;
 } | T;
@@ -102,7 +102,7 @@ export declare class SelectInput<T> extends HTMLSelectElement {
      */
     label(name: string): InputLabel;
 }
-declare type MultiSelectInputOptions = {
+type MultiSelectInputOptions = {
     options: any;
     callback?: Function;
 };
@@ -112,7 +112,7 @@ export declare class MultiSelectInput extends AbstractInput<string[]> {
     constructor(obj: any, key: any, options: MultiSelectInputOptions);
     renderList(): void;
 }
-declare type MultiStringInputOptions = {
+type MultiStringInputOptions = {
     clearButton?: boolean;
     callback?: Function;
 };
@@ -128,7 +128,7 @@ export declare class JsonInput extends AbstractInput<string> {
 export declare class TextInput extends AbstractInput<string> {
     constructor(obj: any, key: any);
 }
-declare type ToggleInputOptions = {
+type ToggleInputOptions = {
     allowUnset?: boolean;
 };
 export declare class ToggleInput extends AbstractInput<boolean> {
@@ -149,7 +149,7 @@ export declare class InputLabel extends HTMLLabelElement {
     get value(): any;
     set value(v: any);
 }
-declare type LabelledInputOptions = AbstractInputOptions & {
+type LabelledInputOptions = AbstractInputOptions & {
     name?: string;
 };
 export declare class LabelledInput extends InputLabel {

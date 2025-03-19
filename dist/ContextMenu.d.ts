@@ -1,6 +1,6 @@
 import "./ContextMenu.css";
 import { BasicElement } from "./BasicElement.js";
-declare type ContextItem = {
+type ContextItem = {
     element: HTMLElement;
     hide?: (ele: HTMLElement) => boolean;
 };
@@ -41,7 +41,7 @@ export declare class ContextMenu extends BasicElement {
      */
     addItem(text: string, action: (ele: HTMLElement) => void, hide?: (ele: HTMLElement) => boolean): this;
     addSubMenu(text: string, hide?: (ele: HTMLElement) => boolean): {
-        addItem: (text: string, action: (ele: HTMLElement) => void) => any;
+        addItem: (text: string, action: (ele: HTMLElement) => void) => /*elided*/ any;
     };
     /**
      * Add a line break to the context menu
