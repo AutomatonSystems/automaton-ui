@@ -103,8 +103,8 @@ const UI = {
 window["UI"] = UI;
 
 let createElement = utils.htmlToElement;
-
-export {createElement}
+const html = utils.htmlToElement;
+export {createElement, html};
 
 export {Row, Column}
 
@@ -132,7 +132,6 @@ export {Tabs};
 export {Toast};
 export {Toggle};
 export {Viewport};
-
 export {utils};
 export {factory};
 export {mixin};
