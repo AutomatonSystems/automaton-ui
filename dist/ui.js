@@ -2912,7 +2912,7 @@ class Viewport extends BasicElement {
             this.#lastV = lv;
             // disabiling this - only onchange
             // this.updateAttachments();
-            return;
+            // return;
         }
         this.#lastV = lv;
         let element = this.bounds;
@@ -2976,6 +2976,7 @@ class Viewport extends BasicElement {
                 let x = (attachment.x ?? 0) * scale - v.x;
                 let y = (attachment.y ?? 0) * scale - v.y;
                 let t = `translate(${x * v.zoom}px, ${y * v.zoom}px) scale(${v.zoom * scale})`;
+                console.log("update attachment...", attachment, t);
                 attachment.style.transform = t;
             }
         }

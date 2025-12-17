@@ -13,7 +13,7 @@ export default [
 				tsconfig: './tsconfig.json'
 			}),
 			webWorkerLoader({targetPlatform: "browser", inline: true, preserveFileNames: true}),
-			css({ output: 'dist/ui.css' }),
+			css({ output: 'ui.css' }),
 			eol({
 				outputFiles: true,
 				watchFiles: true,
