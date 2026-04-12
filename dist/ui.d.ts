@@ -57,10 +57,10 @@ declare const UI: {
         };
         listen(key: string, changeEvent: (value: string) => void): void;
         set(key: string, value: any, passive?: boolean): void;
-        "__#5238@#hashPairs"(): string[][];
-        "__#5238@#read"(key: string): any;
-        "__#5238@#parse"(input: string, type: "string" | "number" | "boolean" | "json"): any;
-        "__#5238@#write"(key: string, value: any, passive?: boolean): void;
+        "__#10470@#hashPairs"(): string[][];
+        "__#10470@#read"(key: string): any;
+        "__#10470@#parse"(input: string, type: "string" | "number" | "boolean" | "json"): any;
+        "__#10470@#write"(key: string, value: any, passive?: boolean): void;
     };
     InputLabel: typeof InputLabel;
     Json: typeof Json;

@@ -4,11 +4,11 @@ export type BasicElementOpts = {
 };
 declare const BasicElement_base: {
     new (...args: any[]): {
-        "__#5234@#dropTypeSet": Set<string>;
+        "__#10466@#dropTypeSet": Set<string>;
         droppable: boolean;
         dragdata: Record<string, any>;
         makeDraggable(type?: string, data?: any, handle?: HTMLElement): void;
-        "__#5234@#makeDroppable"(): void;
+        "__#10466@#makeDroppable"(): void;
         onDragOver(type: string, behaviour: (data: any, event: DragEvent, element: HTMLElement) => void): void;
         onDrop(type: string, behaviour: (data: any, event: DragEvent, element: HTMLElement) => void): void;
         accessKey: string;

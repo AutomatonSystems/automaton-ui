@@ -11,9 +11,9 @@ export declare const HashController: {
     getEntry(key: string): HashMapEntry<any>;
     listen(key: string, changeEvent: (value: string) => void): void;
     set(key: string, value: any, passive?: boolean): void;
-    "__#5238@#hashPairs"(): string[][];
-    "__#5238@#read"(key: string): any;
-    "__#5238@#parse"(input: string, type: BasicType): any;
-    "__#5238@#write"(key: string, value: any, passive?: boolean): void;
+    "__#10470@#hashPairs"(): string[][];
+    "__#10470@#read"(key: string): any;
+    "__#10470@#parse"(input: string, type: BasicType): any;
+    "__#10470@#write"(key: string, value: any, passive?: boolean): void;
 };
 export {};

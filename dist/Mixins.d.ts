@@ -3,7 +3,7 @@ type HTMLElementBase = GConstructor<HTMLElement>;
 type ObjectBase = GConstructor<Object>;
 export declare function Readyable<TBase extends ObjectBase>(Base: TBase): {
     new (...args: any[]): {
-        "__#5233@#ready": boolean;
+        "__#10465@#ready": boolean;
         ready: boolean;
         isReady(): Promise<void>;
         constructor: Function;
@@ -17,7 +17,7 @@ export declare function Readyable<TBase extends ObjectBase>(Base: TBase): {
 } & TBase;
 export declare function Draggable<TBase extends HTMLElementBase>(Base: TBase): {
     new (...args: any[]): {
-        "__#5234@#dropTypeSet": Set<string>;
+        "__#10466@#dropTypeSet": Set<string>;
         droppable: boolean;
         dragdata: Record<string, any>;
         /**
@@ -28,7 +28,7 @@ export declare function Draggable<TBase extends HTMLElementBase>(Base: TBase): {
          * @param data
          */
         makeDraggable(type?: string, data?: any, handle?: HTMLElement): void;
-        "__#5234@#makeDroppable"(): void;
+        "__#10466@#makeDroppable"(): void;
         onDragOver(type: string, behaviour: (data: any, event: DragEvent, element: HTMLElement) => void): void;
         onDrop(type: string, behaviour: (data: any, event: DragEvent, element: HTMLElement) => void): void;
         accessKey: string;
